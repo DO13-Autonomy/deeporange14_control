@@ -28,6 +28,7 @@ namespace deeporange14
         tqR_cmd_controller = 0.0;
         stop_ros = false;
         brake_disengaged_threshold = 2.0;
+        delay = 0;
 
         mobilityMsg.tqL_cmd = 0.0;
         mobilityMsg.tqR_cmd = 0.0;
@@ -94,6 +95,7 @@ namespace deeporange14
 
         case AU_0_DEFAULT:
         {
+            prevSt = 0;
             state = AU_1_STARTUP;
             break;
         }
@@ -108,6 +110,7 @@ namespace deeporange14
 
             if(raptor_hb_detected){
                 ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
+                prevSt = 1;
                 state = AU_2_IDLE;
                 break;
             }
@@ -131,19 +134,33 @@ namespace deeporange14
             mission_status="";
 
             // ROS_WARN("In Idle");
+
             if (!raptor_hb_detected)
             {
                 state = AU_1_STARTUP;
                 ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
                 break;
             }
+            else if (prevSt > 1){
+                //  it has returned from fault of below states, add delay
+                if (delay < 1000){
+                    delay++;
+                    break;
+                }else{
+                    prevSt = 1;
+                    break;
+                }
+
+            }
 
             else if(dbw_ros_mode)
             {
                 ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
+                prevSt = 2;
                 state = AU_3_ROS_MODE_EN;
                 break;
             }
+
             else 
             {
                 // do nothing ,stay in same state
@@ -168,7 +185,6 @@ namespace deeporange14
             else if (!dbw_ros_mode)
             {
                 state = AU_2_IDLE;
-
                 ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Out of ROS dbwMode ");
                 break;
             }
@@ -189,6 +205,7 @@ namespace deeporange14
 
             else if (mission_status == "globalPlanReady")
             {
+                prevSt = 3;
                 state = AU_4_DISENGAGING_BRAKES; 
                 ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , disengaging brakes ");
                 break;
@@ -196,7 +213,7 @@ namespace deeporange14
 
             else
             {   
-                ROS_WARN("[AU_3_ROS_MODE_EN] ");
+                ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
                 // Do nothing
                 break;
             }
@@ -240,7 +257,7 @@ namespace deeporange14
 
             else if (speed_state == SPEED_STATE_Ready2Move)
             {
-
+                prevSt = 4;
                 state = AU_5_ROS_CONTROLLED;
                 ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, about to move ");
                 break;
@@ -248,7 +265,7 @@ namespace deeporange14
             else
             {
                 //  Do nothing
-                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, about to move ");
+                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
                 break;
             }
         }
@@ -290,6 +307,7 @@ namespace deeporange14
 
             else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled")
             {
+                prevSt = 5;
                 state = AU_3_ROS_MODE_EN ;
                 ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
                 break;
@@ -297,7 +315,7 @@ namespace deeporange14
             
             else{
                 // do nothing, remain in same state
-                ROS_WARN("[AU_5_ROS_CONTROLLED]: Should not be here");
+                ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
                 break;
 
             }
@@ -305,9 +323,11 @@ namespace deeporange14
         }
 
 
-        default:
+        default:{
+            prevSt = 0;
             ROS_ERROR(" Unknown State, shut down");
             break;
         }
     }
+}
 }

@@ -52,8 +52,7 @@ namespace deeporange14
         //member variables 
         bool raptor_hb_detected;
         bool stack_fault;
-        // bool dbw_ros_en;
-        // bool dbw_ros_controlled;
+    
         bool dbw_ros_mode;
         std::string mission_status;
         float brkL_pr;
@@ -62,6 +61,8 @@ namespace deeporange14
         float tqR_cmd_controller;
         bool stop_ros;
         bool raptorbrakeAck;
+        uint prevSt;
+        uint delay;
 
         allStates state;
         double raptor_hb_timestamp;
