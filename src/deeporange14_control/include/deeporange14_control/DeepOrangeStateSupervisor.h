@@ -58,7 +58,6 @@ namespace deeporange14
         double cmdvel_timestamp; // initializes to ros time now for every new cmd_vel msg 
         uint speed_state; // raptor ready to move state
         uint au_state; // to publish std_msgs to stack
-        double counter;
         float cmdvel_timeout; // allowable timeout
         float raptorhb_timeout; //allowable threshold 
         int update_freq; // time update freq
