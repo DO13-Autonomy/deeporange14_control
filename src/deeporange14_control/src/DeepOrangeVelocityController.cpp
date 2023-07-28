@@ -56,7 +56,7 @@ namespace deeporange14{
 
         // trackwidth=2.60;
         max_velocity=1.6;
-        min_velocity=0.5;
+        min_velocity=-1.0;
         max_omega=1.3;
         min_omega=0.5;
         R_min = 2.0;   // chosen so that tracks do not turn in opposite directions at max curvature
@@ -232,6 +232,9 @@ namespace deeporange14{
     double lat_acc = v * w;
 
     // Applying linear velocity limits to bring it into correct zone
+    if (v < min_velocity){
+      v = min_velocity;  // limited to max forward
+    }
     if (v > max_velocity){
       v = max_velocity;  // limited to max forward
     }

@@ -47,7 +47,7 @@ namespace deeporange14
 
         void supervisorControlUpdate(const ros::TimerEvent& event);
 
-        void updateROSStateMsg();
+        void updateROSState();
 
         //member variables 
         bool raptor_hb_detected;
@@ -66,6 +66,8 @@ namespace deeporange14
         allStates state;
         double raptor_hb_timestamp;
         double cmdvel_timestamp;
+        double stop_ros_timestamp;
+        double mission_update_timestamp;
         uint speed_state;
         uint au_state;
         double counter;
@@ -87,7 +89,7 @@ namespace deeporange14
         ros::Subscriber sub_rosStop;
         ros::Subscriber sub_raptorState;
         ros::Subscriber sub_stopRos;
-        std::string topic_ns = "/deeporange1314";
+        std::string topic_ns = "/deeporange14";
         
         // Init the msg variables
         std_msgs::UInt8 auStateMsg;

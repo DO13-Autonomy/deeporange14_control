@@ -36,6 +36,8 @@ namespace deeporange14
         // Recording status (currently recording / not recording)
         bool isRecording;
         bool islog;
+
+        std::string topic_ns = "/deeporange1314";
     };
 }
 

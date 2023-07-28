@@ -18,7 +18,7 @@ namespace deeporange14 {
         ~VelocityController();
 
         // namespace string
-        std::string topic_ns="/deeporange1314";
+        std::string topic_ns="/deeporange14";
         
         // publisher and subscriber
         ros::Subscriber sub_cmd_vel_;

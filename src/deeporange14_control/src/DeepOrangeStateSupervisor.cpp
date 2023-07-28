@@ -22,6 +22,7 @@ namespace deeporange14
         raptor_hb_detected = false;
         stack_fault = true;
         dbw_ros_mode = false;
+        stop_ros_timestamp = 0.0;
         // dbw_ros_controlled = false;
         mission_status = "";
         tqL_cmd_controller = 0.0;
@@ -51,6 +52,7 @@ namespace deeporange14
     }
     void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPtr &missionStatus)
     {
+        mission_update_timestamp = ros::Time::now().toSec();
         mission_status = missionStatus->data;
     }
     void DeepOrangeStateSupervisor::getTorqueValues(const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues)
@@ -60,13 +62,13 @@ namespace deeporange14
     }
     void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg)
     {
-        stop_ros = stopRosMsg->data;
+        stop_ros_timestamp = ros::Time::now().toSec();
+        // stop_ros = stopRosMsg->data;
     }
     void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg)
     {
         raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
         dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED ;
-    
         brkL_pr = raptorMsg->brk_Lpres; 
         brkR_pr = raptorMsg->brk_Rpres; 
         speed_state = raptorMsg->speed_state;
@@ -76,17 +78,19 @@ namespace deeporange14
     void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &event)
     {
         /* Always continue to publish ROS state  */
-        stack_fault = (std::abs(cmdvel_timestamp - ros::Time::now().toSec()) > cmdvel_timeout);
-        raptor_hb_detected = (std::abs(raptor_hb_timestamp - ros::Time::now().toSec()) < raptorhb_timeout);
+        stack_fault = ros::Time::now().toSec() - cmdvel_timestamp > cmdvel_timeout;
+        raptor_hb_detected = ros::Time::now().toSec() - raptor_hb_timestamp < raptorhb_timeout;
+        stop_ros = (ros::Time::now().toSec() - stop_ros_timestamp) > 5 ? 1:0;
+        mission_status = (ros::Time::now().toSec() - mission_update_timestamp > 5) ? mission_status:"";
 
-        DeepOrangeStateSupervisor::updateROSStateMsg();
+        DeepOrangeStateSupervisor::updateROSState();
         mobilityMsg.au_state = state;
         auStateMsg.data = state;
         pub_states.publish(auStateMsg);
         pub_mobility.publish(mobilityMsg);
     }
 
-    void DeepOrangeStateSupervisor::updateROSStateMsg()
+    void DeepOrangeStateSupervisor::updateROSState()
     {
 
         switch (state)
@@ -103,7 +107,7 @@ namespace deeporange14
             mobilityMsg.tqR_cmd = 0.0;
             mobilityMsg.brkL_cmd = 1.0;
             mobilityMsg.brkR_cmd = 1.0;
-            mission_status="";
+            // mission_status="";
             // ROS_WARN("In startup");
 
             if(raptor_hb_detected){
@@ -128,7 +132,7 @@ namespace deeporange14
             mobilityMsg.tqR_cmd = 0.0;
             mobilityMsg.brkL_cmd = 1.0;
             mobilityMsg.brkR_cmd = 1.0;
-            mission_status="";
+            // mission_status="";
 
             // ROS_WARN("In Idle");
             if (!raptor_hb_detected)
@@ -181,6 +185,7 @@ namespace deeporange14
             else if (stop_ros)
             {
                 //  go backuint8 left_brkPressure
+                // stop_ros = false;
                 state = AU_2_IDLE;
                 ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:stop button is pressed ");
                 break;
@@ -190,6 +195,7 @@ namespace deeporange14
             else if (mission_status == "globalPlanReady")
             {
                 state = AU_4_DISENGAGING_BRAKES; 
+                // mission_status="";
                 ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , disengaging brakes ");
                 break;
             }
@@ -234,6 +240,7 @@ namespace deeporange14
             {
                 //  go back to idle
                 state = AU_2_IDLE;
+                // stop_ros = false;
                 ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:stop button is pressed ");
                 break;
             }
@@ -284,6 +291,7 @@ namespace deeporange14
             {
                 //  go back to idle
                 state = AU_2_IDLE;
+                // stop_ros = false;
                 ROS_WARN("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
                 break;
             }
