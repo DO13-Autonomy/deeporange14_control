@@ -78,7 +78,7 @@ namespace deeporange14
         
         // Publishers
         ros::Timer timer;
-        ros::Publisher pub_mobility;
+        ros::Publisher pub_mobility; 
         ros::Publisher pub_states;
 
         // Subscribers

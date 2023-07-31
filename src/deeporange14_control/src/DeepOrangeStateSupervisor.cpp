@@ -1,3 +1,4 @@
+/*This class acts as a StateMachine and transitions into correct state based on Raptor, Autonomy Stack information*/
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
 
 namespace deeporange14
@@ -7,7 +8,6 @@ namespace deeporange14
     {
 
         // Instantiate sub/pubs
-
         sub_missionStatus = nh.subscribe(std::string(topic_ns + "/mission_status"), 10, &DeepOrangeStateSupervisor::getMissionStatus, this, ros::TransportHints().tcpNoDelay(true));
         sub_stopRos = nh.subscribe(std::string(topic_ns + "/stop_ros"), 10, &DeepOrangeStateSupervisor::getStopRos, this, ros::TransportHints().tcpNoDelay(true));
         sub_rosController = nh.subscribe(std::string(topic_ns + "/cmd_trq"), 10, &DeepOrangeStateSupervisor::getTorqueValues, this, ros::TransportHints().tcpNoDelay(true));
@@ -15,8 +15,8 @@ namespace deeporange14
         sub_cmdVel = nh.subscribe(std::string(topic_ns + "/cmd_vel"), 10, &DeepOrangeStateSupervisor::checkStackStatus, this, ros::TransportHints().tcpNoDelay(true));
         pub_mobility = nh.advertise<deeporange14_msgs::MobilityMsg>(std::string(topic_ns + "/cmd_mobility"), 10, this);
         pub_states = nh.advertise<std_msgs::UInt8>(std::string(topic_ns + "/au_states"), 10, this);
-        /* Initiate ROS State with a Startup state to be safe. This state will be published till the ...
-        timer object intentionally changes it.Default Node is On and it is running continuously in linux service*/
+        /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a True. This state will be published till the ...
+        timer object at 50Hz update_freq. */
 
         state = AU_0_DEFAULT;
         raptor_hb_detected = false;
@@ -24,12 +24,15 @@ namespace deeporange14
         dbw_ros_mode = false;
         stop_ros_timestamp = 0.0;
         // dbw_ros_controlled = false;
+
         mission_status = "";
         tqL_cmd_controller = 0.0;
         tqR_cmd_controller = 0.0;
         stop_ros = false;
         brake_disengaged_threshold = 2.0;
+        delay = 0;
 
+        //  Initiate the mobility torque and brake commands to avoid garbage value initialization
         mobilityMsg.tqL_cmd = 0.0;
         mobilityMsg.tqR_cmd = 0.0;
         mobilityMsg.brkL_cmd = 1.0;
@@ -39,6 +42,8 @@ namespace deeporange14
         priv_nh.getParam("cmdvel_timeout", cmdvel_timeout);
         priv_nh.getParam("raptorhb_timeout", raptorhb_timeout);
         priv_nh.getParam("update_freq", update_freq);
+        desired_delay = 20; // Adding 20 secs delay after fault to wait for transition
+        delay_threshold = desired_delay * update_freq; 
 
         // Set up Timer - with calback to publish ROS state all the time that the node is running
         timer = nh.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
@@ -48,7 +53,6 @@ namespace deeporange14
     void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg)
     {
         cmdvel_timestamp = ros::Time::now().toSec();
-        // ROS_WARN("cmd_vel timestamp : %f",cmdvel_timestamp);
     }
     void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPtr &missionStatus)
     {
@@ -68,7 +72,7 @@ namespace deeporange14
     void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg)
     {
         raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
-        dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED ;
+        dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED ; // Ros mode 3/4 is acceptable dbw ros modes for transition
         brkL_pr = raptorMsg->brk_Lpres; 
         brkR_pr = raptorMsg->brk_Rpres; 
         speed_state = raptorMsg->speed_state;
@@ -84,10 +88,11 @@ namespace deeporange14
         mission_status = (ros::Time::now().toSec() - mission_update_timestamp > 5) ? mission_status:"";
 
         DeepOrangeStateSupervisor::updateROSState();
+
         mobilityMsg.au_state = state;
         auStateMsg.data = state;
-        pub_states.publish(auStateMsg);
-        pub_mobility.publish(mobilityMsg);
+        pub_states.publish(auStateMsg); // Additional standard msg for stack side 
+        pub_mobility.publish(mobilityMsg); // custom deeporange14 msg for DBW Can node
     }
 
     void DeepOrangeStateSupervisor::updateROSState()
@@ -98,6 +103,7 @@ namespace deeporange14
 
         case AU_0_DEFAULT:
         {
+            prevSt = 0; 
             state = AU_1_STARTUP;
             break;
         }
@@ -112,13 +118,14 @@ namespace deeporange14
 
             if(raptor_hb_detected){
                 ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
+                prevSt = 1;
                 state = AU_2_IDLE;
                 break;
             }
             else
             {
                 // do nothing , stay in same state 
-                ROS_WARN("[AU_1_STARTUP]:Raptor Handshake failed or not established yet");
+                ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
                 break;
             }
 
@@ -135,19 +142,33 @@ namespace deeporange14
             // mission_status="";
 
             // ROS_WARN("In Idle");
+
             if (!raptor_hb_detected)
             {
                 state = AU_1_STARTUP;
                 ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
                 break;
             }
+            else if (prevSt > 1){
+                //  it has returned from fault of below states, add delay
+                if (delay < delay_threshold){
+                    delay++;
+                    break;
+                }else{
+                    prevSt = 1;
+                    break;
+                }
+
+            }
 
             else if(dbw_ros_mode)
             {
                 ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
+                prevSt = 2;
                 state = AU_3_ROS_MODE_EN;
                 break;
             }
+
             else 
             {
                 // do nothing ,stay in same state
@@ -172,7 +193,6 @@ namespace deeporange14
             else if (!dbw_ros_mode)
             {
                 state = AU_2_IDLE;
-
                 ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Out of ROS dbwMode ");
                 break;
             }
@@ -194,6 +214,7 @@ namespace deeporange14
 
             else if (mission_status == "globalPlanReady")
             {
+                prevSt = 3;
                 state = AU_4_DISENGAGING_BRAKES; 
                 // mission_status="";
                 ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , disengaging brakes ");
@@ -202,7 +223,7 @@ namespace deeporange14
 
             else
             {   
-                ROS_WARN("[AU_3_ROS_MODE_EN] ");
+                ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
                 // Do nothing
                 break;
             }
@@ -247,7 +268,7 @@ namespace deeporange14
 
             else if (speed_state == SPEED_STATE_Ready2Move)
             {
-
+                prevSt = 4;
                 state = AU_5_ROS_CONTROLLED;
                 ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, about to move ");
                 break;
@@ -255,7 +276,7 @@ namespace deeporange14
             else
             {
                 //  Do nothing
-                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, about to move ");
+                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
                 break;
             }
         }
@@ -298,6 +319,7 @@ namespace deeporange14
 
             else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled")
             {
+                prevSt = 5;
                 state = AU_3_ROS_MODE_EN ;
                 ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
                 break;
@@ -305,7 +327,7 @@ namespace deeporange14
             
             else{
                 // do nothing, remain in same state
-                ROS_WARN("[AU_5_ROS_CONTROLLED]: Should not be here");
+                ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
                 break;
 
             }
@@ -313,9 +335,11 @@ namespace deeporange14
         }
 
 
-        default:
+        default:{
+            prevSt = 0;
             ROS_ERROR(" Unknown State, shut down");
             break;
         }
     }
+}
 }

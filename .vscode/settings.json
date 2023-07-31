@@ -1,0 +1,12 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/devel/lib/python3/dist-packages",
+        "/home/administrator/phoenix-source/clemson_deeporange_latest/phoenix-r1/install/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/devel/lib/python3/dist-packages",
+        "/home/administrator/phoenix-source/clemson_deeporange_latest/phoenix-r1/install/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
+}
