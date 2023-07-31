@@ -62,6 +62,10 @@ namespace deeporange14
         float tqR_cmd_controller;
         bool stop_ros;
         bool raptorbrakeAck;
+        int delay;
+        int desired_delay;
+        int delay_threshold;
+        int prevSt;
 
         allStates state;
         double raptor_hb_timestamp;

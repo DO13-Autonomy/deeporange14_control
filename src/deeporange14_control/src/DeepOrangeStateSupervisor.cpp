@@ -84,8 +84,8 @@ namespace deeporange14
         /* Always continue to publish ROS state  */
         stack_fault = ros::Time::now().toSec() - cmdvel_timestamp > cmdvel_timeout;
         raptor_hb_detected = ros::Time::now().toSec() - raptor_hb_timestamp < raptorhb_timeout;
-        stop_ros = (ros::Time::now().toSec() - stop_ros_timestamp) > 5 ? 1:0;
-        mission_status = (ros::Time::now().toSec() - mission_update_timestamp > 5) ? mission_status:"";
+        stop_ros = (ros::Time::now().toSec() - stop_ros_timestamp) < 5 ? 1:0;
+        mission_status = (ros::Time::now().toSec() - mission_update_timestamp < 5) ? mission_status:"";
 
         DeepOrangeStateSupervisor::updateROSState();
 
