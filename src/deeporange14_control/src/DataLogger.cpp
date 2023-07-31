@@ -14,7 +14,7 @@ namespace deeporange14
     DataLogger::DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
     {
         // Obtain ros::Subscriber object
-        sub_raptor_ = node.subscribe(std::string(topic_ns + "/raptor_state"), 10, &DataLogger::recordRosbagAndCANlog, this, ros::TransportHints().tcpNoDelay(true));
+        sub_raptor_ = node.subscribe(topic_ns + std::string("/raptor_state"), 10, &DataLogger::recordRosbagAndCANlog, this, ros::TransportHints().tcpNoDelay(true));
         
         // Initialize recording state to false
         isRecording = false;
@@ -24,8 +24,9 @@ namespace deeporange14
 
     void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg)
     {
-        if (!isRecording && (msg->system_state == 8))
+        if (!isRecording && msg->log_cmd)
         {
+            ROS_INFO("Entered Data logger");
             // Obtaining timestamp (EST) to name ROS bag and CAN dump
             boost::posix_time::ptime my_posix_time = ros::Time::now().toBoost();
             typedef boost::date_time::local_adjustor<boost::posix_time::ptime, -5, boost::posix_time::us_dst> us_eastern;
@@ -45,15 +46,15 @@ namespace deeporange14
             // Record CAN log for all CAN buses combined
             system(("candump any -ta >" + can_log_name + " &").c_str());
             // Record ROS bags for relevant topics only
-            system(("rosbag record -e '(.*)deeporange14(.*)' -e '(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e '(.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x '(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x '(.*)goto_object_behavior(.*)' -x '(.*)local_costmap(.*)' -x '(.*)omnigraph(.*)' -x '(.*)point_cloud_pipeline(.*)' -x '(.*)point_cloud_cache(.*)' -e '(.*)local_planner(.*)' -e '(.*)odom(.*)' -e '(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
+            system(("rosbag record -e '(.*)cmd_mobility(.*)' -e '(.*)cmd_vel_reprojected(.*)' -e '(.*)cmd_trq(.*)' -e '(.*)pid_components(.*)' -e '(.*)remapping_state(.*)' -e '(.*)brake_command(.*)' -e '(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e '(.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x '(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x '(.*)goto_object_behavior(.*)' -x '(.*)local_costmap(.*)' -x '(.*)omnigraph(.*)' -x '(.*)point_cloud_pipeline(.*)' -x '(.*)point_cloud_cache(.*)' -e '(.*)local_planner(.*)' -e '(.*)odom(.*)' -e '(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
             //system(("rosbag record -a -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
 
             // Update recording state
             isRecording = true;
             ROS_INFO("Started data recording");
-            ROS_INFO("Current System State = %d", msg->system_state);
+            //ROS_INFO("Current System State = %d", msg->system_state);
         }
-        else if (isRecording && (msg->system_state == 6 || msg->system_state == 31 || msg->system_state >= 200))
+        else if (isRecording && !msg->log_cmd)
         {
             // Wait for 10 seconds before killing data logging to capture crucial data in case of system error
             ros::Duration(10).sleep();
