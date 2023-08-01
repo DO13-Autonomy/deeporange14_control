@@ -18,6 +18,9 @@ namespace deeporange14
         
         // Initialize recording state to false
         isRecording = false;
+
+        kill_timer = 400; // at 50 Hz, 400 should be 8 seconds
+        logging_counter = 200;
     }
     
     DataLogger::~DataLogger(){}
@@ -26,6 +29,7 @@ namespace deeporange14
     {
         if (!isRecording && msg->log_cmd)
         {
+            ros::param::set("/log_status", 1);
             ROS_INFO("Entered Data logger");
             // Obtaining timestamp (EST) to name ROS bag and CAN dump
             boost::posix_time::ptime my_posix_time = ros::Time::now().toBoost();
@@ -34,8 +38,8 @@ namespace deeporange14
             std::string iso_time_str = boost::posix_time::to_iso_string(my_posix_time);
             std::string file_name_header = std::string("do14_") + iso_time_str.substr(0,4) + std::string("-") + iso_time_str.substr(4,2) + std::string("-") + iso_time_str.substr(6,2) + 
                         std::string("_") + iso_time_str.substr(9,2) + std::string("-") + iso_time_str.substr(11,2) + std::string("-") + iso_time_str.substr(13,2);
-            std::string can_log_name = file_name_header + std::string(".CAN.log");
-            std::string ros_bag_name = file_name_header + std::string(".ROS.bag");
+            can_log_name = file_name_header + std::string(".CAN.log");
+            ros_bag_name = file_name_header + std::string(".ROS.bag");
             std::string logs_dir = std::string("~/do14_logs/");
             can_log_name = logs_dir + can_log_name;
             ros_bag_name = logs_dir + ros_bag_name;
@@ -51,21 +55,60 @@ namespace deeporange14
 
             // Update recording state
             isRecording = true;
+            
             ROS_INFO("Started data recording");
             //ROS_INFO("Current System State = %d", msg->system_state);
         }
         else if (isRecording && !msg->log_cmd)
         {
             // Wait for 10 seconds before killing data logging to capture crucial data in case of system error
-            ros::Duration(10).sleep();
+            //ros::Duration(10).sleep();
+           
+            if (kill_timer > 0){
+                kill_timer--;
+                return;
+            }
+            else {
+                // Kill rosbag record and CAN logging
+                system("rosnode kill /rosbag_recording");
+                system("killall -SIGKILL candump");
 
-            // Kill rosbag record and CAN logging
-            system("rosnode kill /rosbag_recording");
-            system("killall -SIGKILL candump");
-
-            // Update recording state
-            isRecording = false;
-            ROS_INFO("Rosbag record and CAN dump killed");
+                // Update recording state
+                isRecording = false;
+                kill_timer = 400; // reinitialized for next recording
+                ROS_INFO("Rosbag record and CAN dump killed");
+                ros::param::set("/log_status", 0);
+            }
         }
+        // this->monitorFileSize(can_log_name, ros_bag_name);
     }
+
+    // void DataLogger::monitorFileSize(std::string &can_file, std::string &ros_bag) {
+    //         if (logging_counter == 100){
+    //             // Check for file size after every 2 second
+    //             can_log_size = system(("$stat -c %s " + can_file+ " &").c_str());
+    //             ros_bag_size = system(("$stat -c %s " + ros_bag + ".active"+ " &").c_str());
+    //         }
+    //         if (logging_counter == 0) {
+    //             // Check for file size again after every 4 second
+    //             curr_ros_bag_size = system(("$stat -c %s " + ros_bag + ".active"+ " &").c_str());
+    //             curr_can_log_size = system(("$stat -c %s " + can_file+ " &").c_str());
+
+    //             if(curr_ros_bag_size-ros_bag_size == 0) {
+    //                 ROS_WARN("ROS bag size not increasing. No new ROS data is being recorded!");  
+    //                 ros::param::set("/log_status", 0);              
+    //             }
+    //             if(curr_can_log_size-can_log_size == 0) {
+    //                 ROS_WARN("CAN log file size not increasing. No new CAN data is being recorded!");
+    //                 ros::param::set("/log_status", 0);
+    //             }
+    //             logging_counter = 200; // reinitialized for next recording
+    //         }
+    //         logging_counter--;
+    // }
 }
+
+
+
+
+

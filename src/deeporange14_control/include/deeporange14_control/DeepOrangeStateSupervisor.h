@@ -93,7 +93,7 @@ namespace deeporange14
         ros::Subscriber sub_rosStop;
         ros::Subscriber sub_raptorState;
         ros::Subscriber sub_stopRos;
-        std::string topic_ns = "/deeporange14";
+        std::string topic_ns = "/deeporange1314";
         
         // Init the msg variables
         std_msgs::UInt8 auStateMsg;

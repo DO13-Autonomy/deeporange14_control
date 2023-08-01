@@ -105,6 +105,7 @@ namespace deeporange14
         {
             prevSt = 0; 
             state = AU_1_STARTUP;
+            ROS_INFO("In Default 0 st");
             break;
         }
         case AU_1_STARTUP:
@@ -114,7 +115,7 @@ namespace deeporange14
             mobilityMsg.brkL_cmd = 1.0;
             mobilityMsg.brkR_cmd = 1.0;
             // mission_status="";
-            // ROS_WARN("In startup");
+            // ROS_INFO("In startup State");
 
             if(raptor_hb_detected){
                 ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
@@ -125,7 +126,7 @@ namespace deeporange14
             else
             {
                 // do nothing , stay in same state 
-                ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
+                // ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
                 break;
             }
 
@@ -140,7 +141,7 @@ namespace deeporange14
             mobilityMsg.brkL_cmd = 1.0;
             mobilityMsg.brkR_cmd = 1.0;
             // mission_status="";
-
+            // ROS_INFO("In Idle State");
             // ROS_WARN("In Idle");
 
             if (!raptor_hb_detected)
@@ -172,7 +173,7 @@ namespace deeporange14
             else 
             {
                 // do nothing ,stay in same state
-                ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled"); 
+                // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled"); 
                 break;
             }
         }
@@ -217,13 +218,13 @@ namespace deeporange14
                 prevSt = 3;
                 state = AU_4_DISENGAGING_BRAKES; 
                 // mission_status="";
-                ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , disengaging brakes ");
+                ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , transitioning to disengaging brakes ");
                 break;
             }
 
             else
             {   
-                ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
+                // ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
                 // Do nothing
                 break;
             }
@@ -270,13 +271,13 @@ namespace deeporange14
             {
                 prevSt = 4;
                 state = AU_5_ROS_CONTROLLED;
-                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, about to move ");
+                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, transitioning to Ros controlled, about to move ");
                 break;
             }
             else
             {
                 //  Do nothing
-                ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
+                // ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
                 break;
             }
         }
@@ -313,7 +314,7 @@ namespace deeporange14
                 //  go back to idle
                 state = AU_2_IDLE;
                 // stop_ros = false;
-                ROS_WARN("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
+                ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
                 break;
             }
 
@@ -321,13 +322,13 @@ namespace deeporange14
             {
                 prevSt = 5;
                 state = AU_3_ROS_MODE_EN ;
-                ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
+                ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
                 break;
             }
             
             else{
                 // do nothing, remain in same state
-                ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
+                // ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
                 break;
 
             }

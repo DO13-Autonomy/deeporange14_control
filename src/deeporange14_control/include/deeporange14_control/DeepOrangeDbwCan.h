@@ -120,7 +120,7 @@ namespace deeporange14
 
         // Param to retrive 
         int log_st;
-        std::string topic_ns = "/deeporange14";
+        std::string topic_ns = "/deeporange1314";
         
     };
 } // deeporange_dbw_ros
