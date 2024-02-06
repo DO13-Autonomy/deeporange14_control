@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.cmake.em
 
-message(STATUS "deeporange14_msgs: 5 messages, 0 services")
+message(STATUS "deeporange14_msgs: 6 messages, 0 services")
 
 set(MSG_I_FLAGS "-Ideeporange14_msgs:/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs;-Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg;-Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg")
 
@@ -42,6 +42,11 @@ add_custom_target(_deeporange14_msgs_generate_messages_check_deps_${_filename}
   COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "deeporange14_msgs" "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" "std_msgs/Header"
 )
 
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
+add_custom_target(_deeporange14_msgs_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "deeporange14_msgs" "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" ""
+)
+
 #
 #  langs = gencpp;geneus;genlisp;gennodejs;genpy
 #
@@ -78,6 +83,12 @@ _generate_msg_cpp(deeporange14_msgs
   "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/deeporange14_msgs
 )
+_generate_msg_cpp(deeporange14_msgs
+  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/deeporange14_msgs
+)
 
 ### Generating Services
 
@@ -102,6 +113,8 @@ add_dependencies(deeporange14_msgs_generate_messages_cpp _deeporange14_msgs_gene
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/TorqueCmdStamped.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_cpp _deeporange14_msgs_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" NAME_WE)
+add_dependencies(deeporange14_msgs_generate_messages_cpp _deeporange14_msgs_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_cpp _deeporange14_msgs_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -143,6 +156,12 @@ _generate_msg_eus(deeporange14_msgs
   "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/deeporange14_msgs
 )
+_generate_msg_eus(deeporange14_msgs
+  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/deeporange14_msgs
+)
 
 ### Generating Services
 
@@ -167,6 +186,8 @@ add_dependencies(deeporange14_msgs_generate_messages_eus _deeporange14_msgs_gene
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/TorqueCmdStamped.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_eus _deeporange14_msgs_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" NAME_WE)
+add_dependencies(deeporange14_msgs_generate_messages_eus _deeporange14_msgs_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_eus _deeporange14_msgs_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -208,6 +229,12 @@ _generate_msg_lisp(deeporange14_msgs
   "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/deeporange14_msgs
 )
+_generate_msg_lisp(deeporange14_msgs
+  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/deeporange14_msgs
+)
 
 ### Generating Services
 
@@ -232,6 +259,8 @@ add_dependencies(deeporange14_msgs_generate_messages_lisp _deeporange14_msgs_gen
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/TorqueCmdStamped.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_lisp _deeporange14_msgs_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" NAME_WE)
+add_dependencies(deeporange14_msgs_generate_messages_lisp _deeporange14_msgs_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_lisp _deeporange14_msgs_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -273,6 +302,12 @@ _generate_msg_nodejs(deeporange14_msgs
   "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/deeporange14_msgs
 )
+_generate_msg_nodejs(deeporange14_msgs
+  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/deeporange14_msgs
+)
 
 ### Generating Services
 
@@ -297,6 +332,8 @@ add_dependencies(deeporange14_msgs_generate_messages_nodejs _deeporange14_msgs_g
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/TorqueCmdStamped.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_nodejs _deeporange14_msgs_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" NAME_WE)
+add_dependencies(deeporange14_msgs_generate_messages_nodejs _deeporange14_msgs_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_nodejs _deeporange14_msgs_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -338,6 +375,12 @@ _generate_msg_py(deeporange14_msgs
   "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/deeporange14_msgs
 )
+_generate_msg_py(deeporange14_msgs
+  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/deeporange14_msgs
+)
 
 ### Generating Services
 
@@ -362,6 +405,8 @@ add_dependencies(deeporange14_msgs_generate_messages_py _deeporange14_msgs_gener
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/TorqueCmdStamped.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_py _deeporange14_msgs_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/AuStatusMsg.msg" NAME_WE)
+add_dependencies(deeporange14_msgs_generate_messages_py _deeporange14_msgs_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/deeporange14_msgs/msgs/PIDComponentsMsg.msg" NAME_WE)
 add_dependencies(deeporange14_msgs_generate_messages_py _deeporange14_msgs_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility

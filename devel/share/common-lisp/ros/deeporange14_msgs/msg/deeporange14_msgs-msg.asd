@@ -11,6 +11,8 @@
     (:file "_package_MissionStatus" :depends-on ("_package"))
     (:file "MobilityMsg" :depends-on ("_package_MobilityMsg"))
     (:file "_package_MobilityMsg" :depends-on ("_package"))
+    (:file "PIDComponentsMsg" :depends-on ("_package_PIDComponentsMsg"))
+    (:file "_package_PIDComponentsMsg" :depends-on ("_package"))
     (:file "RaptorStateMsg" :depends-on ("_package_RaptorStateMsg"))
     (:file "_package_RaptorStateMsg" :depends-on ("_package"))
     (:file "TorqueCmdStamped" :depends-on ("_package_TorqueCmdStamped"))

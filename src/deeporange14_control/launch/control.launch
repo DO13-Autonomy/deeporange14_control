@@ -3,8 +3,8 @@
   <arg name="use_socketcan" default="true" />
   <arg name="use_kvaser" default="false" />
   <arg name="socketcan_device" default="can0" />  <!-- vehicle's CAN1-->
-  <arg name="rtk_check_timer" default="50"/> 
-  <arg name="do_ns" default="/deeporange14/"/>  
+  <!-- <arg name="rtk_check_timer" default="50"/>  -->
+  <!-- <arg name="do_ns" default="/deeporange14/"/>   -->
 
   <node pkg="deeporange14_control" type="deeporange14_control_dbwnode" name="deeporange14" output="screen">
     

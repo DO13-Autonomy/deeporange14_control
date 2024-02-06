@@ -1693,6 +1693,19 @@ _deeporange14_msgs_generate_messages_check_deps_AuStatusMsg/fast:
 .PHONY : _deeporange14_msgs_generate_messages_check_deps_AuStatusMsg/fast
 
 #=============================================================================
+# Target rules for targets named _deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg
+
+# Build rule for target.
+_deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 _deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg
+.PHONY : _deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg
+
+# fast build rule for target.
+_deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg/fast:
+	$(MAKE) $(MAKESILENT) -f deeporange14_msgs/CMakeFiles/_deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg.dir/build.make deeporange14_msgs/CMakeFiles/_deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg.dir/build
+.PHONY : _deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg/fast
+
+#=============================================================================
 # Target rules for targets named deeporange14_msgs_generate_messages_cpp
 
 # Build rule for target.
@@ -4234,6 +4247,7 @@ help:
 	@echo "... _deeporange14_msgs_generate_messages_check_deps_AuStatusMsg"
 	@echo "... _deeporange14_msgs_generate_messages_check_deps_MissionStatus"
 	@echo "... _deeporange14_msgs_generate_messages_check_deps_MobilityMsg"
+	@echo "... _deeporange14_msgs_generate_messages_check_deps_PIDComponentsMsg"
 	@echo "... _deeporange14_msgs_generate_messages_check_deps_RaptorStateMsg"
 	@echo "... _deeporange14_msgs_generate_messages_check_deps_TorqueCmdStamped"
 	@echo "... _pdu_msgs_generate_messages_check_deps_FuseReport"

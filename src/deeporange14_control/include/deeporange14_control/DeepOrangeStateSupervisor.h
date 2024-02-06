@@ -47,12 +47,13 @@ namespace deeporange14
 
         void supervisorControlUpdate(const ros::TimerEvent& event);
 
-        void updateROSStateMsg();
+        void updateROSState();
 
         //member variables 
         bool raptor_hb_detected;
         bool stack_fault;
-    
+        // bool dbw_ros_en;
+        // bool dbw_ros_controlled;
         bool dbw_ros_mode;
         std::string mission_status;
         float brkL_pr;
@@ -61,12 +62,16 @@ namespace deeporange14
         float tqR_cmd_controller;
         bool stop_ros;
         bool raptorbrakeAck;
-        uint prevSt;
-        uint delay;
+        int delay;
+        int desired_delay;
+        int delay_threshold;
+        int prevSt;
 
         allStates state;
         double raptor_hb_timestamp;
         double cmdvel_timestamp;
+        double stop_ros_timestamp;
+        double mission_update_timestamp;
         uint speed_state;
         uint au_state;
         double counter;
@@ -77,7 +82,7 @@ namespace deeporange14
         
         // Publishers
         ros::Timer timer;
-        ros::Publisher pub_mobility;
+        ros::Publisher pub_mobility; 
         ros::Publisher pub_states;
 
         // Subscribers

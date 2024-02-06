@@ -19,7 +19,7 @@ add_custom_target(pdu_msgs_generate_messages ALL)
 
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg" NAME_WE)
 add_custom_target(_pdu_msgs_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "pdu_msgs" "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg" "pdu_msgs/FuseStatus:std_msgs/Header"
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "pdu_msgs" "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg" "std_msgs/Header:pdu_msgs/FuseStatus"
 )
 
 get_filename_component(_filename "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg" NAME_WE)
@@ -56,7 +56,7 @@ add_custom_target(_pdu_msgs_generate_messages_check_deps_${_filename}
 _generate_msg_cpp(pdu_msgs
   "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg"
   "${MSG_I_FLAGS}"
-  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg"
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/pdu_msgs
 )
 _generate_msg_cpp(pdu_msgs
@@ -129,7 +129,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS pdu_msgs_generate_messages_cpp)
 _generate_msg_eus(pdu_msgs
   "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg"
   "${MSG_I_FLAGS}"
-  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg"
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/pdu_msgs
 )
 _generate_msg_eus(pdu_msgs
@@ -202,7 +202,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS pdu_msgs_generate_messages_eus)
 _generate_msg_lisp(pdu_msgs
   "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg"
   "${MSG_I_FLAGS}"
-  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg"
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/pdu_msgs
 )
 _generate_msg_lisp(pdu_msgs
@@ -275,7 +275,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS pdu_msgs_generate_messages_lisp)
 _generate_msg_nodejs(pdu_msgs
   "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg"
   "${MSG_I_FLAGS}"
-  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg"
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/pdu_msgs
 )
 _generate_msg_nodejs(pdu_msgs
@@ -348,7 +348,7 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS pdu_msgs_generate_messages_nodejs)
 _generate_msg_py(pdu_msgs
   "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseReport.msg"
   "${MSG_I_FLAGS}"
-  "/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/administrator/Documents/DEEPORANGE14/deeporange14_control/src/raptor-dbw-ros/pdu_msgs/msg/FuseStatus.msg"
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/pdu_msgs
 )
 _generate_msg_py(pdu_msgs

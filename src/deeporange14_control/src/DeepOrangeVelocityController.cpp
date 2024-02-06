@@ -8,7 +8,10 @@ namespace deeporange14{
         sub_brakes_=node.subscribe(std::string(topic_ns+"/brake_command"),10,&VelocityController::brakeCallback,this);
         pub_cmd_trq_=node.advertise<deeporange14_msgs::TorqueCmdStamped>(std::string(topic_ns+"/cmd_trq"),10);
         pub_cmd_vel_reprojected_=node.advertise<geometry_msgs::Twist>(std::string(topic_ns+"/cmd_vel_reprojected"),10);
+        pub_remap_state_=node.advertise<std_msgs::UInt8>(std::string(topic_ns+"/remapping_state"),10);
+        pub_pid_components_=node.advertise<deeporange14_msgs::PIDComponentsMsg>(std::string(topic_ns+"/pid_components"),10);
         timer_ = node.createTimer(ros::Duration(1.0 / 50.0), &VelocityController::publishTorques, this);
+
         //member variables -- velocities (commanded and platform)
         cmdLinX_=0.0;
         cmdAngZ_=0.0;
@@ -56,7 +59,7 @@ namespace deeporange14{
 
         // trackwidth=2.60;
         max_velocity=1.6;
-        min_velocity=0.5;
+        min_velocity=-1.0;
         max_omega=1.3;
         min_omega=0.5;
         R_min = 2.0;   // chosen so that tracks do not turn in opposite directions at max curvature
@@ -75,8 +78,8 @@ namespace deeporange14{
         smoothing_factor = 20.0;
         dt_=1/50.0;
         remapping_state = VEHICLE_STOPPED;
-        v_moving_ss=0.2;
-        v_moving=0.1;
+        v_moving_ss=0.5;
+        v_moving=0.4;
         v_stopped=0.01;
 
     }
@@ -117,21 +120,22 @@ namespace deeporange14{
             //letting the controller kick in only when we move in the appropriate autonomy state
             //rate limiting the linear velocity and the curvature
             //velocity reprojection on the commanded velocities
-            this->linearVelocityReprojection(cmdLinX_,cmdAngZ_);
+            // this->linearVelocityReprojection(cmdLinX_,cmdAngZ_);
+            this->rateLimiter(prev_v_,cmdLinX_);
+            this->rateLimiter(prev_omega_,cmdAngZ_);
+            
             this->twistReprojection(cmdLinX_,cmdAngZ_);
             
+            cmd_turn_curvature_=(cmdLinX_!=0.0 && cmdAngZ_!=0.0)?(cmdAngZ_/cmdLinX_):0.0;
+
             //publishing these results on a different topic to compare the changes
             geometry_msgs::Twist cmd_vel_reprojected_;
             cmd_vel_reprojected_.linear.x=cmdLinX_;
             cmd_vel_reprojected_.angular.z=cmdAngZ_;
-            pub_cmd_vel_reprojected_.publish(cmd_vel_reprojected_);
-            
-            this->rateLimiter(prev_v_,cmdLinX_);
-            this->rateLimiter(prev_omega_,cmdAngZ_);
-            cmd_turn_curvature_=(cmdLinX_!=0.0 && cmdAngZ_!=0.0)?(cmdAngZ_/cmdLinX_):0.0;
+            pub_cmd_vel_reprojected_.publish(cmd_vel_reprojected_); 
             
             tqDiff_ff_=(x0_*cmd_turn_curvature_)/(1+x1_*std::abs(cmd_turn_curvature_));
-            tqCom_ff_=((cmdLinX_>=0)-(cmdLinX_<0))*(a_*std::abs(cmdLinX_)+b_);
+            tqCom_ff_=((cmdLinX_>0)-(cmdLinX_<0))*(a_*std::abs(cmdLinX_)+b_);
             //current errors
             errLinX_current_=cmdLinX_-vehLinX_;
             errOmega_current_=cmdAngZ_-vehAngZ_;
@@ -141,6 +145,20 @@ namespace deeporange14{
             // discrete controller output
             tqComm_PID_=(kP_linX_*errLinX_current_)+(kI_linX_*errLinX_integral_)+(kD_linX_*errLinX_derivative_);
             tqDiff_PID_=(kP_omega_*errOmega_current_)+(kI_omega_*errOmega_integral_)+(kD_omega_*errOmega_derivative_);
+            //publishing individual components of the PID on the PIDComponentsMsg
+            deeporange14_msgs::PIDComponentsMsg pid_components_msg_;
+            pid_components_msg_.P_Vx=kP_linX_*errLinX_current_;
+            pid_components_msg_.I_Vx=kI_linX_*errLinX_integral_;
+            pid_components_msg_.D_Vx=kD_linX_*errLinX_derivative_;
+            pid_components_msg_.P_Wz=kP_omega_*errOmega_current_;
+            pid_components_msg_.I_Wz=kI_omega_*errOmega_integral_;
+            pid_components_msg_.D_Wz=kD_omega_*errOmega_derivative_;
+            pub_pid_components_.publish(pid_components_msg_);
+
+            //printing the components
+            ROS_INFO("PVx: %f, IVx: %f, DVx: %f",kP_linX_*errLinX_current_,kI_linX_*errLinX_integral_,kD_linX_*errLinX_derivative_);
+            ROS_INFO("PWz: %f, IWz: %f, DWz: %f",kP_omega_*errOmega_current_,kI_omega_*errOmega_integral_,kD_omega_*errOmega_derivative_);
+
             // feedforward + PID output
             tqDiff_=tqDiff_ff_ + tqDiff_PID_;
             tqComm_=tqCom_ff_ + tqComm_PID_;
@@ -178,25 +196,31 @@ namespace deeporange14{
             tqR_=0.0;
         }
     }
-    void VelocityController::linearVelocityReprojection(double& v, double& w){
+    void VelocityController::linearVelocityReprojection( double& v,  double& w){
 
         switch(remapping_state){
-
             case VEHICLE_STOPPED:
-            {
+            {   
+                remapping_state_msg_.data=0;
+                pub_remap_state_.publish(remapping_state_msg_);
+
                 ROS_INFO("VEHICLE STOPPED");
                 if (std::abs(v) >0 || std::abs(w)>0){
                     //move into the accelerating state
-                    v=v_moving_ss; //v_accelerating is the minimum steady state velocity that we want the vehicle to move forward with
+                    v =std::max(v,v_moving_ss); //v_accelerating is the minimum steady state velocity that we want the vehicle to move forward with
                     remapping_state=VEHICLE_ACCELERATING;
                     break;
                 }
                 else{
+                    v =0;
                     //do nothing, remain in this state
                     break;
                 }
             }
             case VEHICLE_ACCELERATING:{
+                
+                remapping_state_msg_.data=1;
+                pub_remap_state_.publish(remapping_state_msg_);
                 ROS_INFO("VEHICLE ACCELERATING");
                 if (std::abs(vehLinX_) >= v_moving){
                     remapping_state=VEHICLE_MOVING;
@@ -204,10 +228,13 @@ namespace deeporange14{
                 }
                 else{
                     //do nothing, remain in this state
+                    v =std::max(v,v_moving_ss);
                     break;
                 }
             }
             case VEHICLE_MOVING:{
+                remapping_state_msg_.data=2;
+                pub_remap_state_.publish(remapping_state_msg_);
                 ROS_INFO("VEHICLE MOVING");
                 //v stays the same and we do not need to reproject
                 if (std::abs(vehLinX_) <= v_stopped){
@@ -232,6 +259,9 @@ namespace deeporange14{
     double lat_acc = v * w;
 
     // Applying linear velocity limits to bring it into correct zone
+    if (v < min_velocity){
+      v = min_velocity;  // limited to max forward
+    }
     if (v > max_velocity){
       v = max_velocity;  // limited to max forward
     }
