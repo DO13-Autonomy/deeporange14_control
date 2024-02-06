@@ -10,6 +10,35 @@
 - DataLoggerNode.cpp: logging CAN and ROS data while monitoring logging status active or Fail
 - Node.cpp - Instantiates the three objects in a single node (as of now).
 
+### Cloning and building:
+- Use the following to clone this repository and properly set up submodules:
+```
+git clone https://github.com/DO13-Autonomy/deeporange14_control.git
+cd deeporange14_control
+git submodule init
+git submodule update
+```
+  - These commands clone the repository, then initialize and clone the submodules
+  - To verify the command has worked, check that `src/pugixml`, `src/raptor-dbw-ros`, and `src/ros_canopen` are not empty
+  - See below for more information on these dependencies
+- If ROS has been installed and sourced (either in `~/.bashrc` or manually), run the following from the top-level of the repository to install dependencies:
+```
+rosdep install --from-paths src --ignore-src -r -y 
+```
+- Install the [Kvaser interface package](https://github.com/astuff/kvaser_interface) with the following steps from the `README.md` for that repo:
+```
+sudo apt-add-repository ppa:astuff/kvaser-linux 
+sudo apt update 
+sudo apt install kvaser-canlib-dev kvaser-drivers-dkms 
+
+sudo apt install apt-transport-https 
+sudo sh -c 'echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/autonomoustuff-public.list' 
+sudo apt update 
+sudo apt install ros-noetic-kvaser-interface 
+```
+- Build the code by calling `catkin_make` in the top-level of the repo
+
+
 ### How to Use:
 - To add/update CAN msg IDs- update these in the dbc in the `dbc` folder as well as `dispatch_can_msgs.h` include file
 - Vehicle and subsystem states are enumerated in `DeeporangeStateEnums.h`
@@ -21,7 +50,6 @@
 - `socketcan_bridge` : Package for interfacing CAN to ROS on Linux - https://github.com/ros-industrial/ros_canopen
 - `can_msgs` : Package to support CAN msg format on ROS topics. - https://github.com/ros-industrial/ros_canopen
 - 'pugixml': Package for processing XML files. - https://github.com/joselusl/pugixml
-- rosdep install --from-paths src --ignore-src -r -y 
   
 
 ### Contributors:
