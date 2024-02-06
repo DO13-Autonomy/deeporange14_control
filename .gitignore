@@ -1,1 +1,8 @@
-.vscode/
+# ignore build-generated files and folders
+build/**
+devel/**
+
+
+# ignore VS Code-created files in any directory
+**/.vscode/**
+
