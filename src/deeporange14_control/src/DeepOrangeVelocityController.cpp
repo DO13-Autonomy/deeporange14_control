@@ -78,8 +78,8 @@ namespace deeporange14{
         smoothing_factor = 20.0;
         dt_=1/50.0;
         remapping_state = VEHICLE_STOPPED;
-        v_moving_ss=0.2;
-        v_moving=0.1;
+        v_moving_ss=0.5;
+        v_moving=0.4;
         v_stopped=0.01;
 
     }
@@ -120,11 +120,12 @@ namespace deeporange14{
             //letting the controller kick in only when we move in the appropriate autonomy state
             //rate limiting the linear velocity and the curvature
             //velocity reprojection on the commanded velocities
-            this->linearVelocityReprojection(cmdLinX_,cmdAngZ_);
-            this->twistReprojection(cmdLinX_,cmdAngZ_);
-            
+            // this->linearVelocityReprojection(cmdLinX_,cmdAngZ_);
             this->rateLimiter(prev_v_,cmdLinX_);
             this->rateLimiter(prev_omega_,cmdAngZ_);
+            
+            this->twistReprojection(cmdLinX_,cmdAngZ_);
+            
             cmd_turn_curvature_=(cmdLinX_!=0.0 && cmdAngZ_!=0.0)?(cmdAngZ_/cmdLinX_):0.0;
 
             //publishing these results on a different topic to compare the changes

@@ -68,6 +68,7 @@ namespace deeporange14
         ros::Subscriber sub_gpsImu_;
         ros::Subscriber sub_odom_;
         ros::Subscriber sub_rtk_;
+        ros::Subscriber sub_autonomyLog_;
 
         // Published msgs
         deeporange14_msgs::RaptorStateMsg raptorMsg_;

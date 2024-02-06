@@ -318,7 +318,7 @@ namespace deeporange14
                 break;
             }
 
-            else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled")
+            else if (mission_status == "MissionCancelled")
             {
                 prevSt = 5;
                 state = AU_3_ROS_MODE_EN ;

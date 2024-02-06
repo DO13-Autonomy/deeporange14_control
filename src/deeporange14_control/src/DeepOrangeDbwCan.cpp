@@ -23,9 +23,10 @@ namespace deeporange14 // TODO-> change namespace
         // --------------- To CAN --------------- //
 
         // Measured velocities 
-        pub_auStatus_ = node.advertise<deeporange14_msgs::AuStatusMsg>("/autonomy_log_status", 10);
+        pub_auStatus_ = node.advertise<deeporange14_msgs::AuStatusMsg>(std::string(topic_ns + "/autonomy_log_status"), 10);
         sub_odom_ = node.subscribe("/novatel/oem7/odom", 10, &DeepOrangeDbwCan::getMeasuredVx, this, ros::TransportHints().tcpNoDelay(true));
         sub_gpsImu_ = node.subscribe("/gps/imu", 10, &DeepOrangeDbwCan::getMeasuredWz, this, ros::TransportHints().tcpNoDelay(true));
+        sub_autonomyLog_ = node.subscribe(std::string(topic_ns + "/autonomy_log_status"), 10, &DeepOrangeDbwCan::publishAuStatustoCAN, this, ros::TransportHints().tcpNoDelay(true));
         
         // Rtk & log status
         sub_rtk_ = node.subscribe("/novatel/oem7/inspvax", 10, &DeepOrangeDbwCan::getRtkStatus, this, ros::TransportHints().tcpNoDelay(true));
