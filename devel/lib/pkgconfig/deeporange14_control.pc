@@ -1,8 +1,0 @@
-prefix=/home/administrator/Documents/DEEPORANGE14/deeporange14_control/devel
-
-Name: deeporange14_control
-Description: Description of deeporange14_control
-Version: 0.1.0
-Cflags: 
-Libs: -L${prefix}/lib -ldeeporange14_control -lINCLUDE -linclude/
-Requires: 

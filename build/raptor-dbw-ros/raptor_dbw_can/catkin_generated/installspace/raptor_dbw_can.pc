@@ -1,8 +1,0 @@
-prefix=/home/administrator/Documents/DEEPORANGE14/deeporange14_control/install
-
-Name: raptor_dbw_can
-Description: Description of raptor_dbw_can
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib -lraptor_dbw_can -lINCLUDE -linclude/
-Requires: 
