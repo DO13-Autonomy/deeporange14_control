@@ -36,7 +36,7 @@ sudo sh -c 'echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo
 sudo apt update 
 sudo apt install ros-noetic-kvaser-interface 
 ```
-- Build the code by calling `catkin_make` in the top-level of the repo
+- Build the code by calling `catkin build` in the top-level of the repo
 
 
 ### How to Use:
