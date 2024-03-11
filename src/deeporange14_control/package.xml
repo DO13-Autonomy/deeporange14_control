@@ -21,6 +21,7 @@
   <build_depend>deeporange14_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>novatel_oem7_msgs</build_depend>
+  <build_depend>roslint</build_depend>
   
   
   <build_export_depend>roscpp</build_export_depend>
