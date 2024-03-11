@@ -1,8 +1,12 @@
 # ignore build-generated files and folders
 build/**
 devel/**
+install/**
+logs/**
 
 
 # ignore VS Code-created files in any directory
 **/.vscode/**
 
+# ignore catkin_tools folder
+.catkin_tools/**
