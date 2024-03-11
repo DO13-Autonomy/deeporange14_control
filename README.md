@@ -50,7 +50,22 @@ sudo apt install ros-noetic-kvaser-interface
 - `socketcan_bridge` : Package for interfacing CAN to ROS on Linux - https://github.com/ros-industrial/ros_canopen
 - `can_msgs` : Package to support CAN msg format on ROS topics. - https://github.com/ros-industrial/ros_canopen
 - 'pugixml': Package for processing XML files. - https://github.com/joselusl/pugixml
-  
+
+
+### Testing:
+Automatic linting capability was added to the deeporange14_control package through `roslint` and `roslaunch-check`.  After building the pacakge, the tests can be launched using
+```
+catkin test deeporange14_control
+```
+Results will be printed to the console and in associated XML files in `build/deeporange14_control/test_results/deeporange14_control`.
+
+The third-party pacakges also contain some unit tests which can be launched one-at-a-time using the above command (substituting the package name).  All tests in the workspace can be launched with `catkin test`.
+
+Additional linting can be done with the [catkin_lint](https://fkie.github.io/catkin_lint/) tool, which can be installed following the instructions at the link and launched from the root of the catkin workspace using
+```
+catkin_lint --pkg deeporange14_control
+```
+
 
 ### Contributors:
 
