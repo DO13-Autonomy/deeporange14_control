@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslaunch
   message_generation
   novatel_oem7_msgs
+  roslint
 )
 
 catkin_package(
@@ -75,3 +76,7 @@ install(
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
+if(CATKIN_ENABLE_TESTING)
+  roslint_cpp()
+  roslint_add_test()
+endif()
