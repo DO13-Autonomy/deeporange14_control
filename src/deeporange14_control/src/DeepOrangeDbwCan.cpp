@@ -206,4 +206,4 @@ namespace deeporange14  // TODO -> change namespace
         }
         averageVx_ = 0;
     }
-}  // end namespace deeporange_14
+}  // namespace deeporange14

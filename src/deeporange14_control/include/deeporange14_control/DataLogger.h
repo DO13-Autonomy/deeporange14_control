@@ -46,6 +46,6 @@ class DataLogger
 
     std::string topic_ns = "/deeporange1314";
 };
-}
+}  // namespace deeporange14
 
 #endif  // _DATA_LOGGER_H_

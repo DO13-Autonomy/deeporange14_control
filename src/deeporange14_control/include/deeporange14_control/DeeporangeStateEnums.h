@@ -31,6 +31,6 @@ enum allStates
     VEHICLE_ACCELERATING           = 1,
     VEHICLE_MOVING                 = 2
 };
-}  // deeporange14
+}  // namespace deeporange14
 
 #endif

@@ -123,6 +123,6 @@ class DeepOrangeDbwCan
     int log_st;
     std::string topic_ns = "/deeporange1314";
 };
-}  // deeporange_dbw_ros
+}  // namespace deeporange14
 
 #endif  // _DEEPORANGE_DBW_CAN_H_

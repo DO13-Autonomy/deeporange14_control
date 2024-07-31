@@ -22,6 +22,6 @@ enum
   ID_AU_CONTROL_MSG               = 0x386,
 };
 
-}  // deeporange_dbw_ros
+}  // namespace deeporange14
 
 #endif  // _DO_CAN_DISPATCH_H

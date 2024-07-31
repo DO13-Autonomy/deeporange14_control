@@ -428,7 +428,7 @@ end
         trq_cmd_.tqR_cmd = tqR_;
         pub_cmd_trq_.publish(trq_cmd_);
     }
-}
+}  // namespace deeporange14
 //     int main(int argc, char **argv)
 // {
 //   ros::init(argc, argv, "deeporange14_velocity_controller");

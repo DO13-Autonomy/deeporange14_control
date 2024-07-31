@@ -133,6 +133,6 @@ class VelocityController
     double rmax;
     double smoothing_factor;
 };
-}
+}  // namespace deeporange14
 
 #endif  // DEEPORANGE_VELOCITY_CONTROLLER_H

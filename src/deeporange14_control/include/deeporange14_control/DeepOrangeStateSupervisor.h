@@ -100,6 +100,6 @@ class DeepOrangeStateSupervisor
     deeporange14_msgs::TorqueCmdStamped trqvalues;
     deeporange14_msgs::RaptorStateMsg raptorMsg;
 };
-}
+}  // namespace deeporange14
 
 #endif

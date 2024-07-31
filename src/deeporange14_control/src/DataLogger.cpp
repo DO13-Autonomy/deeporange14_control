@@ -128,4 +128,4 @@ namespace deeporange14
             }
             logging_counter--;
     }
-}
+}  // namespace deeporange14
