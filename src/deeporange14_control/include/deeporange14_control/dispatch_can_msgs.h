@@ -9,20 +9,19 @@
 
 namespace deeporange14
 {
-
 #undef BUILD_ASSERT
 
-enum {
-
+enum
+{
   // Raptor msgs
   ID_Raptor_Main_Msg              = 0x34,
-  ID_VD_Brake_Msg                 = 0x46, 
-  
+  ID_VD_Brake_Msg                 = 0x46,
+
   // ROS msgs
   ID_AU_STATUS_MSG                = 0x385,
   ID_AU_CONTROL_MSG               = 0x386,
 };
 
-} //deeporange_dbw_ros
+}  // deeporange_dbw_ros
 
-#endif // _DO_CAN_DISPATCH_H
+#endif  // _DO_CAN_DISPATCH_H

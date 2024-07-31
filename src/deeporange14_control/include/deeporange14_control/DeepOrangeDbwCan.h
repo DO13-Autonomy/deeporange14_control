@@ -36,94 +36,93 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 
 namespace deeporange14
 {
-    class DeepOrangeDbwCan
-    {
-        public:
-        DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
-        ~DeepOrangeDbwCan();
+class DeepOrangeDbwCan
+{
+    public:
+    DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
+    ~DeepOrangeDbwCan();
 
-        private:
-        void recvCAN(const can_msgs::Frame::ConstPtr& msg);
-        void publishCAN(const ros::TimerEvent& event);
-        void publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg);
-        void publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg);
-        void getMeasuredVx(const nav_msgs::Odometry& msg);
-        void getMeasuredWz(const sensor_msgs::Imu& msg);
-        void getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg);
-        void publishAuStatus(const ros::TimerEvent& event);
-        // int getLogStatus(const deeporange14_msgs::*****& msg); // TODO -> Include message
+    private:
+    void recvCAN(const can_msgs::Frame::ConstPtr& msg);
+    void publishCAN(const ros::TimerEvent& event);
+    void publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg);
+    void publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg);
+    void getMeasuredVx(const nav_msgs::Odometry& msg);
+    void getMeasuredWz(const sensor_msgs::Imu& msg);
+    void getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg);
+    void publishAuStatus(const ros::TimerEvent& event);
+    // int getLogStatus(const deeporange14_msgs::*****& msg); // TODO -> Include message
 
-        // Ros timer object
-        ros::Timer timer_;
+    // Ros timer object
+    ros::Timer timer_;
 
-        // Publishers
-        ros::Publisher pub_can_;
-        ros::Publisher pub_raptorState_;
-        ros::Publisher pub_auStatus_;
+    // Publishers
+    ros::Publisher pub_can_;
+    ros::Publisher pub_raptorState_;
+    ros::Publisher pub_auStatus_;
 
-        // Subscribers
-        ros::Subscriber sub_can_;
-        ros::Subscriber sub_auMobility_;
-        ros::Subscriber sub_auStatus_;
-        ros::Subscriber sub_gpsImu_;
-        ros::Subscriber sub_odom_;
-        ros::Subscriber sub_rtk_;
-        ros::Subscriber sub_autonomyLog_;
+    // Subscribers
+    ros::Subscriber sub_can_;
+    ros::Subscriber sub_auMobility_;
+    ros::Subscriber sub_auStatus_;
+    ros::Subscriber sub_gpsImu_;
+    ros::Subscriber sub_odom_;
+    ros::Subscriber sub_rtk_;
+    ros::Subscriber sub_autonomyLog_;
 
-        // Published msgs
-        deeporange14_msgs::RaptorStateMsg raptorMsg_;
-        deeporange14_msgs::AuStatusMsg auStatusMsg_;
-        
-        // Subscribed msgs
-        deeporange14_msgs::MobilityMsg mobilityMsg_;
-        nav_msgs::Odometry odometryMsg_;
-        sensor_msgs::Imu gpsImuMsg_;
+    // Published msgs
+    deeporange14_msgs::RaptorStateMsg raptorMsg_;
+    deeporange14_msgs::AuStatusMsg auStatusMsg_;
 
-        // Variables for measured velocities
-        std::vector<float> vectorWz_;
-        float averageWz_ = 0;
-        std::vector<float> vectorVx_;
-        float averageVx_ = 0;
+    // Subscribed msgs
+    deeporange14_msgs::MobilityMsg mobilityMsg_;
+    nav_msgs::Odometry odometryMsg_;
+    sensor_msgs::Imu gpsImuMsg_;
 
-        // Frame ID
-        std::string frameId_;
-        can_msgs::Frame frame_;
+    // Variables for measured velocities
+    std::vector<float> vectorWz_;
+    float averageWz_ = 0;
+    std::vector<float> vectorVx_;
+    float averageVx_ = 0;
 
-        // dbc files 
-        NewEagle::Dbc rosDbc_;
-        NewEagle::Dbc raptorDbc_;
-        std::string dbcFileRos_;
-        std::string dbcFileRaptor_;
+    // Frame ID
+    std::string frameId_;
+    can_msgs::Frame frame_;
 
-        // Heartbeat var & ptr
-        int ros_hb_ = 0;
-        int *ros_hb_ptr_ = &ros_hb_;
+    // dbc files
+    NewEagle::Dbc rosDbc_;
+    NewEagle::Dbc raptorDbc_;
+    std::string dbcFileRos_;
+    std::string dbcFileRaptor_;
 
-        // Brake pressure var
-        int brk_ip_Rpres_; // right
-        int brk_ip_Lpres_; // left
+    // Heartbeat var & ptr
+    int ros_hb_ = 0;
+    int *ros_hb_ptr_ = &ros_hb_;
 
-        // Variables to store rtk, log, and gps velocities and their pointers 
-        int rtk_status_ = 0;        
-        double meas_Vx_ = 0.0;
-        double meas_Wz_ = 0.0;
-        int *rtk_status_ptr_ = &rtk_status_;
-        double *measVx_ptr_ = &meas_Vx_;
-        double *measWz_ptr_ = &meas_Wz_;
+    // Brake pressure var
+    int brk_ip_Rpres_;  // right
+    int brk_ip_Lpres_;  // left
 
-        // Variables to store timestamp and their pointers 
-        int time_Vx_ = 0;
-        int time_Wz_ = 0;
-        int time_Rtk_ = 0;
-        int *time_Vx_ptr_ = &time_Vx_;
-        int *time_Wz_ptr_ = &time_Wz_;
-        int *time_Rtk_ptr_ = &time_Rtk_;
+    // Variables to store rtk, log, and gps velocities and their pointers
+    int rtk_status_ = 0;
+    double meas_Vx_ = 0.0;
+    double meas_Wz_ = 0.0;
+    int *rtk_status_ptr_ = &rtk_status_;
+    double *measVx_ptr_ = &meas_Vx_;
+    double *measWz_ptr_ = &meas_Wz_;
 
-        // Param to retrive 
-        int log_st;
-        std::string topic_ns = "/deeporange1314";
-        
-    };
-} // deeporange_dbw_ros
+    // Variables to store timestamp and their pointers
+    int time_Vx_ = 0;
+    int time_Wz_ = 0;
+    int time_Rtk_ = 0;
+    int *time_Vx_ptr_ = &time_Vx_;
+    int *time_Wz_ptr_ = &time_Wz_;
+    int *time_Rtk_ptr_ = &time_Rtk_;
 
-#endif // _DEEPORANGE_DBW_CAN_H_
+    // Param to retrive
+    int log_st;
+    std::string topic_ns = "/deeporange1314";
+};
+}  // deeporange_dbw_ros
+
+#endif  // _DEEPORANGE_DBW_CAN_H_

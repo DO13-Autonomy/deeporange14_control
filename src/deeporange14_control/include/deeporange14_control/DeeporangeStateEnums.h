@@ -8,10 +8,10 @@ Refer to DO13 Raptor DBW state machine for info on states
 
 namespace deeporange14
 {
-
 #undef BUILD_ASSERT
 
-enum allStates{
+enum allStates
+{
     // ROS States
     AU_0_DEFAULT                   = 0,
     AU_1_STARTUP                   = 1,
@@ -21,20 +21,16 @@ enum allStates{
     AU_5_ROS_CONTROLLED            = 5,
 
     // Raptor States
-
     DBW_3_ROS_EN                   = 3,
     DBW_4_ROS_CONTROLLED           = 4,
 
     SPEED_STATE_Ready2Move         = 2,
 
-    //linear velocity
+    // linear velocity
     VEHICLE_STOPPED                = 0,
     VEHICLE_ACCELERATING           = 1,
     VEHICLE_MOVING                 = 2
-
-  };
-} //deeporange14
+};
+}  // deeporange14
 
 #endif
-
-
