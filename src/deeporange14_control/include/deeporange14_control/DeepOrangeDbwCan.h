@@ -21,7 +21,6 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <nav_msgs/Odometry.h>
-#include <sensor_msgs/Imu.h>
 #include <deeporange14_msgs/RaptorStateMsg.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/AuStatusMsg.h>

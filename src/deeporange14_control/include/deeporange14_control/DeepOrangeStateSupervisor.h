@@ -18,7 +18,6 @@
 
 #include <string>
 #include <ros/console.h>
-#include <geometry_msgs/Twist.h>
 #include <deeporange14_control/DeeporangeStateEnums.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/MissionStatus.h>
