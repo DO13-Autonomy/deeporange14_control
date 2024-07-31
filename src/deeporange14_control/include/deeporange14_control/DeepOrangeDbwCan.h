@@ -7,31 +7,33 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #ifndef _DEEPORANGE_DBW_CAN_H_
 #define _DEEPORANGE_DBW_CAN_H_
 
-#include <ros/console.h>
-#include <string.h>
+#include <string>
+#include <vector>
+
 #include <ros/ros.h>
-// ROS messages
+#include <ros/console.h>
+
 #include <can_msgs/Frame.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <novatel_oem7_msgs/INSPVAX.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Empty.h>
 #include <std_msgs/Bool.h>
-#include <std_msgs/String.h>
+#include <std_msgs/Empty.h>
 #include <nav_msgs/Odometry.h>
-#include <deeporange14_msgs/RaptorStateMsg.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <deeporange14_msgs/AuStatusMsg.h>
-#include <novatel_oem7_msgs/INSPVAX.h>
-// Can dbc parser mackage
+#include <std_msgs/String.h>
+
 #include <can_dbc_parser/DbcMessage.h>
 #include <can_dbc_parser/DbcSignal.h>
 #include <can_dbc_parser/Dbc.h>
 #include <can_dbc_parser/DbcBuilder.h>
-// enumerations
+
+#include <deeporange14_msgs/AuStatusMsg.h>
 #include <deeporange14_control/dispatch_can_msgs.h>
+#include <deeporange14_msgs/MobilityMsg.h>
+#include <deeporange14_msgs/RaptorStateMsg.h>
 
 namespace deeporange14
 {

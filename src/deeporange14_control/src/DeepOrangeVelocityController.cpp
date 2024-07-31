@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <limits>
+#include <string>
+
 #include <deeporange14_control/DeepOrangeVelocityController.h>
 
 namespace deeporange14

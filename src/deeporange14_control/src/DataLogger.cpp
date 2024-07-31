@@ -7,6 +7,8 @@
     reached.
 */
 
+#include <string>
+
 #include <deeporange14_control/DataLogger.h>
 
 namespace deeporange14

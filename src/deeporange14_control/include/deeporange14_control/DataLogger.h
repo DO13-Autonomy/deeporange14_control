@@ -8,10 +8,14 @@ an error state is reached
 #ifndef _DATA_LOGGER_H_
 #define _DATA_LOGGER_H_
 
+#include <string>
+
 #include <ros/ros.h>
-#include "boost/date_time/posix_time/posix_time.hpp"
-#include "boost/date_time/local_time_adjustor.hpp"
+
 #include "boost/date_time/c_local_time_adjustor.hpp"
+#include "boost/date_time/local_time_adjustor.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+
 #include <deeporange14_msgs/RaptorStateMsg.h>
 
 namespace deeporange14

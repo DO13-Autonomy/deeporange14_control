@@ -1,4 +1,6 @@
 /*This class acts as a StateMachine and transitions into correct state based on Raptor, Autonomy Stack information*/
+
+#include <string>
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
 
 namespace deeporange14

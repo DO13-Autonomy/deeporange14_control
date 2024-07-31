@@ -1,17 +1,21 @@
 #ifndef DEEPORANGE_VELOCITY_CONTROLLER_H
 #define DEEPORANGE_VELOCITY_CONTROLLER_H
 
+#include <math.h>
+#include <string>
+
+#include <ros/ros.h>
+#include <ros/console.h>
+
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt8.h>
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <deeporange14_msgs/TorqueCmdStamped.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <math.h>
+
 #include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/PIDComponentsMsg.h>
+#include <deeporange14_msgs/TorqueCmdStamped.h>
 
 namespace deeporange14
 {

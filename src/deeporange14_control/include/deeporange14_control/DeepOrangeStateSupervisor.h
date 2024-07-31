@@ -3,24 +3,24 @@
 #ifndef _DEEPORANGE_STATE_SUPERVISOR_H_
 #define _DEEPORANGE_STATE_SUPERVISOR_H_
 
-#include <string.h>
+#include <string>
+
 #include <ros/ros.h>
+#include <ros/console.h>
+
+#include <can_msgs/Frame.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
-#include <std_msgs/UInt8.h>
-#include <can_msgs/Frame.h>
 #include <std_msgs/String.h>
-
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/Twist.h>
-#include <nav_msgs/Odometry.h>
+#include <std_msgs/UInt8.h>
 #include <tf2_msgs/TFMessage.h>
 
-#include <string>
-#include <ros/console.h>
 #include <deeporange14_control/DeeporangeStateEnums.h>
-#include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/MissionStatus.h>
+#include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/RaptorStateMsg.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
 
