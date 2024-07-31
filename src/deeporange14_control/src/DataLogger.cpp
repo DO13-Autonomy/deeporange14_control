@@ -16,7 +16,8 @@ namespace deeporange14
 DataLogger::DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
 {
     // Obtain ros::Subscriber object
-    sub_raptor_ = node.subscribe(topic_ns + std::string("/raptor_state"), 10, &DataLogger::recordRosbagAndCANlog, this, ros::TransportHints().tcpNoDelay(true));
+    sub_raptor_ = node.subscribe(topic_ns + std::string("/raptor_state"), 10, &DataLogger::recordRosbagAndCANlog, this,
+                                 ros::TransportHints().tcpNoDelay(true));
 
     // Initialize recording state to false
     isRecording = false;
@@ -39,8 +40,10 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
     typedef boost::date_time::local_adjustor<boost::posix_time::ptime, -5, boost::posix_time::us_dst> us_eastern;
     my_posix_time = us_eastern::utc_to_local(my_posix_time);    // Conversion from UTC to EST (Clemson, South Carolina)
     std::string iso_time_str = boost::posix_time::to_iso_string(my_posix_time);
-    std::string file_name_header = std::string("do14_") + iso_time_str.substr(0, 4) + std::string("-") + iso_time_str.substr(4, 2) + std::string("-") + iso_time_str.substr(6, 2) +
-                std::string("_") + iso_time_str.substr(9, 2) + std::string("-") + iso_time_str.substr(11, 2) + std::string("-") + iso_time_str.substr(13, 2);
+    std::string file_name_header = std::string("do14_") + iso_time_str.substr(0, 4) + std::string("-") +
+        iso_time_str.substr(4, 2) + std::string("-") + iso_time_str.substr(6, 2) + std::string("_") +
+        iso_time_str.substr(9, 2) + std::string("-") + iso_time_str.substr(11, 2) + std::string("-") +
+        iso_time_str.substr(13, 2);
     can_log_name = file_name_header + std::string(".CAN.log");
     ros_bag_name = file_name_header + std::string(".ROS.bag");
     std::string logs_dir = std::string("~/do14_logs/");
@@ -53,9 +56,21 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
     // Record CAN log for all CAN buses combined
     system(("candump any -ta >" + can_log_name + " &").c_str());
     // Record ROS bags for relevant topics only
-    system(("rosbag record -e '(.*)cmd_mobility(.*)' -e '(.*)mission_status(.*)' -e '(.*)cmd_vel_reprojected(.*)' -e '(.*)cmd_trq(.*)' -e '(.*)pid_components(.*)' -e '(.*)remapping_state(.*)' -e '(.*)brake_command(.*)' -e '(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e '(.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x '(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x '(.*)goto_object_behavior(.*)' -x '(.*)novatel/oem7(.*)'  -x '(.*)local_costmap(.*)' -x '(.*)omnigraph(.*)' -x '(.*)parameter_updates(.*)' -x '(.*)point_cloud_pipeline(.*)' -x '(.*)point_cloud_cache(.*)' -x '(.*)local_planner(.*)'  -x '(.*)grid(.*)' -x '(.*)center_lidar(.*)'  -x '(.*)status(.*)'  -x '(.*)server_status(.*)'  -x '(.*)parameter_descriptions(.*)'  -e '(.*)odom(.*)' -x '(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
+    system(("rosbag record -e '(.*)cmd_mobility(.*)' -e '(.*)mission_status(.*)' -e '(.*)cmd_vel_reprojected(.*)' -e" +
+            "'(.*)cmd_trq(.*)' -e '(.*)pid_components(.*)' -e '(.*)remapping_state(.*)' -e '(.*)brake_command(.*)' -e" +
+            "'(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e" +
+            "(.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x" +
+            "'(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x" +
+            "'(.*)goto_object_behavior(.*)' -x '(.*)novatel/oem7(.*)'  -x '(.*)local_costmap(.*)' -x" +
+            "'(.*)omnigraph(.*)' -x '(.*)parameter_updates(.*)' -x '(.*)point_cloud_pipeline(.*)' -x" +
+            "'(.*)point_cloud_cache(.*)' -x '(.*)local_planner(.*)'  -x '(.*)grid(.*)' -x '(.*)center_lidar(.*)' -x" +
+            "'(.*)status(.*)' -x '(.*)server_status(.*)'  -x '(.*)parameter_descriptions(.*)'  -e '(.*)odom(.*)' -x" +
+            "'(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
     // system(("rosbag record -a -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
-    // system(("rosbag record /deeporange1314/odom /deeporange1314/cmd_vel /deeporange1314/pose /tf /deeporange1314/cmd_vel_reprojected /deeporange1314/pid_components /deeporange1314/remapping_state /deeporange1314/cmd_mobility " + ros_bag_name + " __name:=rosbag_recording &").c_str());
+    /* system(("rosbag record /deeporange1314/odom /deeporange1314/cmd_vel /deeporange1314/pose /tf 
+       /deeporange1314/cmd_vel_reprojected /deeporange1314/pid_components /deeporange1314/remapping_state 
+       /deeporange1314/cmd_mobility " + ros_bag_name + " __name:=rosbag_recording &").c_str());
+    */
 
     // Update recording state
     isRecording = true;

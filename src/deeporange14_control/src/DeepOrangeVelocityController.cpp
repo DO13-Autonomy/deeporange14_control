@@ -10,12 +10,14 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
 {
   sub_cmd_vel_ = node.subscribe(std::string(topic_ns+"/cmd_vel"), 10, &VelocityController::cmdVelCallback, this);
   sub_odom_ = node.subscribe(std::string(topic_ns+"/odom"), 10, &VelocityController::odomCallback, this);
-  sub_moboility_msg_ = node.subscribe(std::string(topic_ns+"/cmd_mobility"), 10, &VelocityController::cmdMobilityCallback, this);
+  sub_moboility_msg_ = node.subscribe(std::string(topic_ns+"/cmd_mobility"), 10,
+                                      &VelocityController::cmdMobilityCallback, this);
   sub_brakes_ = node.subscribe(std::string(topic_ns+"/brake_command"), 10, &VelocityController::brakeCallback, this);
   pub_cmd_trq_ = node.advertise<deeporange14_msgs::TorqueCmdStamped>(std::string(topic_ns+"/cmd_trq"), 10);
   pub_cmd_vel_reprojected_ = node.advertise<geometry_msgs::Twist>(std::string(topic_ns+"/cmd_vel_reprojected"), 10);
   pub_remap_state_ = node.advertise<std_msgs::UInt8>(std::string(topic_ns+"/remapping_state"), 10);
-  pub_pid_components_ = node.advertise<deeporange14_msgs::PIDComponentsMsg>(std::string(topic_ns+"/pid_components"), 10);
+  pub_pid_components_ = node.advertise<deeporange14_msgs::PIDComponentsMsg>(std::string(topic_ns + "/pid_components"),
+                                                                            10);
   timer_ = node.createTimer(ros::Duration(1.0 / 50.0), &VelocityController::publishTorques, this);
 
   // member variables -- velocities (commanded and platform)
@@ -91,13 +93,13 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
 
 VelocityController::~VelocityController() {}
 
-// defining the odom callback -- to be used by the controller as a feedback of the actual vehicle velocity
+// define the odom callback -- to be used by the controller as a feedback of the actual vehicle velocity
 void VelocityController::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
   vehLinX_ = msg->twist.twist.linear.x;
   vehAngZ_ = msg->twist.twist.angular.z;
 }
-// defining the brake signal callback -- used to determine when the the controller needs to be used to control the vehicle speeds
+// define the brake callback -- used to determine when the the controller needs to be used to control the vehicle speeds
 void VelocityController::brakeCallback(const std_msgs::Bool::ConstPtr& msg)
 {
   brake_engage_ = msg->data;
@@ -114,7 +116,8 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
   cmdAngZ_ = msg->angular.z;
   errLinX_prev_ = errLinX_current_;
   errOmega_prev_ = errOmega_current_;
-  // integrator reset when we move into 'waiting for execution' state -- after a mission is completed or cancelled, we move back to 'startup' state in the state machine, but the transitions to 'wait execution' should happen
+  // integrator reset on transition to 'waiting for execution' state
+  // after a mission is completed or cancelled, move back to 'startup' state and transition to 'wait execution' state
   if (autonomy_state_ == AU_3_ROS_MODE_EN)
   {
     errLinX_integral_ = 0.0;
@@ -169,8 +172,10 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     pub_pid_components_.publish(pid_components_msg_);
 
     // printing the components
-    ROS_INFO("PVx: %f, IVx: %f, DVx: %f", kP_linX_*errLinX_current_, kI_linX_*errLinX_integral_, kD_linX_*errLinX_derivative_);
-    ROS_INFO("PWz: %f, IWz: %f, DWz: %f", kP_omega_*errOmega_current_, kI_omega_*errOmega_integral_, kD_omega_*errOmega_derivative_);
+    ROS_INFO("PVx: %f, IVx: %f, DVx: %f", kP_linX_*errLinX_current_, kI_linX_*errLinX_integral_,
+                                          kD_linX_*errLinX_derivative_);
+    ROS_INFO("PWz: %f, IWz: %f, DWz: %f", kP_omega_*errOmega_current_, kI_omega_*errOmega_integral_,
+                                          kD_omega_*errOmega_derivative_);
 
     // feedforward + PID output
     tqDiff_ = tqDiff_ff_ + tqDiff_PID_;
@@ -209,7 +214,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
   }
   else
   {
-    // for every other state we publish zero torques because the brakes are still enabled and we don't want the velocity controller to kick in
+    // publish zero torques for all other states since brakes are enabled and velocity controller shouldn't kick in
     tqL_ = 0.0;
     tqR_ = 0.0;
   }
@@ -227,7 +232,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w)
       if (std::abs(v) >0 || std::abs(w) > 0)
       {
         // move into the accelerating state
-        v = std::max(v, v_moving_ss);  // v_accelerating is the minimum steady state velocity that we want the vehicle to move forward with
+        v = std::max(v, v_moving_ss);  // minimum steady state velocity that we want the vehicle to move forward with
         remapping_state = VEHICLE_ACCELERATING;
         break;
       }
