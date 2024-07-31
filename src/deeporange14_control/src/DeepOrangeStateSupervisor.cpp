@@ -3,10 +3,8 @@
 
 namespace deeporange14
 {
-
     DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::NodeHandle &priv_nh)
     {
-
         // Instantiate sub/pubs
         sub_missionStatus = nh.subscribe(std::string(topic_ns + "/mission_status"), 10, &DeepOrangeStateSupervisor::getMissionStatus, this, ros::TransportHints().tcpNoDelay(true));
         sub_stopRos = nh.subscribe(std::string(topic_ns + "/stop_ros"), 10, &DeepOrangeStateSupervisor::getStopRos, this, ros::TransportHints().tcpNoDelay(true));
@@ -42,8 +40,8 @@ namespace deeporange14
         priv_nh.getParam("cmdvel_timeout", cmdvel_timeout);
         priv_nh.getParam("raptorhb_timeout", raptorhb_timeout);
         priv_nh.getParam("update_freq", update_freq);
-        desired_delay = 20; // Adding 20 secs delay after fault to wait for transition
-        delay_threshold = desired_delay * update_freq; 
+        desired_delay = 20;  // Adding 20 secs delay after fault to wait for transition
+        delay_threshold = desired_delay * update_freq;
 
         // Set up Timer - with calback to publish ROS state all the time that the node is running
         timer = nh.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
@@ -72,11 +70,10 @@ namespace deeporange14
     void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg)
     {
         raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
-        dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED ; // Ros mode 3/4 is acceptable dbw ros modes for transition
-        brkL_pr = raptorMsg->brk_Lpres; 
-        brkR_pr = raptorMsg->brk_Rpres; 
+        dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED;  // Ros mode 3/4 is acceptable dbw ros modes for transition
+        brkL_pr = raptorMsg->brk_Lpres;
+        brkR_pr = raptorMsg->brk_Rpres;
         speed_state = raptorMsg->speed_state;
-     
     }
 
     void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &event)
@@ -91,19 +88,17 @@ namespace deeporange14
 
         mobilityMsg.au_state = state;
         auStateMsg.data = state;
-        pub_states.publish(auStateMsg); // Additional standard msg for stack side 
-        pub_mobility.publish(mobilityMsg); // custom deeporange14 msg for DBW Can node
+        pub_states.publish(auStateMsg);  // Additional standard msg for stack side
+        pub_mobility.publish(mobilityMsg);  // custom deeporange14 msg for DBW Can node
     }
 
     void DeepOrangeStateSupervisor::updateROSState()
     {
-
         switch (state)
         {
-
         case AU_0_DEFAULT:
         {
-            prevSt = 0; 
+            prevSt = 0;
             state = AU_1_STARTUP;
             ROS_INFO("In Default 0 st");
             break;
@@ -117,7 +112,8 @@ namespace deeporange14
             // mission_status="";
             // ROS_INFO("In startup State");
 
-            if(raptor_hb_detected){
+            if (raptor_hb_detected)
+            {
                 ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
                 prevSt = 1;
                 state = AU_2_IDLE;
@@ -125,17 +121,13 @@ namespace deeporange14
             }
             else
             {
-                // do nothing , stay in same state 
+                // do nothing , stay in same state
                 // ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
                 break;
             }
-
-
         }
-
         case AU_2_IDLE:
         {
-
             mobilityMsg.tqL_cmd = 0.0;
             mobilityMsg.tqR_cmd = 0.0;
             mobilityMsg.brkL_cmd = 1.0;
@@ -150,38 +142,38 @@ namespace deeporange14
                 ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
                 break;
             }
-            else if (prevSt > 1){
+            else if (prevSt > 1)
+            {
                 //  it has returned from fault of below states, add delay
-                if (delay < delay_threshold){
+                if (delay < delay_threshold)
+                {
                     delay++;
                     break;
-                }else{
+                }
+                else
+                {
                     prevSt = 1;
                     break;
                 }
-
             }
-
-            else if(dbw_ros_mode)
+            else if (dbw_ros_mode)
             {
                 ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
                 prevSt = 2;
                 state = AU_3_ROS_MODE_EN;
                 break;
             }
-
-            else 
+            else
             {
                 // do nothing ,stay in same state
-                // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled"); 
+                // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled");
                 break;
             }
         }
         case AU_3_ROS_MODE_EN:
         {
-
             mobilityMsg.tqL_cmd = 0.0;
-            mobilityMsg.tqR_cmd = 0.0; // Also check from stack if brake_enable command from stack should be true
+            mobilityMsg.tqR_cmd = 0.0;  // Also check from stack if brake_enable command from stack should be true
             mobilityMsg.brkL_cmd = 1.0;
             mobilityMsg.brkR_cmd = 1.0;
 
@@ -211,19 +203,16 @@ namespace deeporange14
                 ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:stop button is pressed ");
                 break;
             }
-
-
             else if (mission_status == "globalPlanReady")
             {
                 prevSt = 3;
-                state = AU_4_DISENGAGING_BRAKES; 
+                state = AU_4_DISENGAGING_BRAKES;
                 // mission_status="";
                 ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , transitioning to disengaging brakes ");
                 break;
             }
-
             else
-            {   
+            {
                 // ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
                 // Do nothing
                 break;
@@ -231,7 +220,6 @@ namespace deeporange14
         }
         case AU_4_DISENGAGING_BRAKES:
         {
-
             mobilityMsg.tqL_cmd = tqL_cmd_controller;
             mobilityMsg.tqR_cmd = tqR_cmd_controller;
             mobilityMsg.brkL_cmd = 0.0;
@@ -266,7 +254,6 @@ namespace deeporange14
                 ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:stop button is pressed ");
                 break;
             }
-
             else if (speed_state == SPEED_STATE_Ready2Move)
             {
                 prevSt = 4;
@@ -281,16 +268,13 @@ namespace deeporange14
                 break;
             }
         }
-
-
         case AU_5_ROS_CONTROLLED:
         {
-
             mobilityMsg.tqL_cmd = tqL_cmd_controller;
             mobilityMsg.tqR_cmd = tqR_cmd_controller;
             mobilityMsg.brkL_cmd = 0.0;
             mobilityMsg.brkR_cmd = 0.0;
-            
+
             if (!raptor_hb_detected)
             {
                 state = AU_1_STARTUP;
@@ -317,26 +301,22 @@ namespace deeporange14
                 ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
                 break;
             }
-
             else if (mission_status == "MissionCancelled")
             {
                 prevSt = 5;
-                state = AU_3_ROS_MODE_EN ;
+                state = AU_3_ROS_MODE_EN;
                 ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
                 break;
             }
-            
-            else{
+            else
+            {
                 // do nothing, remain in same state
                 // ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
                 break;
-
             }
-
         }
-
-
-        default:{
+        default:
+        {
             prevSt = 0;
             ROS_ERROR(" Unknown State, shut down");
             break;
