@@ -58,19 +58,23 @@ DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
 void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg) {
   cmdvel_timestamp = ros::Time::now().toSec();
 }
+
 void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPtr &missionStatus) {
   mission_update_timestamp = ros::Time::now().toSec();
   mission_status = missionStatus->data;
 }
+
 void DeepOrangeStateSupervisor::getTorqueValues(
     const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues) {
   tqL_cmd_controller  = controllerTrqValues->tqL_cmd;
   tqR_cmd_controller = controllerTrqValues->tqR_cmd;
 }
+
 void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg) {
   stop_ros_timestamp = ros::Time::now().toSec();
   // stop_ros = stopRosMsg->data;
 }
+
 void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg) {
   raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
   // transition to DBW mode if ROS mode 3 or 4
@@ -170,7 +174,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR:[AU_3_ROS_MODE_EN]: RaptorHandshake failed ");
         break;
-      } 
+      }
       else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Out of ROS dbwMode ");

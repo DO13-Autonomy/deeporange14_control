@@ -23,6 +23,7 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   cmdAngZ_ = 0.0;
   vehLinX_ = 0.0;
   vehAngZ_ = 0.0;
+
   // member variables -- feedforward and PID torques
   tqDiff_ff_ = 0.0;
   tqCom_ff_ = 0.0;
@@ -32,6 +33,7 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   tqComm_ = 0.0;
   tqL_ = 0.0;
   tqR_ = 0.0;
+
   // member variables -- PID controller gains and errors
   errLinX_current_ = 0.0;
   errLinX_prev_ = 0.0;
@@ -47,6 +49,7 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   kP_omega_ = 40.0;
   kI_omega_ = 8.0;
   kD_omega_ = 0.0;
+
   // feedforward terms
   x0_ = 1500.0;
   x1_ = 7.8;
@@ -54,11 +57,12 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   b_ = 18.0;
   cmd_turn_curvature_ = 0.0;
   // odom_turn_curvature_=0.0;
+
   // torque limits
   tq_Max_ = 280.0;
   tq_Min_ = -280.0;
-  // rate limits
 
+  // rate limits
   // curvature_rate_limit_=2.0;       //[1/m]/s
   prev_v_ = 0.0;
   prev_omega_ = 0.0;
@@ -73,6 +77,7 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   lat_acc_max = max_omega*v_sz;
   autonomy_state_ = AU_1_STARTUP;
   deadband_velocity = 0.5;
+
   // Rate limiter constants
   dec_min = -0.1;
   a_acc = 0.5;
@@ -96,10 +101,12 @@ void VelocityController::odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
   vehLinX_ = msg->twist.twist.linear.x;
   vehAngZ_ = msg->twist.twist.angular.z;
 }
+
 // define the brake callback -- used to determine when the the controller needs to be used to control the vehicle speeds
 void VelocityController::brakeCallback(const std_msgs::Bool::ConstPtr& msg) {
   brake_engage_ = msg->data;
 }
+
 // calback for reading the current state of the autonomy state-machine
 void VelocityController::cmdMobilityCallback(const deeporange14_msgs::MobilityMsg::ConstPtr& msg) {
   autonomy_state_ = msg->au_state;
@@ -110,6 +117,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
   cmdAngZ_ = msg->angular.z;
   errLinX_prev_ = errLinX_current_;
   errOmega_prev_ = errOmega_current_;
+
   // integrator reset on transition to 'waiting for execution' state
   // after a mission is completed or cancelled, move back to 'startup' state and transition to 'wait execution' state
   if (autonomy_state_ == AU_3_ROS_MODE_EN) {
@@ -144,15 +152,19 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
 
     tqDiff_ff_ = (x0_*cmd_turn_curvature_)/(1 + x1_*std::abs(cmd_turn_curvature_));
     tqCom_ff_ = ((cmdLinX_ > 0) - (cmdLinX_ < 0))*(a_*std::abs(cmdLinX_) + b_);
+
     // current errors
     errLinX_current_ = cmdLinX_-vehLinX_;
     errOmega_current_ = cmdAngZ_-vehAngZ_;
+
     // current derivatives
     errLinX_derivative_ = (errLinX_current_-errLinX_prev_)/dt_;
     errOmega_derivative_ = (errOmega_current_-errOmega_prev_)/dt_;
+
     // discrete controller output
     tqComm_PID_ = (kP_linX_*errLinX_current_) + (kI_linX_*errLinX_integral_) + (kD_linX_*errLinX_derivative_);
     tqDiff_PID_ = (kP_omega_*errOmega_current_) + (kI_omega_*errOmega_integral_) + (kD_omega_*errOmega_derivative_);
+
     // publishing individual components of the PID on the PIDComponentsMsg
     deeporange14_msgs::PIDComponentsMsg pid_components_msg_;
     pid_components_msg_.P_Vx = kP_linX_*errLinX_current_;
@@ -173,9 +185,11 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     tqDiff_ = tqDiff_ff_ + tqDiff_PID_;
     tqComm_ = tqCom_ff_ + tqComm_PID_;
     // ROS_WARN("ff: %f, pid: %f",tqCom_ff_,tqComm_PID_);
+
     // splitting the common and differential torque into left and right torque
     tqL_ = tqComm_ - tqDiff_;
     tqR_ = tqComm_ + tqDiff_;
+
     // anti-windup behavior
     if (((tqL_ >= tq_Max_ || tqR_ >= tq_Max_) || ((tqL_ <= tq_Min_) || (tqR_ <= tq_Min_)))) {
       ROS_WARN("Saturated Left: %f, Saturated Right: %f", tqL_, tqR_);
@@ -206,6 +220,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     tqR_ = 0.0;
   }
 }
+
 void VelocityController::linearVelocityReprojection(double& v,  double& w) {
   switch (remapping_state) {
     case VEHICLE_STOPPED: {
@@ -213,6 +228,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
       pub_remap_state_.publish(remapping_state_msg_);
 
       ROS_INFO("VEHICLE STOPPED");
+
       if (std::abs(v) >0 || std::abs(w) > 0) {
         // move into the accelerating state
         v = std::max(v, v_moving_ss);  // minimum steady state velocity that we want the vehicle to move forward with
@@ -228,7 +244,9 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
     case VEHICLE_ACCELERATING: {
       remapping_state_msg_.data = 1;
       pub_remap_state_.publish(remapping_state_msg_);
+
       ROS_INFO("VEHICLE ACCELERATING");
+
       if (std::abs(vehLinX_) >= v_moving) {
         remapping_state = VEHICLE_MOVING;
         break;
@@ -242,7 +260,9 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
     case VEHICLE_MOVING: {
       remapping_state_msg_.data = 2;
       pub_remap_state_.publish(remapping_state_msg_);
+
       ROS_INFO("VEHICLE MOVING");
+
       // v stays the same and we do not need to reproject
       if (std::abs(vehLinX_) <= v_stopped) {
         v = 0;
@@ -269,6 +289,7 @@ void VelocityController::twistReprojection(double &v, double &w) {
   if (v < min_velocity) {
     v = min_velocity;  // limited to max forward
   }
+
   if (v > max_velocity) {
     v = max_velocity;  // limited to max forward
   }
@@ -375,22 +396,27 @@ end
       rmin = 0;
     }
   }
+
   // limits the rate of change of the incoming velocity and curvature commands
   // current_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
   // dt_=current_time_-prev_time_;
   // prev_time_=current_time_;
+
   // linear velocity rate limiter
   double rate_u_ =(u_ - prev_u_)/dt_;
   double allowable_rate_u_ = std::max(std::min(rate_u_, rmax), rmin);
+
   u_ = prev_u_ + allowable_rate_u_*dt_;
   prev_u_ = u_;
 }
 
 void VelocityController::publishTorques(const ros::TimerEvent& event) {
   deeporange14_msgs::TorqueCmdStamped trq_cmd_;
+
   trq_cmd_.header.stamp = ros::Time::now();
   trq_cmd_.tqL_cmd = tqL_;
   trq_cmd_.tqR_cmd = tqR_;
+
   pub_cmd_trq_.publish(trq_cmd_);
 }
 }  // namespace deeporange14

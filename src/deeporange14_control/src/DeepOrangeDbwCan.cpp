@@ -11,17 +11,14 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 namespace deeporange14 {  // TODO -> change namespace
 DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
   /* Instantiating subscribers and publishers */
-
   sub_can_ = node.subscribe("can_tx", 10, &DeepOrangeDbwCan::recvCAN, this, ros::TransportHints().tcpNoDelay(true));
   pub_can_ = node.advertise<can_msgs::Frame>("can_rx", 10);
 
   // --------------- To ROS --------------- //
-
   // Raptor state & brake status
   pub_raptorState_ = node.advertise<deeporange14_msgs::RaptorStateMsg>(std::string(topic_ns +"/raptor_state"), 10);
 
   // --------------- To CAN --------------- //
-
   // Measured velocities
   pub_auStatus_ = node.advertise<deeporange14_msgs::AuStatusMsg>(std::string(topic_ns + "/autonomy_log_status"), 10);
   sub_odom_ = node.subscribe("/novatel/oem7/odom", 10, &DeepOrangeDbwCan::getMeasuredVx, this,
@@ -134,14 +131,17 @@ void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg
 // Publish AU status at 50hz
 void DeepOrangeDbwCan::publishAuStatus(const ros::TimerEvent& event) {
   auStatusMsg_.header.stamp = ros::Time::now();
+
   // Updating values
   auStatusMsg_.rtkStatus = *rtk_status_ptr_;
   auStatusMsg_.measuredVx = *measVx_ptr_;
   auStatusMsg_.measuredWz = *measWz_ptr_;
+
   // Updating time stamp
   auStatusMsg_.timesecVx = *time_Vx_ptr_;
   auStatusMsg_.timesecWz = *time_Wz_ptr_;
   auStatusMsg_.timesecRtk = *time_Rtk_ptr_;
+
   // Publishing values
   pub_auStatus_.publish(auStatusMsg_);
 }
@@ -168,6 +168,7 @@ void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg) {
     }
 
     averageWz_ = averageWz_/4;
+
     // Publishing the average of 4 imu values
     *measWz_ptr_ = averageWz_;
     vectorWz_.clear();
@@ -186,6 +187,7 @@ void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::Odometry& msg) {
     }
 
     averageVx_ = averageVx_/2;
+
     // Publishing the average of 2 odom values
     *measVx_ptr_ = averageVx_;
     vectorVx_.clear();
