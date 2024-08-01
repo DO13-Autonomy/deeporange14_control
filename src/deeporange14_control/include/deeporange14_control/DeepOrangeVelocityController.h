@@ -17,10 +17,8 @@
 #include <deeporange14_msgs/PIDComponentsMsg.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
 
-namespace deeporange14
-{
-class VelocityController
-{
+namespace deeporange14 {
+class VelocityController {
  public:
   VelocityController(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
   ~VelocityController();

@@ -6,12 +6,10 @@ Refer to DO13 Raptor DBW state machine for info on states
 #define DEEPORANGE_STATE_ENUMS_H_
 #include <stdint.h>
 
-namespace deeporange14
-{
+namespace deeporange14 {
 #undef BUILD_ASSERT
 
-enum allStates
-{
+enum allStates {
   // ROS States
   AU_0_DEFAULT                   = 0,
   AU_1_STARTUP                   = 1,

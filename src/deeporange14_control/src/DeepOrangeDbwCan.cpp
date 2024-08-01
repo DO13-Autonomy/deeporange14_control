@@ -8,10 +8,8 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 
 #include <deeporange14_control/DeepOrangeDbwCan.h>
 
-namespace deeporange14  // TODO -> change namespace
-{
-DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
-{
+namespace deeporange14 {  // TODO -> change namespace
+DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
   /* Instantiating subscribers and publishers */
 
   sub_can_ = node.subscribe("can_tx", 10, &DeepOrangeDbwCan::recvCAN, this, ros::TransportHints().tcpNoDelay(true));
@@ -56,19 +54,14 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
 
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
 
-void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg)
-{
+void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg) {
   // ROS_WARN("Inside RecvCan. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
-  if (!msg->is_rtr && !msg->is_error)
-  {
-    switch (msg->id)
-    {
+  if (!msg->is_rtr && !msg->is_error) {
+    switch (msg->id) {
       // Getting brake status
-      case ID_VD_Brake_Msg:
-      {
+      case ID_VD_Brake_Msg: {
         NewEagle::DbcMessage* message = raptorDbc_.GetMessageById(ID_VD_Brake_Msg);
-        if (msg->dlc >= message->GetDlc())
-        {
+        if (msg->dlc >= message->GetDlc()) {
           message->SetFrame(msg);
           raptorMsg_.header.stamp = msg->header.stamp;
           raptorMsg_.brk_Rpres = message->GetSignal("brk_ip_Rpres")->GetResult();
@@ -78,11 +71,9 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg)
       break;
 
       // Getting raptor state and dbw mode
-      case ID_Raptor_Main_Msg:
-      {
+      case ID_Raptor_Main_Msg: {
         NewEagle::DbcMessage* message = raptorDbc_.GetMessageById(ID_Raptor_Main_Msg);
-        if (msg->dlc >= message->GetDlc())
-        {
+        if (msg->dlc >= message->GetDlc()) {
           message->SetFrame(msg);
           raptorMsg_.system_state = message->GetSignal("SYS_STATE")->GetResult();
           raptorMsg_.dbw_mode = message->GetSignal("DBW_MODE")->GetResult();
@@ -96,9 +87,8 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg)
   }
 }
 
-void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg)
+void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg) {
 // Get AU state, Torque & Brake commands
-{
   NewEagle::DbcMessage* message = rosDbc_ .GetMessageById(ID_AU_CONTROL_MSG);
   // Increamenting Ros heartbeat by `1` until `15`
   if (*ros_hb_ptr_ < 15) (*ros_hb_ptr_)++;
@@ -114,8 +104,7 @@ void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg
 }
 
 // Publishing measured velocities, rtk and logging status to CAN
-void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg)
-{
+void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg) {
   NewEagle::DbcMessage* message = rosDbc_.GetMessageById(ID_AU_STATUS_MSG);
   // Get current time
   ros::param::get("/log_status", log_st);
@@ -131,8 +120,7 @@ void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg
   else message->GetSignal("rtk_ack")->SetResult(0);
 
   // Getting logging status using param value set by data logger
-  if (ros::param::has("/log_status"))
-  {
+  if (ros::param::has("/log_status")) {
     // If param has value then get it otherwise send `0`
     ros::param::get("/log_status", log_st);
     message->GetSignal("log_ack")->SetResult(log_st);
@@ -144,8 +132,7 @@ void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg
 }
 
 // Publish AU status at 50hz
-void DeepOrangeDbwCan::publishAuStatus(const ros::TimerEvent& event)
-{
+void DeepOrangeDbwCan::publishAuStatus(const ros::TimerEvent& event) {
   auStatusMsg_.header.stamp = ros::Time::now();
   // Updating values
   auStatusMsg_.rtkStatus = *rtk_status_ptr_;
@@ -160,29 +147,23 @@ void DeepOrangeDbwCan::publishAuStatus(const ros::TimerEvent& event)
 }
 
 // Getting RTK status
-void DeepOrangeDbwCan::getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg)
-{
+void DeepOrangeDbwCan::getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg) {
   *time_Rtk_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
-  if (msg.pos_type.type == 50 || msg.pos_type.type == 56)
-  {
+  if (msg.pos_type.type == 50 || msg.pos_type.type == 56)   {
     *rtk_status_ptr_ = 1;
   }
-  else
-  {
+  else {
     *rtk_status_ptr_ = 0;
   }
 }
 
 // Getting Measured Wz
-void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg)
-{
+void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg) {
   *time_Wz_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
   vectorWz_.push_back(msg.angular_velocity.z);
 
-  if (vectorWz_.size() == 4)
-  {
-    for (int i = 0; i < 4; i++)
-    {
+  if (vectorWz_.size() == 4) {
+    for (int i = 0; i < 4; i++) {
       averageWz_ = averageWz_ + vectorWz_[i];
     }
 
@@ -195,15 +176,12 @@ void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg)
 }
 
 // Getting Measured Vx
-void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::Odometry& msg)
-{
+void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::Odometry& msg) {
   *time_Vx_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
   vectorVx_.push_back(msg.twist.twist.linear.x);
 
-  if (vectorVx_.size( ) == 2)
-  {
-    for (int i = 0; i < 2; i++)
-    {
+  if (vectorVx_.size( ) == 2) {
+    for (int i = 0; i < 2; i++) {
       averageVx_ = averageVx_ + vectorVx_[i];
     }
 

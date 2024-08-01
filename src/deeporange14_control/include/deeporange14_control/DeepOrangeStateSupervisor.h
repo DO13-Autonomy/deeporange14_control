@@ -24,10 +24,8 @@
 #include <deeporange14_msgs/RaptorStateMsg.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
 
-namespace deeporange14
-{
-class DeepOrangeStateSupervisor
-{
+namespace deeporange14 {
+class DeepOrangeStateSupervisor {
  public:
   DeepOrangeStateSupervisor(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
   ~DeepOrangeStateSupervisor();

@@ -3,10 +3,8 @@
 #include <string>
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
 
-namespace deeporange14
-{
-DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::NodeHandle &priv_nh)
-{
+namespace deeporange14 {
+DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::NodeHandle &priv_nh) {
   // Instantiate sub/pubs
   sub_missionStatus = nh.subscribe(std::string(topic_ns + "/mission_status"), 10,
                                    &DeepOrangeStateSupervisor::getMissionStatus, this,
@@ -57,28 +55,23 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
 }
 DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
 
-void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg)
-{
+void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg) {
   cmdvel_timestamp = ros::Time::now().toSec();
 }
-void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPtr &missionStatus)
-{
+void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPtr &missionStatus) {
   mission_update_timestamp = ros::Time::now().toSec();
   mission_status = missionStatus->data;
 }
 void DeepOrangeStateSupervisor::getTorqueValues(
-    const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues)
-{
+    const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues) {
   tqL_cmd_controller  = controllerTrqValues->tqL_cmd;
   tqR_cmd_controller = controllerTrqValues->tqR_cmd;
 }
-void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg)
-{
+void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg) {
   stop_ros_timestamp = ros::Time::now().toSec();
   // stop_ros = stopRosMsg->data;
 }
-void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg)
-{
+void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg) {
   raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
   // transition to DBW mode if ROS mode 3 or 4
   dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED;
@@ -87,8 +80,7 @@ void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStat
   speed_state = raptorMsg->speed_state;
 }
 
-void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &event)
-{
+void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &event) {
   /* Always continue to publish ROS state  */
   stack_fault = ros::Time::now().toSec() - cmdvel_timestamp > cmdvel_timeout;
   raptor_hb_detected = ros::Time::now().toSec() - raptor_hb_timestamp < raptorhb_timeout;
@@ -103,19 +95,15 @@ void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &e
   pub_mobility.publish(mobilityMsg);  // custom deeporange14 msg for DBW Can node
 }
 
-void DeepOrangeStateSupervisor::updateROSState()
-{
-  switch (state)
-  {
-    case AU_0_DEFAULT:
-    {
+void DeepOrangeStateSupervisor::updateROSState() {
+  switch (state) {
+    case AU_0_DEFAULT: {
       prevSt = 0;
       state = AU_1_STARTUP;
       ROS_INFO("In Default 0 st");
       break;
     }
-    case AU_1_STARTUP:
-    {
+    case AU_1_STARTUP: {
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
@@ -123,22 +111,19 @@ void DeepOrangeStateSupervisor::updateROSState()
       // mission_status="";
       // ROS_INFO("In startup State");
 
-      if (raptor_hb_detected)
-      {
+      if (raptor_hb_detected) {
         ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
         prevSt = 1;
         state = AU_2_IDLE;
         break;
       }
-      else
-      {
+      else {
         // do nothing , stay in same state
         // ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
         break;
       }
     }
-    case AU_2_IDLE:
-    {
+    case AU_2_IDLE: {
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
@@ -147,90 +132,76 @@ void DeepOrangeStateSupervisor::updateROSState()
       // ROS_INFO("In Idle State");
       // ROS_WARN("In Idle");
 
-      if (!raptor_hb_detected)
-      {
+      if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
         break;
       }
-      else if (prevSt > 1)
-      {
+      else if (prevSt > 1) {
         //  it has returned from fault of below states, add delay
-        if (delay < delay_threshold)
-        {
+        if (delay < delay_threshold) {
           delay++;
           break;
         }
-        else
-        {
+        else {
           prevSt = 1;
           break;
         }
       }
-      else if (dbw_ros_mode)
-      {
+      else if (dbw_ros_mode) {
         ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
         prevSt = 2;
         state = AU_3_ROS_MODE_EN;
         break;
       }
-      else
-      {
+      else {
         // do nothing ,stay in same state
         // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled");
         break;
       }
     }
-    case AU_3_ROS_MODE_EN:
-    {
+    case AU_3_ROS_MODE_EN: {
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;  // Also check from stack if brake_enable command from stack should be true
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
 
-      if (!raptor_hb_detected)
-      {
+      if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR:[AU_3_ROS_MODE_EN]: RaptorHandshake failed ");
         break;
-      }
-      else if (!dbw_ros_mode)
-      {
+      } 
+      else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Out of ROS dbwMode ");
         break;
       }
-      else if (stack_fault)
-      {
+      else if (stack_fault) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:Stack Crashed or failed ");
         break;
       }
-      else if (stop_ros)
-      {
+      else if (stop_ros) {
         //  go backuint8 left_brkPressure
         // stop_ros = false;
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:stop button is pressed ");
         break;
       }
-      else if (mission_status == "globalPlanReady")
-      {
+      else if (mission_status == "globalPlanReady") {
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
         // mission_status="";
         ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , transitioning to disengaging brakes ");
         break;
       }
-      else
-      {
+      else {
         // ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
         // Do nothing
         break;
       }
     }
-    case AU_4_DISENGAGING_BRAKES:
-    {
+    case AU_4_DISENGAGING_BRAKES: {
       mobilityMsg.tqL_cmd = tqL_cmd_controller;
       mobilityMsg.tqR_cmd = tqR_cmd_controller;
       mobilityMsg.brkL_cmd = 0.0;
@@ -238,96 +209,82 @@ void DeepOrangeStateSupervisor::updateROSState()
       // Also check from stack if brake_enable command is false from stack,
       //  because now global plan is ready and brakes should be disengaged
 
-      if (!raptor_hb_detected)
-      {
+      if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:RaptorHandshake failed ");
         break;
       }
-      else if (!dbw_ros_mode)
-      {
+      else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR:[AU_4_DISENGAGING_BRAKES]: Out of dbwMode ");
         break;
       }
-      else if (stack_fault)
-      {
+      else if (stack_fault) {
         state = AU_2_IDLE;
         break;
         ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:Stack Crashed or failed ");
         break;
       }
-      else if (stop_ros)
-      {
+      else if (stop_ros) {
         //  go back to idle
         state = AU_2_IDLE;
         // stop_ros = false;
         ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:stop button is pressed ");
         break;
       }
-      else if (speed_state == SPEED_STATE_Ready2Move)
-      {
+      else if (speed_state == SPEED_STATE_Ready2Move) {
         prevSt = 4;
         state = AU_5_ROS_CONTROLLED;
         ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, transitioning to Ros controlled, about to move ");
         break;
       }
-      else
-      {
+      else {
         //  Do nothing
         // ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
         break;
       }
     }
-    case AU_5_ROS_CONTROLLED:
-    {
+    case AU_5_ROS_CONTROLLED: {
       mobilityMsg.tqL_cmd = tqL_cmd_controller;
       mobilityMsg.tqR_cmd = tqR_cmd_controller;
       mobilityMsg.brkL_cmd = 0.0;
       mobilityMsg.brkR_cmd = 0.0;
 
-      if (!raptor_hb_detected)
-      {
+      if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]: RaptorHandshake failed ");
         break;
       }
-      else if (!dbw_ros_mode)
-      {
+      else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]:Out of dbwMode ");
         break;
       }
-      else if (stack_fault)
-      {
+      else if (stack_fault) {
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]: Stack Crashed or failed ");
         break;
       }
-      else if (stop_ros)
-      {
+      else if (stop_ros) {
         //  go back to idle
         state = AU_2_IDLE;
         // stop_ros = false;
         ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
         break;
       }
-      else if (mission_status == "MissionCancelled")
-      {
+      else if (mission_status == "MissionCancelled") {
         prevSt = 5;
         state = AU_3_ROS_MODE_EN;
         ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
         break;
       }
-      else
-      {
+      else {
         // do nothing, remain in same state
         // ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
         break;
       }
     }
-    default:
-    {
+    default: {
       prevSt = 0;
       ROS_ERROR(" Unknown State, shut down");
       break;

@@ -7,12 +7,10 @@
 #define DEEPORANGE_CAN_DISPATCH_H_
 #include <stdint.h>
 
-namespace deeporange14
-{
+namespace deeporange14 {
 #undef BUILD_ASSERT
 
-enum
-{
+enum {
   // Raptor msgs
   ID_Raptor_Main_Msg              = 0x34,
   ID_VD_Brake_Msg                 = 0x46,

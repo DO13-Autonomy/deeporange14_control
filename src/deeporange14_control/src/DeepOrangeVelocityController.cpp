@@ -4,10 +4,8 @@
 
 #include <deeporange14_control/DeepOrangeVelocityController.h>
 
-namespace deeporange14
-{
-VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
-{
+namespace deeporange14 {
+VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
   sub_cmd_vel_ = node.subscribe(std::string(topic_ns+"/cmd_vel"), 10, &VelocityController::cmdVelCallback, this);
   sub_odom_ = node.subscribe(std::string(topic_ns+"/odom"), 10, &VelocityController::odomCallback, this);
   sub_moboility_msg_ = node.subscribe(std::string(topic_ns+"/cmd_mobility"), 10,
@@ -94,32 +92,27 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
 VelocityController::~VelocityController() {}
 
 // define the odom callback -- to be used by the controller as a feedback of the actual vehicle velocity
-void VelocityController::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
-{
+void VelocityController::odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
   vehLinX_ = msg->twist.twist.linear.x;
   vehAngZ_ = msg->twist.twist.angular.z;
 }
 // define the brake callback -- used to determine when the the controller needs to be used to control the vehicle speeds
-void VelocityController::brakeCallback(const std_msgs::Bool::ConstPtr& msg)
-{
+void VelocityController::brakeCallback(const std_msgs::Bool::ConstPtr& msg) {
   brake_engage_ = msg->data;
 }
 // calback for reading the current state of the autonomy state-machine
-void VelocityController::cmdMobilityCallback(const deeporange14_msgs::MobilityMsg::ConstPtr& msg)
-{
+void VelocityController::cmdMobilityCallback(const deeporange14_msgs::MobilityMsg::ConstPtr& msg) {
   autonomy_state_ = msg->au_state;
 }
 
-void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
+void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg) {
   cmdLinX_ = msg->linear.x;
   cmdAngZ_ = msg->angular.z;
   errLinX_prev_ = errLinX_current_;
   errOmega_prev_ = errOmega_current_;
   // integrator reset on transition to 'waiting for execution' state
   // after a mission is completed or cancelled, move back to 'startup' state and transition to 'wait execution' state
-  if (autonomy_state_ == AU_3_ROS_MODE_EN)
-  {
+  if (autonomy_state_ == AU_3_ROS_MODE_EN) {
     errLinX_integral_ = 0.0;
     errOmega_integral_ = 0.0;
     tqL_ = 0.0;
@@ -131,8 +124,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // ROS_INFO("Velocity error integral: %f, Curvature error integral: %f",errLinX_integral_,errOmega_integral_);
     // prev_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
   }
-  else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES)
-  {
+  else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES) {
     // letting the controller kick in only when we move in the appropriate autonomy state
     // rate limiting the linear velocity and the curvature
     // velocity reprojection on the commanded velocities
@@ -185,16 +177,13 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     tqL_ = tqComm_ - tqDiff_;
     tqR_ = tqComm_ + tqDiff_;
     // anti-windup behavior
-    if (((tqL_ >= tq_Max_ || tqR_ >= tq_Max_) || ((tqL_ <= tq_Min_) || (tqR_ <= tq_Min_))))
-    {
+    if (((tqL_ >= tq_Max_ || tqR_ >= tq_Max_) || ((tqL_ <= tq_Min_) || (tqR_ <= tq_Min_)))) {
       ROS_WARN("Saturated Left: %f, Saturated Right: %f", tqL_, tqR_);
-      if (tqComm_PID_*errLinX_current_ > 0)
-      {
+      if (tqComm_PID_*errLinX_current_ > 0) {
         // stop integration for common torque for the next timestep, hence only curvature integral updated
         errOmega_integral_+=errOmega_current_*dt_;
       }
-      else
-      {
+      else {
         // resume integration for common torque the next timestep, hence both integrals updated
         errLinX_integral_+=errLinX_current_*dt_;
         errOmega_integral_+=errOmega_current_*dt_;
@@ -203,8 +192,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
       tqL_ = std::max((std::min(tqL_, tq_Max_)), tq_Min_);
       tqR_ = std::max((std::min(tqR_, tq_Max_)), tq_Min_);
     }
-    else
-    {
+    else {
       ROS_WARN("Unsaturated Left: %f, Unsaturated Right: %f", tqL_, tqR_);
       // only update the error integrals, and NOT limit the torques since we haven't reached the limit
       errLinX_integral_+=errLinX_current_*dt_;
@@ -212,68 +200,56 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     }
     // ROS_INFO("Curvature error integral: %f",errOmega_integral_);
   }
-  else
-  {
+  else {
     // publish zero torques for all other states since brakes are enabled and velocity controller shouldn't kick in
     tqL_ = 0.0;
     tqR_ = 0.0;
   }
 }
-void VelocityController::linearVelocityReprojection(double& v,  double& w)
-{
-  switch (remapping_state)
-  {
-    case VEHICLE_STOPPED:
-    {
+void VelocityController::linearVelocityReprojection(double& v,  double& w) {
+  switch (remapping_state) {
+    case VEHICLE_STOPPED: {
       remapping_state_msg_.data = 0;
       pub_remap_state_.publish(remapping_state_msg_);
 
       ROS_INFO("VEHICLE STOPPED");
-      if (std::abs(v) >0 || std::abs(w) > 0)
-      {
+      if (std::abs(v) >0 || std::abs(w) > 0) {
         // move into the accelerating state
         v = std::max(v, v_moving_ss);  // minimum steady state velocity that we want the vehicle to move forward with
         remapping_state = VEHICLE_ACCELERATING;
         break;
       }
-      else
-      {
+      else {
         v = 0;
         // do nothing, remain in this state
         break;
       }
     }
-    case VEHICLE_ACCELERATING:
-    {
+    case VEHICLE_ACCELERATING: {
       remapping_state_msg_.data = 1;
       pub_remap_state_.publish(remapping_state_msg_);
       ROS_INFO("VEHICLE ACCELERATING");
-      if (std::abs(vehLinX_) >= v_moving)
-      {
+      if (std::abs(vehLinX_) >= v_moving) {
         remapping_state = VEHICLE_MOVING;
         break;
       }
-      else
-      {
+      else {
         // do nothing, remain in this state
         v = std::max(v, v_moving_ss);
         break;
       }
     }
-    case VEHICLE_MOVING:
-    {
+    case VEHICLE_MOVING: {
       remapping_state_msg_.data = 2;
       pub_remap_state_.publish(remapping_state_msg_);
       ROS_INFO("VEHICLE MOVING");
       // v stays the same and we do not need to reproject
-      if (std::abs(vehLinX_) <= v_stopped)
-      {
+      if (std::abs(vehLinX_) <= v_stopped) {
         v = 0;
         remapping_state = VEHICLE_STOPPED;
         break;
       }
-      else
-      {
+      else {
         // do nothing, remain in this state
         break;
       }
@@ -281,8 +257,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w)
   }
 }
 
-void VelocityController::twistReprojection(double &v, double &w)
-{
+void VelocityController::twistReprojection(double &v, double &w) {
 // Function to reproject commanded stack velocities onto a velocity
 // space that is executable by the Deep Orange 14 vehicle
 
@@ -291,50 +266,41 @@ void VelocityController::twistReprojection(double &v, double &w)
   double lat_acc = v * w;
 
   // Applying linear velocity limits to bring it into correct zone
-  if (v < min_velocity)
-  {
+  if (v < min_velocity) {
     v = min_velocity;  // limited to max forward
   }
-  if (v > max_velocity)
-  {
+  if (v > max_velocity) {
     v = max_velocity;  // limited to max forward
   }
 
   // First Zone: Deadband (If small linear velocities -> go linear only and make angular velocities zero to avoid stall)
-  if (fabs(v) <= deadband_velocity)
-  {
+  if (fabs(v) <= deadband_velocity) {
     w = 0;
   }
   // Second zone: Commanded curvature should not exceed max curvature
-  else if (fabs(v) <= v_sz && fabs(R) < R_min)
-  {
+  else if (fabs(v) <= v_sz && fabs(R) < R_min) {
     w = v/R_min * (w/fabs(w));
-    if (!isfinite(w))
-    {
+    if (!isfinite(w)) {
       ROS_WARN("Deep Orange: w is not finite within reprojection");
     }
   }
   // Third zone: Commanded lateral acceleration should not exceed max
-  else if (fabs(v) <= max_velocity && fabs(lat_acc) > lat_acc_max)
-  {
+  else if (fabs(v) <= max_velocity && fabs(lat_acc) > lat_acc_max) {
     // Maintaining same curvature but reducing v and w to lie on v*w = lat_acc_max
     v = sqrt(lat_acc_max*fabs(R)) * (v/fabs(v));
-    if (!isfinite(v))
-    {
+    if (!isfinite(v)) {
       ROS_WARN("Deep Orange: v is not finite within reprojection");
     }
 
     w = sqrt(lat_acc_max/fabs(R)) * (w/fabs(w));
-    if (!isfinite(w))
-    {
+    if (!isfinite(w)) {
       ROS_WARN("Deep Orange: w is not finite within reprojection");
     }
   }
 // TODO: State machine for accelerating, decelerating, stopped
 }
 
-void VelocityController::rateLimiter(double &prev_u_, double &u_)
-{
+void VelocityController::rateLimiter(double &prev_u_, double &u_) {
 /*
 % if positive command
 dec_min = -0.1;
@@ -378,42 +344,33 @@ end
 end
 */
   // if positive command
-  if ( u_ > 0 )
-  {
-    if (prev_u_ >= 0)
-    {
+  if ( u_ > 0 ) {
+    if (prev_u_ >= 0) {
       rmax = std::min(a_acc+b_acc*std::abs(prev_u_), acc_max);
       rmin = std::max(a_dec+b_dec*std::abs(prev_u_), dec_max);
     }
-    else
-    {
+    else {
       rmax = std::min(-(a_dec+b_dec*std::abs(prev_u_)), -dec_max);
       rmin = std::max(-(a_acc+b_acc*std::abs(prev_u_)), -acc_max);
     }
   }
-  else if (u_ < 0)
-  {
-    if (prev_u_ < 0)
-    {
+  else if (u_ < 0) {
+    if (prev_u_ < 0) {
       rmax = std::min(-(a_dec+b_dec*std::abs(prev_u_)), -dec_max);
       rmin = std::max(-(a_acc+b_acc*std::abs(prev_u_)), -acc_max);
     }
 
-    else
-    {
+    else {
       rmax = std::min(a_acc+b_acc*std::abs(prev_u_), acc_max);
       rmin = std::max(a_dec+b_dec*std::abs(prev_u_), dec_max);
     }
   }
-  else
-  {
-    if (prev_u_ >0)
-    {
+  else {
+    if (prev_u_ >0) {
       rmax = 0;
       rmin = std::max(-std::max(a_dec+b_dec*prev_u_, smoothing_factor*prev_u_) + dec_min, dec_max);
     }
-    else
-    {
+    else {
       rmax = std::min(std::max(a_dec+b_dec*prev_u_, -smoothing_factor*prev_u_) - dec_min, -dec_max);
       rmin = 0;
     }
@@ -429,8 +386,7 @@ end
   prev_u_ = u_;
 }
 
-void VelocityController::publishTorques(const ros::TimerEvent& event)
-{
+void VelocityController::publishTorques(const ros::TimerEvent& event) {
   deeporange14_msgs::TorqueCmdStamped trq_cmd_;
   trq_cmd_.header.stamp = ros::Time::now();
   trq_cmd_.tqL_cmd = tqL_;

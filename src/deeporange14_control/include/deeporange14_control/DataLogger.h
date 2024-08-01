@@ -18,10 +18,8 @@ an error state is reached
 
 #include <deeporange14_msgs/RaptorStateMsg.h>
 
-namespace deeporange14
-{
-class DataLogger
-{
+namespace deeporange14 {
+class DataLogger {
  public:
   DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
   ~DataLogger();

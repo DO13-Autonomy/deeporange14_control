@@ -35,10 +35,8 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/RaptorStateMsg.h>
 
-namespace deeporange14
-{
-class DeepOrangeDbwCan
-{
+namespace deeporange14 {
+class DeepOrangeDbwCan {
  public:
   DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
   ~DeepOrangeDbwCan();
