@@ -181,7 +181,7 @@ void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::Odometry& msg) {
   *time_Vx_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
   vectorVx_.push_back(msg.twist.twist.linear.x);
 
-  if (vectorVx_.size( ) == 2) {
+  if (vectorVx_.size() == 2) {
     for (int i = 0; i < 2; i++) {
       averageVx_ = averageVx_ + vectorVx_[i];
     }
