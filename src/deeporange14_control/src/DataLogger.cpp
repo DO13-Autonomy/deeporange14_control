@@ -106,7 +106,7 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
   }
 }
 
-void DataLogger::monitorFileSize(std::string &can_file, std::string &ros_bag)
+void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag)
 {
   if (logging_counter == 100)
   {

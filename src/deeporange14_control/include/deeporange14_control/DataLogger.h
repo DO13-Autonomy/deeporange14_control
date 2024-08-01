@@ -26,7 +26,7 @@ class DataLogger {
 
  private:
   void recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg);
-  void monitorFileSize(std::string &can_file, std::string &ros_bag);
+  void monitorFileSize(const std::string &can_file, const std::string &ros_bag);
 
   ros::Timer timer_;
 
