@@ -78,6 +78,7 @@ install(
 )
 
 if(CATKIN_ENABLE_TESTING)
+  set(ROSLINT_CPP_OPTS "--filter=-legal/copyright,-readability/todo,-whitespace/todo,-build/header_guard, -whitespace/braces, -runtime/references")
   roslint_cpp()
   roslint_add_test()
 
