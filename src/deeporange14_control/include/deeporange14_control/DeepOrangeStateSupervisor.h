@@ -1,7 +1,7 @@
 /* A high level state machine to interact with Raptor to control brakes torque command */
 
-#ifndef _DEEPORANGE_STATE_SUPERVISOR_H_
-#define _DEEPORANGE_STATE_SUPERVISOR_H_
+#ifndef DEEPORANGE_STATE_SUPERVISOR_H_
+#define DEEPORANGE_STATE_SUPERVISOR_H_
 
 #include <string>
 
@@ -97,4 +97,4 @@ class DeepOrangeStateSupervisor
 };
 }  // namespace deeporange14
 
-#endif
+#endif  // DEEPORANGE_STATE_SUPERVISOR_H_

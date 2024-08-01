@@ -1,5 +1,5 @@
-#ifndef DEEPORANGE_VELOCITY_CONTROLLER_H
-#define DEEPORANGE_VELOCITY_CONTROLLER_H
+#ifndef DEEPORANGE_VELOCITY_CONTROLLER_H_
+#define DEEPORANGE_VELOCITY_CONTROLLER_H_
 
 #include <math.h>
 #include <string>
@@ -139,4 +139,4 @@ class VelocityController
 };
 }  // namespace deeporange14
 
-#endif  // DEEPORANGE_VELOCITY_CONTROLLER_H
+#endif  // DEEPORANGE_VELOCITY_CONTROLLER_H_

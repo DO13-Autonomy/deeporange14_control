@@ -5,8 +5,8 @@ and the rosbag record is stopped when system state becomes SS_31 or
 an error state is reached
 */
 
-#ifndef _DATA_LOGGER_H_
-#define _DATA_LOGGER_H_
+#ifndef DEEPORANGE_DATA_LOGGER_H_
+#define DEEPORANGE_DATA_LOGGER_H_
 
 #include <string>
 
@@ -52,4 +52,4 @@ class DataLogger
 };
 }  // namespace deeporange14
 
-#endif  // _DATA_LOGGER_H_
+#endif  // DEEPORANGE_DATA_LOGGER_H_

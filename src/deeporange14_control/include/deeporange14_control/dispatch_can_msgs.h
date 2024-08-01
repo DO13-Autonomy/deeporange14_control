@@ -3,8 +3,8 @@
  Refer to Deep Orange used CAN messages for description
  *********************************************************************/
 
-#ifndef _DO_CAN_DISPATCH_H
-#define _DO_CAN_DISPATCH_H
+#ifndef DEEPORANGE_CAN_DISPATCH_H_
+#define DEEPORANGE_CAN_DISPATCH_H_
 #include <stdint.h>
 
 namespace deeporange14
@@ -24,4 +24,4 @@ enum
 
 }  // namespace deeporange14
 
-#endif  // _DO_CAN_DISPATCH_H
+#endif  // DEEPORANGE_CAN_DISPATCH_H_

@@ -4,8 +4,8 @@ Relies on DbwSupervisor to figure out what to send to Raptor. Uses "ros_state" t
 Receives CAN data from socketcan node and provides info to DbwSupervisor
 */
 
-#ifndef _DEEPORANGE_DBW_CAN_H_
-#define _DEEPORANGE_DBW_CAN_H_
+#ifndef DEEPORANGE_DBW_CAN_H_
+#define DEEPORANGE_DBW_CAN_H_
 
 #include <string>
 #include <vector>
@@ -126,4 +126,4 @@ class DeepOrangeDbwCan
 };
 }  // namespace deeporange14
 
-#endif  // _DEEPORANGE_DBW_CAN_H_
+#endif  // DEEPORANGE_DBW_CAN_H_
