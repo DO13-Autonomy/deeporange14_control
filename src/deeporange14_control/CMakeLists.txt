@@ -37,7 +37,6 @@ catkin_package(
 
 )
 
-
 catkin_package(
   LIBRARIES
   ${PROJECT_NAME}
@@ -45,23 +44,18 @@ catkin_package(
   include/
 )
 
-
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
 
-
 add_library(${PROJECT_NAME}
-
   src/DeepOrangeStateSupervisor.cpp
   src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
   src/DataLogger.cpp
-
 )
 add_executable(${PROJECT_NAME}_dbwnode src/DeepOrangeInterfaceNode.cpp
-
 )
 
 target_link_libraries(${PROJECT_NAME}
