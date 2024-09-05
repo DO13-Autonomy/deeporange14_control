@@ -4,12 +4,15 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/UInt8.h>
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <math.h>
 #include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_msgs/PIDComponentsMsg.h>
+#include <deeporange14_msgs/CmdVelCntrl.h>
 
 namespace deeporange14 {
     class VelocityController{
@@ -27,8 +30,12 @@ namespace deeporange14 {
         ros::Subscriber sub_moboility_msg_;
         ros::Publisher pub_cmd_trq_;
         ros::Publisher pub_cmd_vel_reprojected_;
-
+        ros::Publisher pub_remap_state_;
+        ros::Publisher pub_pid_components_;
+        ros::Publisher pub_cmd_vel_cntrl;
+        
         ros::Timer timer_;
+        std_msgs::UInt8 remapping_state_msg_;
 
         // callback functions
         void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
@@ -38,11 +45,12 @@ namespace deeporange14 {
         void cmdMobilityCallback(const deeporange14_msgs::MobilityMsg::ConstPtr& msg);
 
         //velocity reprojection to the admissible range
-        void linearVelocityReprojection(double &v, double &w);
+        void linearVelocityReprojection(double &v,double &w);
         void twistReprojection(double &v, double &w);
         
         //rate limiter on the commands
-        void rateLimiter(double &prev_u_, double &u_);
+        void rateLimiter_LinX(double &prev_u_, double &u_);
+        void rateLimiter_AngZ(double &prev_omega_, double &omega_);
         
         //member variables -- velocities (commanded and odom)
         double cmdLinX_;
@@ -115,17 +123,29 @@ namespace deeporange14 {
         uint8_t autonomy_state_;
         allStates remapping_state;
 
-        // Rate limiter constants
-        double dec_min;
-        double a_acc;
-        double b_acc;
-        double a_dec;
-        double b_dec;
-        double acc_max;
-        double dec_max;
-        double rmin;
-        double rmax;
-        double smoothing_factor;
+        // Rate limiter constants for Linear Velocity
+        double dec_min_v;
+        double a_acc_v;
+        double b_acc_v;
+        double a_dec_v;
+        double b_dec_v;
+        double acc_max_v;
+        double dec_max_v;
+        double rmin_v;
+        double rmax_v;
+        double smoothing_factor_v;
+
+        // Rate limiter constants for Angular Velocity
+        double dec_min_w;
+        double a_acc_w;
+        double b_acc_w;
+        double a_dec_w;
+        double b_dec_w;
+        double acc_max_w;
+        double dec_max_w;
+        double rmin_w;
+        double rmax_w;
+        double smoothing_factor_w;
 
 
 

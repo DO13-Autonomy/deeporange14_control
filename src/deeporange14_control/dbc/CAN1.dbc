@@ -112,19 +112,19 @@ BO_ 70 Brake_logs_analog: 5 Vector__XXX
  SG_ brk_ip_Lpres : 0|11@1+ (0.05,0) [0|102.35] "bar" Vector__XXX
  SG_ brk_ip_Ldisp : 31|9@1+ (0.1,0) [0|51.1] "mm" Vector__XXX
 
-BO_ 69 Brake_logs_digital: 7 Vector__XXX
- SG_ brk_ip_sbrk_Rend : 51|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brk_ip_sbrk_Lend : 50|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brk_ip_prbk_LED : 49|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brkSt : 42|7@1+ (1,0) [0|127] "" Vector__XXX
- SG_ brk_st_pbrkSt : 25|3@1+ (1,0) [0|7] "" Vector__XXX
- SG_ brk_st_pbrkErrDigit2 : 22|3@1+ (1,0) [0|7] "" Vector__XXX
- SG_ brk_st_pbrkErrDigit1 : 19|3@1+ (1,0) [0|7] "" Vector__XXX
- SG_ brk_fault_faultcode : 28|14@1+ (1,0) [0|16383] "" Vector__XXX
- SG_ brk_cmd_pwmR : 17|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brk_cmd_pwmL : 15|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brk_cmd_pbrk : 18|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ brk_cmd_dirR : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+BO_ 69 Brake_logs_digital: 8 Vector__XXX
+ SG_ brk_ip_sbrk_Rend : 63|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ brk_ip_sbrk_Lend : 62|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ brk_ip_prbk_LED : 61|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ brkSt : 54|7@1+ (1,0) [0|127] "" Vector__XXX
+ SG_ brk_st_pbrkSt : 37|3@1+ (1,0) [0|7] "" Vector__XXX
+ SG_ brk_st_pbrkErrDigit2 : 34|3@1+ (1,0) [0|7] "" Vector__XXX
+ SG_ brk_st_pbrkErrDigit1 : 31|3@1+ (1,0) [0|7] "" Vector__XXX
+ SG_ brk_fault_faultcode : 40|14@1+ (1,0) [0|16383] "" Vector__XXX
+ SG_ brk_cmd_pwmR : 23|7@1+ (1,0) [0|127] "" Vector__XXX
+ SG_ brk_cmd_pwmL : 16|7@1+ (1,0) [0|127] "" Vector__XXX
+ SG_ brk_cmd_pbrk : 30|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ brk_cmd_dirR : 15|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ brk_cmd_dirL : 14|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ brk_cmd_desPresR : 7|7@1+ (1,0) [0|127] "bar" Vector__XXX
  SG_ brk_cmd_desPresL : 0|7@1+ (1,0) [0|127] "bar" Vector__XXX

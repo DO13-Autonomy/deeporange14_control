@@ -49,6 +49,7 @@ namespace deeporange14 // TODO-> change namespace
 
     void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg)
     {
+        // ROS_WARN("Inside RecvCan. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
         if (!msg->is_rtr && !msg->is_error)
         {   
             switch (msg->id)

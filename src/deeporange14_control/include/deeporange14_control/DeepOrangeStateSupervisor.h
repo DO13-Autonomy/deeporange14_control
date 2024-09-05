@@ -16,6 +16,8 @@
 #include <nav_msgs/Odometry.h>
 #include <tf2_msgs/TFMessage.h>
 
+#include <actionlib_msgs/GoalStatusArray.h>
+
 #include <string>
 #include <ros/console.h>
 #include <geometry_msgs/Twist.h>
@@ -24,6 +26,7 @@
 #include <deeporange14_msgs/MissionStatus.h>
 #include <deeporange14_msgs/RaptorStateMsg.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
+
 
 
 namespace deeporange14
@@ -47,12 +50,15 @@ namespace deeporange14
 
         void supervisorControlUpdate(const ros::TimerEvent& event);
 
-        void updateROSStateMsg();
+        void updateROSState();
+
+        void getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr &statusMsg);
 
         //member variables 
         bool raptor_hb_detected;
         bool stack_fault;
-    
+        // bool dbw_ros_en;
+        // bool dbw_ros_controlled;
         bool dbw_ros_mode;
         std::string mission_status;
         float brkL_pr;
@@ -61,12 +67,16 @@ namespace deeporange14
         float tqR_cmd_controller;
         bool stop_ros;
         bool raptorbrakeAck;
-        uint prevSt;
-        uint delay;
+        int delay;
+        int desired_delay;
+        int delay_threshold;
+        int prevSt;
 
         allStates state;
         double raptor_hb_timestamp;
         double cmdvel_timestamp;
+        double stop_ros_timestamp;
+        double mission_update_timestamp;
         uint speed_state;
         uint au_state;
         double counter;
@@ -74,10 +84,11 @@ namespace deeporange14
         float raptorhb_timeout;
         int update_freq;
         float brake_disengaged_threshold;
+        uint8_t mppi_status;
         
         // Publishers
         ros::Timer timer;
-        ros::Publisher pub_mobility;
+        ros::Publisher pub_mobility; 
         ros::Publisher pub_states;
 
         // Subscribers
@@ -88,6 +99,7 @@ namespace deeporange14
         ros::Subscriber sub_rosStop;
         ros::Subscriber sub_raptorState;
         ros::Subscriber sub_stopRos;
+        ros::Subscriber sub_mppi_mission;
         std::string topic_ns = "/deeporange1314";
         
         // Init the msg variables
