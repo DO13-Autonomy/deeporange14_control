@@ -8,7 +8,7 @@
 
   <rosparam file="$(find deeporange14_control)/config/params.yaml" />
 
-  <node pkg="deeporange14_control" type="deeporange14_control_dbwnode" name="deeporange14" output="screen">
+  <node pkg="deeporange14_control" type="deeporange14_control_node" name="deeporange14" output="screen">
     
     <param name="cmdvel_timeout" value="5" />
     <param name="raptorhb_timeout" value="5" />

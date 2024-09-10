@@ -32,7 +32,6 @@ catkin_package(
   roscpp
   rospy
   novatel_oem7_msgs
-
 )
 
 
@@ -51,24 +50,28 @@ include_directories(
 
 
 add_library(${PROJECT_NAME}
-
   src/DeepOrangeStateSupervisor.cpp
   src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
   src/DataLogger.cpp
-
 )
-add_executable(${PROJECT_NAME}_dbwnode src/DeepOrangeInterfaceNode.cpp
 
+add_executable(${PROJECT_NAME}_node 
+  src/DeepOrangeInterfaceNode.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
-target_link_libraries(${PROJECT_NAME}_dbwnode ${PROJECT_NAME}
+
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
 )
 
-install(DIRECTORY launch src dbc
+install(
+  DIRECTORY
+    launch
+    src
+    dbc
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
