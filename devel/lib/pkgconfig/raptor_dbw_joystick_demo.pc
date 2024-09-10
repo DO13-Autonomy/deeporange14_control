@@ -1,8 +1,0 @@
-prefix=/home/administrator/Documents/DEEPORANGE14/deeporange14_control/devel
-
-Name: raptor_dbw_joystick_demo
-Description: Description of raptor_dbw_joystick_demo
-Version: 1.0.12
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -shared -Wl,-soname,libpugixml.so -o /home/administrator/Documents/DEEPORANGE14/deeporange14_control/devel/lib/libpugixml.so CMakeFiles/pugixml.dir/src/sources/pugixml.cpp.o 
