@@ -142,11 +142,11 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // velocity reprojection on the commanded velocities
     double reprojection_x = cmdLinX_;
     double reprojection_w = cmdAngZ_;
-    
+
     ROS_INFO("Angular Velocity from to rate limiter is : %f", cmdAngZ_);
     this->rateLimiter_LinX(prev_v_, cmdLinX_);
     this->rateLimiter_AngZ(prev_omega_, cmdAngZ_);
-    ROS_INFO("Angular Velocity From Rate Limter is : %f",cmdAngZ_);
+    ROS_INFO("Angular Velocity From Rate Limter is : %f", cmdAngZ_);
 
     double ratelimiter_x = cmdLinX_;
     double ratelimiter_w = cmdAngZ_;
@@ -173,7 +173,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // current errors
     errLinX_current_ = cmdLinX_-vehLinX_;
     errOmega_current_ = cmdAngZ_-vehAngZ_;
-    ROS_INFO("Error in Angular velocities is %f",errOmega_current_);
+    ROS_INFO("Error in Angular velocities is %f", errOmega_current_);
 
     // current derivatives
     errLinX_derivative_ = (errLinX_current_-errLinX_prev_)/dt_;
@@ -384,13 +384,13 @@ void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_) {
 
 // rate limiter for angular velocity
 void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
-  //if positive command
+  // if positive command
   if ( w_ > 0 ){
-   if (prev_w_ >= 0){
+  if (prev_w_ >= 0) {
   rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
-  rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);          
+  rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
   }
-   else{
+  else {
       rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
       rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
   }
@@ -408,21 +408,21 @@ void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
   else{
       if (prev_w_ >0){
           rmax_w = 0;
-          rmin_w = std::max(-std::max(a_dec_w+b_dec_w*prev_w_,smoothing_factor_w*prev_w_)+dec_min_w, dec_max_w);
+          rmin_w = std::max(-std::max(a_dec_w+b_dec_w*prev_w_, smoothing_factor_w*prev_w_)+dec_min_w, dec_max_w);
       }
       else{
-          rmax_w = std::min(std::max(a_dec_w+b_dec_w*prev_w_,-smoothing_factor_w*prev_w_)-dec_min_w, -dec_max_w);
+          rmax_w = std::min(std::max(a_dec_w+b_dec_w*prev_w_, -smoothing_factor_w*prev_w_)-dec_min_w, -dec_max_w);
           rmin_w = 0;
       }
   }
 
-   //linear velocity rate limiter
+  // linear velocity rate limiter
   double rate_w_ = (w_ - prev_w_)/dt_;
-  double allowable_rate_w_=std::max(std::min(rate_w_, rmax_w), rmin_w);
+  double allowable_rate_w_ = std::max(std::min(rate_w_, rmax_w), rmin_w);
   ROS_INFO("CURRENT RATE: %f, Maximum Rate Limiter ANG: %f,Minimum Rate Limiter ANG: %f", rate_w_, rmax_w, rmin_w);
 
   w_ = prev_w_+allowable_rate_w_*dt_;
-  prev_w_= w_;
+  prev_w_ = w_;
 }
 
 void VelocityController::publishTorques(const ros::TimerEvent& event) {
