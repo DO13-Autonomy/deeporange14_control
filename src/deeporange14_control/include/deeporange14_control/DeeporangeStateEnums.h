@@ -22,7 +22,7 @@ enum allStates {
   DBW_3_ROS_EN                   = 3,
   DBW_4_ROS_CONTROLLED           = 4,
 
-  SPEED_STATE_Ready2Move         = 2,
+  SPEED_STATE_Ready2Move         = 3,
 
   // linear velocity
   VEHICLE_STOPPED                = 0,
