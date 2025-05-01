@@ -56,14 +56,12 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   a_ = 4.37;
   b_ = 18.0;
   cmd_turn_curvature_ = 0.0;
-  // odom_turn_curvature_=0.0;
 
   // torque limits
   tq_Max_ = 280.0;
   tq_Min_ = -280.0;
 
   // rate limits
-  // curvature_rate_limit_=2.0;       //[1/m]/s
   prev_v_ = 0.0;
   prev_omega_ = 0.0;
 
@@ -439,14 +437,3 @@ void VelocityController::publishTorques(const ros::TimerEvent& event) {
   pub_cmd_trq_.publish(trq_cmd_);
 }
 }  // namespace deeporange14
-//     int main(int argc, char **argv)
-// {
-//   ros::init(argc, argv, "deeporange14_velocity_controller");
-//   ros::NodeHandle node;
-//   ros::NodeHandle priv_nh("~");
-//   // create the velocity controller object
-//   deeporange14::VelocityController n_velocity_controller(node, priv_nh);
-//   // handle callbacks until shut down
-//   ros::spin();
-//   return 0;
-// }

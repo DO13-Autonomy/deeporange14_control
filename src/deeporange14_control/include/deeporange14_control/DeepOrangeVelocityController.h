@@ -60,7 +60,6 @@ class VelocityController {
   double vehLinX_;
   double vehAngZ_;
   double cmd_turn_curvature_;
-  // double odom_turn_curvature_;
 
   // feedforward terms
   double x0_;
@@ -99,8 +98,6 @@ class VelocityController {
   double tq_Max_;
   double tq_Min_;
 
-  // double curvature_rate_limit_;
-  // double trackwidth;
   double v_sz;                            // intersection of max curvature line and max lateral acceleration curve
   double R_min;                           // minimum allowable radius of curvature
   double lat_acc_max;                     // maximum allowable lateral acceleration
