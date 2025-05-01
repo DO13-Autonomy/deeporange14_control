@@ -15,6 +15,7 @@ add_message_files(DIRECTORY msgs FILES
   TorqueCmdStamped.msg
   AuStatusMsg.msg
   PIDComponentsMsg.msg
+  CmdVelCntrlMsg.msg
 )
 
 generate_messages(DEPENDENCIES

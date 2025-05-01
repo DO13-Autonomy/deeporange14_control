@@ -66,6 +66,7 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   pub_remap_state_ = node.advertise<std_msgs::UInt8>(std::string(topic_ns+"/remapping_state"), 10);
   pub_pid_components_ = node.advertise<deeporange14_msgs::PIDComponentsMsg>(std::string(topic_ns + "/pid_components"),
                                                                             10);
+  pub_cmd_vel_cntrl = node.advertise<deeporange14_msgs::CmdVelCntrlMsg>(std::string(topic_ns + "/cmd_vel_cntrl"), 10);
   timer_ = node.createTimer(ros::Duration(1.0 / 50.0), &VelocityController::publishTorques, this);
 
   // other member variable initializations
@@ -149,6 +150,14 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
 
     double ratelimiter_x = cmdLinX_;
     double ratelimiter_w = cmdAngZ_;
+
+    deeporange14_msgs::CmdVelCntrlMsg cntrlmsg;
+    cntrlmsg.reprojection_x = reprojection_x;
+    cntrlmsg.reprojection_w = reprojection_w;
+    cntrlmsg.ratelimiter_x = ratelimiter_x;
+    cntrlmsg.ratelimiter_w = ratelimiter_w;
+
+    pub_cmd_vel_cntrl.publish(cntrlmsg);
 
     cmd_turn_curvature_ = (cmdLinX_ != 0.0 && cmdAngZ_ != 0.0) ? (cmdAngZ_/cmdLinX_): 0.0;
 

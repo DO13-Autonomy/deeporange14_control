@@ -13,6 +13,7 @@
 #include <std_msgs/UInt8.h>
 
 #include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_msgs/CmdVelCntrlMsg.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/PIDComponentsMsg.h>
 #include <deeporange14_msgs/TorqueCmdStamped.h>
@@ -35,6 +36,7 @@ class VelocityController {
   ros::Publisher pub_cmd_vel_reprojected_;
   ros::Publisher pub_remap_state_;
   ros::Publisher pub_pid_components_;
+  ros::Publisher pub_cmd_vel_cntrl;
 
   ros::Timer timer_;
   std_msgs::UInt8 remapping_state_msg_;
