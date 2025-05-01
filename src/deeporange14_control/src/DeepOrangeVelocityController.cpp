@@ -6,6 +6,56 @@
 
 namespace deeporange14 {
 VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
+  // read parameters from configuration file
+  priv_nh.param("pid_gains/kP_linX", kP_linX_, 150.0);
+  priv_nh.param("pid_gains/kI_linX", kI_linX_, 30.0);
+  priv_nh.param("pid_gains/kD_linX", kD_linX_, 0.0);
+  priv_nh.param("pid_gains/kP_omega", kP_omega_, 200.0);
+  priv_nh.param("pid_gains/kI_omega", kI_omega_, 8.0);
+  priv_nh.param("pid_gains/kD_omega", kD_omega_, 0.0);
+
+  priv_nh.param("feedforward/x0", x0_, 1500.0);
+  priv_nh.param("feedforward/x1", x1_, 7.8);
+  priv_nh.param("feedforward/a", a_, 4.37);
+  priv_nh.param("feedforward/b", b_, 18.0);
+
+  priv_nh.param("torque_limits/tq_Max", tq_Max_, 280.0);
+  priv_nh.param("torque_limits/tq_Min", tq_Min_, -280.0);
+
+  priv_nh.param("velocity/max_velocity", max_velocity, 1.6);
+  priv_nh.param("velocity/min_velocity", min_velocity, -1.0);
+
+  priv_nh.param("omega_limits/max_omega", max_omega, 0.6);
+  priv_nh.param("omega_limits/min_omega", min_omega, 0.5);
+  priv_nh.param("omega_limits/R_min", R_min, 2.0);
+
+  priv_nh.param("deadband_velocity", deadband_velocity, 0.1);
+
+  priv_nh.param("rate_limiter/dec_min_for_lin_vel", dec_min_v, -0.1);
+  priv_nh.param("rate_limiter/a_acc_for_lin_vel", a_acc_v, 0.5);
+  priv_nh.param("rate_limiter/b_acc_for_lin_vel", b_acc_v, 3.0);
+  priv_nh.param("rate_limiter/a_dec_for_lin_vel", a_dec_v, -0.5);
+  priv_nh.param("rate_limiter/b_dec_for_lin_vel", b_dec_v, -15.0);
+  priv_nh.param("rate_limiter/acc_max_for_lin_vel", acc_max_v, 1.0);
+  priv_nh.param("rate_limiter/dec_max_for_lin_vel", dec_max_v, -1.0);
+  priv_nh.param("rate_limiter/smoothing_factor_for_lin_vel", smoothing_factor_v, 20.0);
+
+  priv_nh.param("rate_limiter/dec_min_for_ang_vel", dec_min_w, -0.1);
+  priv_nh.param("rate_limiter/a_acc_for_ang_vel", a_acc_w, 0.5);
+  priv_nh.param("rate_limiter/b_acc_for_ang_vel", b_acc_w, 3.0);
+  priv_nh.param("rate_limiter/a_dec_for_ang_vel", a_dec_w, -0.5);
+  priv_nh.param("rate_limiter/b_dec_for_ang_vel", b_dec_w, -15.0);
+  priv_nh.param("rate_limiter/acc_max_for_ang_vel", acc_max_w, 1.0);
+  priv_nh.param("rate_limiter/dec_max_for_ang_vel", dec_max_w, -1.0);
+  priv_nh.param("rate_limiter/smoothing_factor_for_ang_vel", smoothing_factor_w, 20.0);
+
+  priv_nh.param("dt", dt_, 0.02);
+
+  priv_nh.param("moving_velocity/v_moving_ss", v_moving_ss, 0.5);
+  priv_nh.param("moving_velocity/v_moving", v_moving, 0.4);
+  priv_nh.param("moving_velocity/v_stopped", v_stopped, 0.01);
+
+  // initialize other member variables and set up subscriptions and publishers
   sub_cmd_vel_ = node.subscribe(std::string(topic_ns+"/cmd_vel"), 10, &VelocityController::cmdVelCallback, this);
   sub_odom_ = node.subscribe(std::string(topic_ns+"/odom"), 10, &VelocityController::odomCallback, this);
   sub_moboility_msg_ = node.subscribe(std::string(topic_ns+"/cmd_mobility"), 10,
@@ -18,13 +68,11 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
                                                                             10);
   timer_ = node.createTimer(ros::Duration(1.0 / 50.0), &VelocityController::publishTorques, this);
 
-  // member variables -- velocities (commanded and platform)
+  // other member variable initializations
   cmdLinX_ = 0.0;
   cmdAngZ_ = 0.0;
   vehLinX_ = 0.0;
   vehAngZ_ = 0.0;
-
-  // member variables -- feedforward and PID torques
   tqDiff_ff_ = 0.0;
   tqCom_ff_ = 0.0;
   tqDiff_PID_ = 0.0;
@@ -33,8 +81,6 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   tqComm_ = 0.0;
   tqL_ = 0.0;
   tqR_ = 0.0;
-
-  // member variables -- PID controller gains and errors
   errLinX_current_ = 0.0;
   errLinX_prev_ = 0.0;
   errLinX_integral_ = 0.0;
@@ -43,61 +89,13 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   errOmega_prev_ = 0.0;
   errOmega_integral_ = 0.0;
   errOmega_derivative_ = 0.0;
-  kP_linX_ = 150.0;
-  kI_linX_ = 30.0;
-  kD_linX_ = 0.0;
-  kP_omega_ = 40.0;
-  kI_omega_ = 8.0;
-  kD_omega_ = 0.0;
-
-  // feedforward terms
-  x0_ = 1500.0;
-  x1_ = 7.8;
-  a_ = 4.37;
-  b_ = 18.0;
   cmd_turn_curvature_ = 0.0;
-
-  // torque limits
-  tq_Max_ = 280.0;
-  tq_Min_ = -280.0;
-
-  // rate limits
   prev_v_ = 0.0;
   prev_omega_ = 0.0;
-
-  // trackwidth=2.60;
-  max_velocity = 1.6;
-  min_velocity = -1.0;
-  max_omega = 1.3;
-  min_omega = 0.5;
-  R_min = 2.0;   // chosen so that tracks do not turn in opposite directions at max curvature
-  v_sz = max_omega*R_min;  // v_sz = intersection of max curvature line and max lateral acceleration curve
-  lat_acc_max = max_omega*v_sz;
+  v_sz = max_omega * R_min;
+  lat_acc_max = max_omega * v_sz;
   autonomy_state_ = AU_1_STARTUP;
-  deadband_velocity = 0.5;
-
-  // rate limiter constants
-  dec_min_v = -0.1;
-  a_acc_v = 0.5;
-  b_acc_v = 3.0;
-  a_dec_v = -0.5;
-  b_dec_v = -15.0;
-  acc_max_v = 3.0;
-  dec_max_v = -3.0;
-  smoothing_factor_v = 20.0;
-  dec_min_w = -0.1;
-  a_acc_w = 0.5;
-  b_acc_w = 3.0;
-  a_dec_w = -0.5;
-  b_dec_w = -15.0;
-  acc_max_w = 1.0;
-  dec_max_w = -1.0;
-  smoothing_factor_w = 20.0;
-  dt_ = 1/50.0;
   remapping_state = VEHICLE_STOPPED;
-  v_moving_ss = 0.5;
-  v_moving = 0.4;
-  v_stopped = 0.01;
 }
 
 VelocityController::~VelocityController() {}
@@ -416,7 +414,7 @@ void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
 
   w_ = prev_w_+allowable_rate_w_*dt_;
   prev_w_= w_;
-  }
+}
 
 void VelocityController::publishTorques(const ros::TimerEvent& event) {
   deeporange14_msgs::TorqueCmdStamped trq_cmd_;

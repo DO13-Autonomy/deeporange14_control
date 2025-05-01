@@ -3,6 +3,9 @@
   <arg name="use_socketcan" default="true" />
   <arg name="use_kvaser" default="false" />
   <arg name="socketcan_device" default="can0" />  <!-- vehicle's CAN1-->
+  <arg name="controller_param_file" default="$(find deeporange14_control)/config/params.yaml" />
+
+  <rosparam file="$(arg controller_param_file)" />
 
   <node pkg="deeporange14_control" type="deeporange14_control_dbwnode" name="deeporange14" output="screen">
     
