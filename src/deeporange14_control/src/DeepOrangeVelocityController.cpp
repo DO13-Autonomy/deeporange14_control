@@ -78,15 +78,23 @@ VelocityController::VelocityController(ros::NodeHandle &node, ros::NodeHandle &p
   autonomy_state_ = AU_1_STARTUP;
   deadband_velocity = 0.5;
 
-  // Rate limiter constants
-  dec_min = -0.1;
-  a_acc = 0.5;
-  b_acc = 3.0;
-  a_dec = -0.5;
-  b_dec = -15.0;
-  acc_max = 1.0;
-  dec_max = -1.0;
-  smoothing_factor = 20.0;
+  // rate limiter constants
+  dec_min_v = -0.1;
+  a_acc_v = 0.5;
+  b_acc_v = 3.0;
+  a_dec_v = -0.5;
+  b_dec_v = -15.0;
+  acc_max_v = 3.0;
+  dec_max_v = -3.0;
+  smoothing_factor_v = 20.0;
+  dec_min_w = -0.1;
+  a_acc_w = 0.5;
+  b_acc_w = 3.0;
+  a_dec_w = -0.5;
+  b_dec_w = -15.0;
+  acc_max_w = 1.0;
+  dec_max_w = -1.0;
+  smoothing_factor_w = 20.0;
   dt_ = 1/50.0;
   remapping_state = VEHICLE_STOPPED;
   v_moving_ss = 0.5;
@@ -114,7 +122,7 @@ void VelocityController::cmdMobilityCallback(const deeporange14_msgs::MobilityMs
 
 void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg) {
   cmdLinX_ = msg->linear.x;
-  cmdAngZ_ = msg->angular.z;
+  cmdAngZ_ = msg->angular.z;  // will be positive for nlopt, negative for mppi
   errLinX_prev_ = errLinX_current_;
   errOmega_prev_ = errOmega_current_;
 
@@ -136,11 +144,16 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // letting the controller kick in only when we move in the appropriate autonomy state
     // rate limiting the linear velocity and the curvature
     // velocity reprojection on the commanded velocities
-    // this->linearVelocityReprojection(cmdLinX_,cmdAngZ_);
-    this->rateLimiter(prev_v_, cmdLinX_);
-    this->rateLimiter(prev_omega_, cmdAngZ_);
+    double reprojection_x = cmdLinX_;
+    double reprojection_w = cmdAngZ_;
+    
+    ROS_INFO("Angular Velocity from to rate limiter is : %f", cmdAngZ_);
+    this->rateLimiter_LinX(prev_v_, cmdLinX_);
+    this->rateLimiter_AngZ(prev_omega_, cmdAngZ_);
+    ROS_INFO("Angular Velocity From Rate Limter is : %f",cmdAngZ_);
 
-    this->twistReprojection(cmdLinX_, cmdAngZ_);
+    double ratelimiter_x = cmdLinX_;
+    double ratelimiter_w = cmdAngZ_;
 
     cmd_turn_curvature_ = (cmdLinX_ != 0.0 && cmdAngZ_ != 0.0) ? (cmdAngZ_/cmdLinX_): 0.0;
 
@@ -156,6 +169,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // current errors
     errLinX_current_ = cmdLinX_-vehLinX_;
     errOmega_current_ = cmdAngZ_-vehAngZ_;
+    ROS_INFO("Error in Angular velocities is %f",errOmega_current_);
 
     // current derivatives
     errLinX_derivative_ = (errLinX_current_-errLinX_prev_)/dt_;
@@ -321,79 +335,38 @@ void VelocityController::twistReprojection(double &v, double &w) {
 // TODO: State machine for accelerating, decelerating, stopped
 }
 
-void VelocityController::rateLimiter(double &prev_u_, double &u_) {
-/*
-% if positive command
-dec_min = -0.1;
-if sign(u) > 0
-% if positive last
-if sign(ulast) >= 0
-    rmax = min([a_acc+b_acc*abs(ulast),acc_max]);
-    rmin = max([a_dec+b_dec*abs(ulast),dec_max]);
-% if negative last
-else
-    rmax = min([-(a_dec+b_dec*abs(ulast)),-dec_max]);
-    rmin = max([-(a_acc+b_acc*abs(ulast)),-acc_max]);
-end
-% if negative command
-elseif sign(u) < 0
-% if negative last
-if sign(ulast) < 0
-    rmax = min([-(a_dec+b_dec*abs(ulast)),-dec_max]);
-    rmin = max([-(a_acc+b_acc*abs(ulast)),-acc_max]);
-% if positive last
-else
-    rmax = min([a_acc+b_acc*abs(ulast),acc_max]);
-    rmin = max([a_dec+b_dec*abs(ulast),dec_max]);
-end
-% if zero command
-else
-% if positive last
-if sign(ulast) > 0
-    rmax = 0;
-    rmin =  max(-max([a_dec+b_dec*ulast,sm*ulast])+dec_min,dec_max);        double dec_min;
-    double a_acc;
-    double b_acc;
-    double a_dec;
-    double b_dec;
-    double acc_max;
-    double dec_max;
-    double rmin;
-    double rmax;
-    double smoothing_factor;
-end
-end
-*/
+// rate limiter for linear velocity
+void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_) {
   // if positive command
   if ( u_ > 0 ) {
     if (prev_u_ >= 0) {
-      rmax = std::min(a_acc+b_acc*std::abs(prev_u_), acc_max);
-      rmin = std::max(a_dec+b_dec*std::abs(prev_u_), dec_max);
+      rmax_v = std::min(a_acc_v+b_acc_v*std::abs(prev_u_), acc_max_v);
+      rmin_v = std::max(a_dec_v+b_dec_v*std::abs(prev_u_), dec_max_v);
     }
     else {
-      rmax = std::min(-(a_dec+b_dec*std::abs(prev_u_)), -dec_max);
-      rmin = std::max(-(a_acc+b_acc*std::abs(prev_u_)), -acc_max);
+      rmax_v = std::min(-(a_dec_v+b_dec_v*std::abs(prev_u_)), -dec_max_v);
+      rmin_v = std::max(-(a_acc_v+b_acc_v*std::abs(prev_u_)), -acc_max_v);
     }
   }
   else if (u_ < 0) {
     if (prev_u_ < 0) {
-      rmax = std::min(-(a_dec+b_dec*std::abs(prev_u_)), -dec_max);
-      rmin = std::max(-(a_acc+b_acc*std::abs(prev_u_)), -acc_max);
+      rmax_v = std::min(-(a_dec_v+b_dec_v*std::abs(prev_u_)), -dec_max_v);
+      rmin_v = std::max(-(a_acc_v+b_acc_v*std::abs(prev_u_)), -acc_max_v);
     }
 
     else {
-      rmax = std::min(a_acc+b_acc*std::abs(prev_u_), acc_max);
-      rmin = std::max(a_dec+b_dec*std::abs(prev_u_), dec_max);
+      rmax_v = std::min(a_acc_v+b_acc_v*std::abs(prev_u_), acc_max_v);
+      rmin_v = std::max(a_dec_v+b_dec_v*std::abs(prev_u_), dec_max_v);
     }
   }
   else {
     if (prev_u_ >0) {
-      rmax = 0;
-      rmin = std::max(-std::max(a_dec+b_dec*prev_u_, smoothing_factor*prev_u_) + dec_min, dec_max);
+      rmax_v = 0;
+      rmin_v = std::max(-std::max(a_dec_v+b_dec_v*prev_u_, smoothing_factor_v*prev_u_) + dec_min_v, dec_max_v);
     }
     else {
-      rmax = std::min(std::max(a_dec+b_dec*prev_u_, -smoothing_factor*prev_u_) - dec_min, -dec_max);
-      rmin = 0;
+      rmax_v = std::min(std::max(a_dec_v+b_dec_v*prev_u_, -smoothing_factor_v*prev_u_) - dec_min_v, -dec_max_v);
+      rmin_v = 0;
     }
   }
 
@@ -404,11 +377,57 @@ end
 
   // linear velocity rate limiter
   double rate_u_ =(u_ - prev_u_)/dt_;
-  double allowable_rate_u_ = std::max(std::min(rate_u_, rmax), rmin);
+  double allowable_rate_u_ = std::max(std::min(rate_u_, rmax_v), rmin_v);
 
   u_ = prev_u_ + allowable_rate_u_*dt_;
   prev_u_ = u_;
 }
+
+// rate limiter for angular velocity
+void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
+  //if positive command
+  if ( w_ > 0 ){
+   if (prev_w_ >= 0){
+  rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
+  rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);          
+  }
+   else{
+      rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
+      rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
+  }
+  }
+  else if (w_ < 0){
+      if (prev_w_ < 0){
+          rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
+          rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
+      }
+      else{
+          rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
+          rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
+      }
+  }
+  else{
+      if (prev_w_ >0){
+          rmax_w = 0;
+          rmin_w = std::max(-std::max(a_dec_w+b_dec_w*prev_w_,smoothing_factor_w*prev_w_)+dec_min_w, dec_max_w);
+      }
+      else{
+          rmax_w = std::min(std::max(a_dec_w+b_dec_w*prev_w_,-smoothing_factor_w*prev_w_)-dec_min_w, -dec_max_w);
+          rmin_w = 0;
+      }
+  }
+       //limits the rate of change of the incoming velocity and curvature commands
+   // current_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
+   // dt_=current_time_-prev_time_;
+   // prev_time_=current_time_;
+   //linear velocity rate limiter
+  double rate_w_ = (w_ - prev_w_)/dt_;
+  double allowable_rate_w_=std::max(std::min(rate_w_, rmax_w), rmin_w);
+  ROS_INFO("CURRENT RATE: %f, Maximum Rate Limiter ANG: %f,Minimum Rate Limiter ANG: %f", rate_w_, rmax_w, rmin_w);
+
+  w_ = prev_w_+allowable_rate_w_*dt_;
+  prev_w_= w_;
+  }
 
 void VelocityController::publishTorques(const ros::TimerEvent& event) {
   deeporange14_msgs::TorqueCmdStamped trq_cmd_;

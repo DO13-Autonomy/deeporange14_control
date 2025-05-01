@@ -51,7 +51,8 @@ class VelocityController {
   void twistReprojection(double &v, double &w);
 
   // rate limiter on the commands
-  void rateLimiter(double &prev_u_, double &u_);
+  void rateLimiter_LinX(double &prev_u_, double &u_);
+  void rateLimiter_AngZ(double &prev_omega, double &omega_);
 
   // member variables -- velocities (commanded and odom)
   double cmdLinX_;
@@ -123,17 +124,29 @@ class VelocityController {
   uint8_t autonomy_state_;
   allStates remapping_state;
 
-  // Rate limiter constants
-  double dec_min;
-  double a_acc;
-  double b_acc;
-  double a_dec;
-  double b_dec;
-  double acc_max;
-  double dec_max;
-  double rmin;
-  double rmax;
-  double smoothing_factor;
+  // rate limiter constants for linear velocity
+  double dec_min_v;
+  double a_acc_v;
+  double b_acc_v;
+  double a_dec_v;
+  double b_dec_v;
+  double acc_max_v;
+  double dec_max_v;
+  double rmin_v;
+  double rmax_v;
+  double smoothing_factor_v;
+
+  // rate limiter constants for angular velocity
+  double dec_min_w;
+  double a_acc_w;
+  double b_acc_w;
+  double a_dec_w;
+  double b_dec_w;
+  double acc_max_w;
+  double dec_max_w;
+  double rmin_w;
+  double rmax_w;
+  double smoothing_factor_w;
 };
 }  // namespace deeporange14
 
