@@ -88,8 +88,8 @@ void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &e
   /* Always continue to publish ROS state  */
   stack_fault = ros::Time::now().toSec() - cmdvel_timestamp > cmdvel_timeout;
   raptor_hb_detected = ros::Time::now().toSec() - raptor_hb_timestamp < raptorhb_timeout;
-  stop_ros = (ros::Time::now().toSec() - stop_ros_timestamp) < 5 ? 1:0;
-  mission_status = (ros::Time::now().toSec() - mission_update_timestamp < 5) ? mission_status:"";
+  stop_ros = (ros::Time::now().toSec() - stop_ros_timestamp) < 5 ? 1 : 0;
+  mission_status = (ros::Time::now().toSec() - mission_update_timestamp < 5) ? mission_status : "";
 
   DeepOrangeStateSupervisor::updateROSState();
 
@@ -121,7 +121,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
-      // mission_status="";
+      // mission_status = "";
       // ROS_INFO("In startup State");
 
       if (raptor_hb_detected) {
@@ -141,7 +141,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
-      // mission_status="";
+      // mission_status = "";
       // ROS_INFO("In Idle State");
       // ROS_WARN("In Idle");
 
@@ -191,14 +191,14 @@ void DeepOrangeStateSupervisor::updateROSState() {
       }
       else if (stack_fault) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:Stack Crashed or failed ");
+        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stack Crashed or failed ");
         break;
       }
       else if (stop_ros) {
-        //  go backuint8 left_brkPressure
+        // go backuint8 left_brkPressure
         // stop_ros = false;
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]:stop button is pressed ");
+        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stop button is pressed ");
         break;
       }
       else if (mission_status == "globalPlanReady") {
@@ -231,7 +231,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:RaptorHandshake failed ");
+        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: RaptorHandshake failed ");
         break;
       }
       else if (!dbw_ros_mode) {
@@ -255,7 +255,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         //  go back to idle
         state = AU_2_IDLE;
         // stop_ros = false;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:stop button is pressed ");
+        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Stop button is pressed ");
         break;
       }
       else if (speed_state == SPEED_STATE_Ready2Move) {
@@ -265,7 +265,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        //  Do nothing
+        // do nothing
         // ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
         break;
       }
@@ -301,7 +301,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         //  go back to idle
         state = AU_2_IDLE;
         // stop_ros = false;
-        ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
+        ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]: Stop button is pressed ");
         break;
       }
       else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled") {
