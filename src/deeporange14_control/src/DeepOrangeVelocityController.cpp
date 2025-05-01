@@ -136,7 +136,6 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     remapping_state = VEHICLE_STOPPED;
     ROS_WARN("Left: %f, Right: %f", tqL_, tqR_);
     // ROS_INFO("Velocity error integral: %f, Curvature error integral: %f",errLinX_integral_,errOmega_integral_);
-    // prev_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
   }
   else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES) {
     // letting the controller kick in only when we move in the appropriate autonomy state
@@ -368,11 +367,6 @@ void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_) {
     }
   }
 
-  // limits the rate of change of the incoming velocity and curvature commands
-  // current_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
-  // dt_=current_time_-prev_time_;
-  // prev_time_=current_time_;
-
   // linear velocity rate limiter
   double rate_u_ =(u_ - prev_u_)/dt_;
   double allowable_rate_u_ = std::max(std::min(rate_u_, rmax_v), rmin_v);
@@ -414,10 +408,7 @@ void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
           rmin_w = 0;
       }
   }
-       //limits the rate of change of the incoming velocity and curvature commands
-   // current_time_=(ros::Time::now().toSec()+ros::Time::now().toNSec()*1e-9);
-   // dt_=current_time_-prev_time_;
-   // prev_time_=current_time_;
+
    //linear velocity rate limiter
   double rate_w_ = (w_ - prev_w_)/dt_;
   double allowable_rate_w_=std::max(std::min(rate_w_, rmax_w), rmin_w);
