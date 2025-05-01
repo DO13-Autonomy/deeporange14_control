@@ -46,8 +46,6 @@ class DeepOrangeStateSupervisor {
   // member variables
   bool raptor_hb_detected;
   bool stack_fault;
-  // bool dbw_ros_en;
-  // bool dbw_ros_controlled;
   bool dbw_ros_mode;
   std::string mission_status;
   float brkL_pr;

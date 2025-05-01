@@ -30,7 +30,6 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
   stack_fault = true;
   dbw_ros_mode = false;
   stop_ros_timestamp = 0.0;
-  // dbw_ros_controlled = false;
 
   mission_status = "";
   tqL_cmd_controller = 0.0;
@@ -74,7 +73,6 @@ void DeepOrangeStateSupervisor::getTorqueValues(
 
 void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg) {
   stop_ros_timestamp = ros::Time::now().toSec();
-  // stop_ros = stopRosMsg->data;
 }
 
 void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg) {
