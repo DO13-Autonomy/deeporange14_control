@@ -17,6 +17,8 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
                                  this, ros::TransportHints().tcpNoDelay(true));
   sub_cmdVel = nh.subscribe(std::string(topic_ns + "/cmd_vel"), 10, &DeepOrangeStateSupervisor::checkStackStatus, this,
                             ros::TransportHints().tcpNoDelay(true));
+  sub_mppi_mission = nh.subscribe(std::string(topic_ns + "/mission/status"), 10,
+                            &DeepOrangeStateSupervisor::getPhxStatus, this, ros::TransportHints().tcpNoDelay(true));
   pub_mobility = nh.advertise<deeporange14_msgs::MobilityMsg>(std::string(topic_ns + "/cmd_mobility"), 10, this);
   pub_states = nh.advertise<std_msgs::UInt8>(std::string(topic_ns + "/au_states"), 10, this);
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a 
@@ -99,6 +101,15 @@ void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &e
   pub_mobility.publish(mobilityMsg);  // custom deeporange14 msg for DBW Can node
 }
 
+void DeepOrangeStateSupervisor::getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr &statusMsg)
+{
+  if (!statusMsg->status_list.empty())
+  {
+    mppi_status = statusMsg->status_list[0].status;
+    // ROS_INFO("MPPI Status: %d", mppi_status);
+  }
+}
+
 void DeepOrangeStateSupervisor::updateROSState() {
   switch (state) {
     case AU_0_DEFAULT: {
@@ -123,7 +134,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       }
       else {
         // do nothing , stay in same state
-        // ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
+        ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
         break;
       }
     }
@@ -195,13 +206,20 @@ void DeepOrangeStateSupervisor::updateROSState() {
       else if (mission_status == "globalPlanReady") {
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
-        // mission_status="";
-        ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready , transitioning to disengaging brakes ");
+        // mission_status = "";
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready, transitioning to disengaging brakes ");
+        break;
+      }
+      else if (mppi_status == 1 || mppi_status == 4) {
+        prevSt = 3;
+        state = AU_4_DISENGAGING_BRAKES;
+        // mission_status = "";
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Local Plan Ready, transitioning to disengaging brakes ");
         break;
       }
       else {
-        // ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlan Ready");
-        // Do nothing
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlanReady or LocalPlan Ready");
+        // do nothing
         break;
       }
     }
@@ -226,7 +244,13 @@ void DeepOrangeStateSupervisor::updateROSState() {
       else if (stack_fault) {
         state = AU_2_IDLE;
         break;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]:Stack Crashed or failed ");
+        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Stack Crashed or failed ");
+        break;
+      }
+      else if (mppi_status == 3) {
+        state = AU_3_ROS_MODE_EN;
+        break;
+        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Phoenix Stack mission changed to %d", mppi_status);
         break;
       }
       else if (stop_ros) {
@@ -269,6 +293,12 @@ void DeepOrangeStateSupervisor::updateROSState() {
         ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]: Stack Crashed or failed ");
         break;
       }
+      else if (mppi_status == 3) {
+        state = AU_3_ROS_MODE_EN;
+        break;
+        ROS_WARN("WARN: [AU_5_ROS_CONTROLLED]: Phoenix Stack mission changed to %d", mppi_status);
+        break;
+      }
       else if (stop_ros) {
         //  go back to idle
         state = AU_2_IDLE;
@@ -276,7 +306,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]:stop button is pressed ");
         break;
       }
-      else if (mission_status == "MissionCancelled") {
+      else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled") {
         prevSt = 5;
         state = AU_3_ROS_MODE_EN;
         ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");

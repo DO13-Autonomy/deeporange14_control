@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+#include <actionlib_msgs/GoalStatusArray.h>
 #include <can_msgs/Frame.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -40,6 +41,7 @@ class DeepOrangeStateSupervisor {
 
   void supervisorControlUpdate(const ros::TimerEvent& event);
   void updateROSState();
+  void getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& statusMsg);
 
   // member variables
   bool raptor_hb_detected;
@@ -66,6 +68,7 @@ class DeepOrangeStateSupervisor {
   double mission_update_timestamp;
   uint speed_state;
   uint au_state;
+  uint8_t mppi_status;
   double counter;
   float cmdvel_timeout;
   float raptorhb_timeout;
@@ -85,6 +88,7 @@ class DeepOrangeStateSupervisor {
   ros::Subscriber sub_rosStop;
   ros::Subscriber sub_raptorState;
   ros::Subscriber sub_stopRos;
+  ros::Subscriber sub_mppi_mission;
   std::string topic_ns = "/deeporange1314";
 
   // Init the msg variables
