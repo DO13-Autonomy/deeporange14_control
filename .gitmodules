@@ -6,4 +6,5 @@
 	url = https://github.com/ros-industrial/ros_canopen.git
 [submodule "src/raptor-dbw-ros"]
 	path = src/raptor-dbw-ros
-	url = https://github.com/NewEagleRaptor/raptor-dbw-ros.git
+	url = https://github.com/NewEagleRaptor/raptor-dbw-ros2.git
+	branch = foxy
