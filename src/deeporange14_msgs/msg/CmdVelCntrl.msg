@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 
 float64 reprojection_x
 float64 reprojection_w

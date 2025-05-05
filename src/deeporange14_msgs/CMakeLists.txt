@@ -1,35 +1,23 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
+cmake_policy(SET CMP0057 NEW)
 project(deeporange14_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  std_msgs
-  geometry_msgs
-  roscpp
+set(CMAKE_CXX_STANDARD 17)
+
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME} 
+  "msg/AuStatus.msg"
+  "msg/CmdVelCntrl.msg"
+  "msg/MissionStatus.msg"  # TODO: is this used?
+  "msg/Mobility.msg"
+  "msg/PIDComponents.msg"
+  "msg/RaptorState.msg"
+  "msg/TorqueCmdStamped.msg"
+  DEPENDENCIES std_msgs geometry_msgs
 )
 
-add_message_files(DIRECTORY msgs FILES
-  MobilityMsg.msg
-  RaptorStateMsg.msg
-  MissionStatus.msg
-  TorqueCmdStamped.msg
-  AuStatusMsg.msg
-  PIDComponentsMsg.msg
-  CmdVelCntrlMsg.msg
-)
-
-generate_messages(DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
-
-catkin_package(CATKIN_DEPENDS
-  roscpp
-  message_runtime
-  std_msgs
-  geometry_msgs
-)
-
-install(DIRECTORY msgs
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+ament_export_dependencies(rosidl_default_runtime)
+ament_package()
