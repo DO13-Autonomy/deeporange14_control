@@ -7,76 +7,78 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #ifndef DEEPORANGE_DBW_CAN_H_
 #define DEEPORANGE_DBW_CAN_H_
 
+#include <chrono>
 #include <string>
 #include <vector>
 
-#include <ros/ros.h>
-#include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
+//#include <ros/console.h>
 
-#include <can_msgs/Frame.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <novatel_oem7_msgs/INSPVAX.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/JointState.h>
-#include <sensor_msgs/Joy.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
-#include <nav_msgs/Odometry.h>
-#include <std_msgs/String.h>
+// TODO: are all of these needed?
+#include <can_msgs/msg/frame.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <novatel_oem7_msgs/msg/inspvax.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/string.hpp>
 
-#include <can_dbc_parser/DbcMessage.h>
-#include <can_dbc_parser/DbcSignal.h>
-#include <can_dbc_parser/Dbc.h>
-#include <can_dbc_parser/DbcBuilder.h>
+#include <can_dbc_parser/DbcMessage.hpp>
+#include <can_dbc_parser/DbcSignal.hpp>
+#include <can_dbc_parser/Dbc.hpp>
+#include <can_dbc_parser/DbcBuilder.hpp>
 
-#include <deeporange14_msgs/AuStatusMsg.h>
+#include <deeporange14_msgs/msg/au_status.hpp>
 #include <deeporange14_control/dispatch_can_msgs.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <deeporange14_msgs/RaptorStateMsg.h>
+#include <deeporange14_msgs/msg/mobility.hpp>
+#include <deeporange14_msgs/msg/raptor_state.hpp>
 
 namespace deeporange14 {
 class DeepOrangeDbwCan {
  public:
-  DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
+  DeepOrangeDbwCan(rclcpp::Node::SharedPtr node);//, ros::NodeHandle &priv_nh);
   ~DeepOrangeDbwCan();
 
  private:
-  void recvCAN(const can_msgs::Frame::ConstPtr& msg);
-  void publishCAN(const ros::TimerEvent& event);
-  void publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg);
-  void publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg);
-  void getMeasuredVx(const nav_msgs::Odometry& msg);
-  void getMeasuredWz(const sensor_msgs::Imu& msg);
-  void getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg);
-  void publishAuStatus(const ros::TimerEvent& event);
-  // int getLogStatus(const deeporange14_msgs::*****& msg); // TODO -> Include message
+  void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
+  //void publishCAN(const ros::TimerEvent& event);
+  void publishCommandstoCAN(const deeporange14_msgs::msg::Mobility& msg);
+  void publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus& msg);
+  void getMeasuredVx(const nav_msgs::msg::Odometry& msg);
+  void getMeasuredWz(const sensor_msgs::msg::Imu& msg);
+  void getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg);
+  void publishAuStatus(); //const ros::TimerEvent& event);
+
+  rclcpp::Node::SharedPtr node_;
 
   // Ros timer object
-  ros::Timer timer_;
+  rclcpp::TimerBase::SharedPtr timer_;
 
   // Publishers
-  ros::Publisher pub_can_;
-  ros::Publisher pub_raptorState_;
-  ros::Publisher pub_auStatus_;
+  rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr pub_can_;
+  rclcpp::Publisher<deeporange14_msgs::msg::RaptorState>::SharedPtr pub_raptorState_;
+  rclcpp::Publisher<deeporange14_msgs::msg::AuStatus>::SharedPtr pub_auStatus_;
 
   // Subscribers
-  ros::Subscriber sub_can_;
-  ros::Subscriber sub_auMobility_;
-  ros::Subscriber sub_auStatus_;
-  ros::Subscriber sub_gpsImu_;
-  ros::Subscriber sub_odom_;
-  ros::Subscriber sub_rtk_;
-  ros::Subscriber sub_autonomyLog_;
+  rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
+  rclcpp::Subscription<deeporange14_msgs::msg::Mobility>::SharedPtr sub_auMobility_;
+  //rclcpp::Subscriber<deeporange14_msgs::msg::AuStatus>::SharedPtr sub_auStatus_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_gpsImu_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom_;
+  rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVAX>::SharedPtr sub_rtk_;
+  rclcpp::Subscription<deeporange14_msgs::msg::AuStatus>::SharedPtr sub_autonomyLog_;
 
   // Published msgs
-  deeporange14_msgs::RaptorStateMsg raptorMsg_;
-  deeporange14_msgs::AuStatusMsg auStatusMsg_;
+  deeporange14_msgs::msg::RaptorState raptorMsg_;
+  deeporange14_msgs::msg::AuStatus auStatusMsg_;
 
   // Subscribed msgs
-  deeporange14_msgs::MobilityMsg mobilityMsg_;
-  nav_msgs::Odometry odometryMsg_;
-  sensor_msgs::Imu gpsImuMsg_;
+  deeporange14_msgs::msg::Mobility mobilityMsg_;
+  nav_msgs::msg::Odometry odometryMsg_;
+  sensor_msgs::msg::Imu gpsImuMsg_;
 
   // Variables for measured velocities
   std::vector<float> vectorWz_;
@@ -86,7 +88,7 @@ class DeepOrangeDbwCan {
 
   // Frame ID
   std::string frameId_;
-  can_msgs::Frame frame_;
+  can_msgs::msg::Frame frame_;
 
   // dbc files
   NewEagle::Dbc rosDbc_;
