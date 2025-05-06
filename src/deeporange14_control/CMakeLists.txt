@@ -25,10 +25,12 @@ find_package(geometry_msgs REQUIRED)
 find_package(novatel_oem7_msgs REQUIRED)
 find_package(can_msgs REQUIRED)
 find_package(deeporange14_msgs REQUIRED)
+find_package(actionlib_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED)
 
 # define the target(s) for the build, with dependencies and links
 add_library(${PROJECT_NAME}
-  #src/DeepOrangeStateSupervisor.cpp
+  src/DeepOrangeStateSupervisor.cpp
   #src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
   #src/DataLogger.cpp
@@ -48,6 +50,8 @@ ament_target_dependencies(${PROJECT_NAME} PUBLIC
   novatel_oem7_msgs
   deeporange14_msgs
   can_msgs
+  actionlib_msgs
+  tf2_msgs
 )
 
 # TODO: is this target needed?
