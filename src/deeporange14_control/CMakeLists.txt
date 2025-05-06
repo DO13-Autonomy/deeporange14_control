@@ -6,6 +6,7 @@ if (NOT CMAKE_CXX_STANDARD)
 endif()
 
 # find all packages needed to build the code
+# ROS packages
 find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -31,7 +32,7 @@ find_package(tf2_msgs REQUIRED)
 # define the target(s) for the build, with dependencies and links
 add_library(${PROJECT_NAME}
   src/DeepOrangeStateSupervisor.cpp
-  #src/DeepOrangeVelocityController.cpp
+  src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
   #src/DataLogger.cpp
 )

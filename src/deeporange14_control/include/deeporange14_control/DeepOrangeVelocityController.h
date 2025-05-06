@@ -1,52 +1,37 @@
 #ifndef DEEPORANGE_VELOCITY_CONTROLLER_H_
 #define DEEPORANGE_VELOCITY_CONTROLLER_H_
 
+#include <algorithm>
+#include <limits>
 #include <math.h>
 #include <string>
 
-#include <ros/ros.h>
-#include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
+//#include <ros/console.h>
 
-#include <geometry_msgs/Twist.h>
-#include <nav_msgs/Odometry.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/UInt8.h>
+#include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/u_int16.hpp>
 
 #include <deeporange14_control/DeeporangeStateEnums.h>
-#include <deeporange14_msgs/CmdVelCntrlMsg.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <deeporange14_msgs/PIDComponentsMsg.h>
-#include <deeporange14_msgs/TorqueCmdStamped.h>
+#include <deeporange14_msgs/msg/cmd_vel_cntrl.hpp>
+#include <deeporange14_msgs/msg/mobility.hpp>
+#include <deeporange14_msgs/msg/pid_components.hpp>
+#include <deeporange14_msgs/msg/torque_cmd_stamped.hpp>
 
 namespace deeporange14 {
 class VelocityController {
  public:
-  VelocityController(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
+  VelocityController(rclcpp::Node::SharedPtr node);
   ~VelocityController();
 
-  // namespace string
-  std::string topic_ns = "/deeporange1314";
-
-  // publisher and subscriber
-  ros::Subscriber sub_cmd_vel_;
-  ros::Subscriber sub_odom_;
-  ros::Subscriber sub_brakes_;
-  ros::Subscriber sub_moboility_msg_;
-  ros::Publisher pub_cmd_trq_;
-  ros::Publisher pub_cmd_vel_reprojected_;
-  ros::Publisher pub_remap_state_;
-  ros::Publisher pub_pid_components_;
-  ros::Publisher pub_cmd_vel_cntrl;
-
-  ros::Timer timer_;
-  std_msgs::UInt8 remapping_state_msg_;
-
   // callback functions
-  void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg);
-  void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
-  void publishTorques(const ros::TimerEvent& event);
-  void brakeCallback(const std_msgs::Bool::ConstPtr& msg);
-  void cmdMobilityCallback(const deeporange14_msgs::MobilityMsg::ConstPtr& msg);
+  void cmdVelCallback(const geometry_msgs::msg::Twist& msg);
+  void odomCallback(const nav_msgs::msg::Odometry& msg);
+  void publishTorques();
+  void brakeCallback(const std_msgs::msg::Bool& msg);
+  void cmdMobilityCallback(const deeporange14_msgs::msg::Mobility& msg);
 
   // velocity reprojection to the admissible range
   void linearVelocityReprojection(double &v, double &w);
@@ -55,6 +40,28 @@ class VelocityController {
   // rate limiter on the commands
   void rateLimiter_LinX(double &prev_u_, double &u_);
   void rateLimiter_AngZ(double &prev_omega, double &omega_);
+
+  void ReadParameters();
+
+  // namespace string
+  std::string topic_ns = "/deeporange1314";
+
+  rclcpp::Node::SharedPtr node_;
+
+  // publisher and subscriber
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmd_vel_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom_;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_brakes_;
+  rclcpp::Subscription<deeporange14_msgs::msg::Mobility>::SharedPtr sub_moboility_msg_;
+
+  rclcpp::Publisher<deeporange14_msgs::msg::TorqueCmdStamped>::SharedPtr pub_cmd_trq_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_reprojected_;
+  rclcpp::Publisher<std_msgs::msg::UInt16>::SharedPtr pub_remap_state_;
+  rclcpp::Publisher<deeporange14_msgs::msg::PIDComponents>::SharedPtr pub_pid_components_;
+  rclcpp::Publisher<deeporange14_msgs::msg::CmdVelCntrl>::SharedPtr pub_cmd_vel_cntrl;
+
+  rclcpp::TimerBase::SharedPtr timer_;
+  std_msgs::msg::UInt16 remapping_state_msg_;
 
   // member variables -- velocities (commanded and odom)
   double cmdLinX_;
