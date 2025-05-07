@@ -21,5 +21,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES std_msgs geometry_msgs
 )
 
+# set up automated testing for cmake file
+if(BUILD_TESTING)
+  find_package(ament_cmake_lint_cmake REQUIRED)
+  ament_lint_cmake()
+
+endif()
+
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
