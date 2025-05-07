@@ -10,30 +10,32 @@ an error state is reached
 
 #include <string>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "boost/date_time/c_local_time_adjustor.hpp"
 #include "boost/date_time/local_time_adjustor.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include <deeporange14_msgs/RaptorStateMsg.h>
+#include <deeporange14_msgs/msg/raptor_state.hpp>
 
 namespace deeporange14 {
 class DataLogger {
  public:
-  DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
+  DataLogger(rclcpp::Node::SharedPtr node);
   ~DataLogger();
 
  private:
-  void recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg);
+  void recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg);
   void monitorFileSize(const std::string &can_file, const std::string &ros_bag);
 
-  ros::Timer timer_;
+  rclcpp::Node::SharedPtr node_;
+
+  rclcpp::TimerBase::SharedPtr timer_;
 
   std::string pid_candump;
 
   // Subscriber object
-  ros::Subscriber sub_raptor_;
+  rclcpp::Subscription<deeporange14_msgs::msg::RaptorState>::SharedPtr sub_raptor_;
   int kill_timer;
   int logging_counter;
   double can_log_size;

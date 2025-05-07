@@ -34,7 +34,7 @@ add_library(${PROJECT_NAME}
   src/DeepOrangeStateSupervisor.cpp
   src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
-  #src/DataLogger.cpp
+  src/DataLogger.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

@@ -6,38 +6,33 @@
     stopped if the system state becomes SS_31 or an error state (>= 200) is
     reached.
 */
-
-#include <string>
-
 #include <deeporange14_control/DataLogger.h>
 
 namespace deeporange14
 {
-DataLogger::DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
-{
+DataLogger::DataLogger(rclcpp::Node::SharedPtr node) : node_(node) {
     // Obtain ros::Subscriber object
-    sub_raptor_ = node.subscribe(topic_ns + std::string("/raptor_state"), 10, &DataLogger::recordRosbagAndCANlog, this,
-                                 ros::TransportHints().tcpNoDelay(true));
+    // TODO - set QOS to match TCPNoDelay
+    sub_raptor_ = node->create_subscription<deeporange14_msgs::msg::RaptorState>(topic_ns + std::string("/raptor_state"), 10, std::bind(&DataLogger::recordRosbagAndCANlog, this, std::placeholders::_1));  //ros::TransportHints().tcpNoDelay(true));
 
     // Initialize recording state to false
     isRecording = false;
 
     kill_timer = 400;  // at 50 Hz, 400 should be 8 seconds
     logging_counter = 200;
+
+    node->declare_parameter("/log_status", rclcpp::PARAMETER_INTEGER);
 }
 
 DataLogger::~DataLogger() {}
 
-void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg)
-{
-  // if (!isRecording && msg->log_cmd)
-  if (!isRecording && msg->system_state == 6)
-  {
-    ros::param::set("/log_status", 1);
-    ROS_INFO("Entered Data logger");
+void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg) {
+  if (!isRecording && msg.system_state == 6) {
+    node_->set_parameter(rclcpp::Parameter("/log_status", 1));
+    RCLCPP_INFO(node_->get_logger(), "Entered Data logger");
 
     // Obtaining timestamp (EST) to name ROS bag and CAN dump
-    boost::posix_time::ptime my_posix_time = ros::Time::now().toBoost();
+    boost::posix_time::ptime my_posix_time(boost::posix_time::microsec_clock::universal_time());  // time in UTC with microsecond resolution
     typedef boost::date_time::local_adjustor<boost::posix_time::ptime, -5, boost::posix_time::us_dst> us_eastern;
     my_posix_time = us_eastern::utc_to_local(my_posix_time);    // Conversion from UTC to EST (Clemson, South Carolina)
     std::string iso_time_str = boost::posix_time::to_iso_string(my_posix_time);
@@ -69,21 +64,18 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
     // Update recording state
     isRecording = true;
 
-    ROS_INFO("Started data recording");
-    // ROS_INFO("Current System State = %d", msg->system_state);
+    RCLCPP_INFO(node_->get_logger(), "Started data recording");
+    // RCLCPP_INFO(node_->get_logger(), "Current System State = %d", msg->system_state);
   }
-  if (isRecording && msg->system_state == 32 || msg->system_state >= 98)
-  {
+  if (isRecording && msg.system_state == 32 || msg.system_state >= 98)   {
     // Wait for 10 seconds before killing data logging to capture crucial data in case of system error
     // ros::Duration(10).sleep();
 
-    if (kill_timer > 0)
-    {
+    if (kill_timer > 0) {
       kill_timer--;
       return;
     }
-    else
-    {
+    else     {
       // Kill rosbag record and CAN logging
       system("rosnode kill /rosbag_recording");
       system("killall -SIGKILL candump");
@@ -91,8 +83,8 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
       // Update recording state
       isRecording = false;
       kill_timer = 400;  // reinitialized for next recording
-      ROS_INFO("Rosbag record and CAN dump killed");
-      ros::param::set("/log_status", 0);
+      RCLCPP_INFO(node_->get_logger(), "Rosbag record and CAN dump killed");
+      node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
   }
   // Keep checking for file size if logging is started
@@ -100,16 +92,13 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::
   // {
   //     this->monitorFileSize(can_log_name, ros_bag_name);
   // }
-  else
-  {
+  else {
     // DO NOTHING
   }
 }
 
-void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag)
-{
-  if (logging_counter == 100)
-  {
+void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag) {
+  if (logging_counter == 100) {
       // Check for file size after every 2 second
       can_log_size = system(("stat -c %s " + can_file+ " &").c_str());
       ros_bag_size = system(("stat -c %s " + ros_bag + ".active"+ " &").c_str());
@@ -117,22 +106,19 @@ void DataLogger::monitorFileSize(const std::string &can_file, const std::string 
       std::cout << "ros bag size: " << ros_bag_size << std::endl;
   }
 
-  if (logging_counter == 0)
-  {
+  if (logging_counter == 0) {
     // Check for file size again after every 4 second
     curr_ros_bag_size = system(("stat -c %s " + ros_bag + ".active"+ " &").c_str());
     curr_can_log_size = system(("stat -c %s " + can_file+ " &").c_str());
 
-    if (curr_ros_bag_size-ros_bag_size == 0)
-    {
-      ROS_WARN("ROS bag size not increasing. No new ROS data is being recorded!");
-      ros::param::set("/log_status", 0);
+    if (curr_ros_bag_size-ros_bag_size == 0) {
+      RCLCPP_WARN(node_->get_logger(), "ROS bag size not increasing. No new ROS data is being recorded!");
+      node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
 
-    if (curr_can_log_size-can_log_size == 0)
-    {
-      ROS_WARN("CAN log file size not increasing. No new CAN data is being recorded!");
-      ros::param::set("/log_status", 0);
+    if (curr_can_log_size-can_log_size == 0) {
+      RCLCPP_WARN(node_->get_logger(), "CAN log file size not increasing. No new CAN data is being recorded!");
+      node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
 
     logging_counter = 200;  // reinitialized for next recording
