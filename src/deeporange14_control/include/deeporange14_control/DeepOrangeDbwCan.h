@@ -8,6 +8,8 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #define DEEPORANGE_DBW_CAN_H_
 
 #include <chrono>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -51,10 +53,11 @@ class DeepOrangeDbwCan {
   void getMeasuredWz(const sensor_msgs::msg::Imu& msg);
   void getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg);
   void publishAuStatus(); //const ros::TimerEvent& event);
+  void readDbcFile(std::string &dbc_file, std::string &dbc_raw);
 
   rclcpp::Node::SharedPtr node_;
 
-  // Ros timer object
+  // ROS timer object
   rclcpp::TimerBase::SharedPtr timer_;
 
   // Publishers
@@ -95,6 +98,8 @@ class DeepOrangeDbwCan {
   NewEagle::Dbc raptorDbc_;
   std::string dbcFileRos_;
   std::string dbcFileRaptor_;
+  std::string dbcRosRaw_;
+  std::string dbcRaptorRaw_;
 
   // Heartbeat var & ptr
   int ros_hb_ = 0;

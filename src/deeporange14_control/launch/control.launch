@@ -3,21 +3,20 @@
   <arg name="use_socketcan" default="true" />
   <arg name="use_kvaser" default="false" />
   <arg name="socketcan_device" default="can0" />  <!-- vehicle's CAN1-->
-  <arg name="controller_param_file" default="$(find deeporange14_control)/config/params.yaml" />
+  <arg name="controller_param_file" default="$(find-pkg-share deeporange14_control)/config/params.yaml" />
 
-  <rosparam file="$(arg controller_param_file)" />
-
-  <node pkg="deeporange14_control" type="deeporange14_control_dbwnode" name="deeporange14" output="screen">
-    
+  <node pkg="deeporange14_control" exec="deeporange14_control_dbwnode" name="deeporange14" output="screen">
     <param name="cmdvel_timeout" value="5" />
     <param name="raptorhb_timeout" value="5" />
     <param name="update_freq" value="50" />
-    <param name="dbc_file_ros" textfile="$(find deeporange14_control)/dbc/ros_do14.dbc" />
-    <param name="dbc_file_raptor" textfile="$(find deeporange14_control)/dbc/CAN1.dbc" />
+    <param name="dbc_file_ros" value="$(find-pkg-share deeporange14_control)/dbc/ros_do14.dbc" />
+    <param name="dbc_file_raptor" value="$(find-pkg-share deeporange14_control)/dbc/CAN1.dbc" />
+
+    <param from="$(var controller_param_file)" />
   </node>
 
-  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge" if="$(arg use_socketcan)">
-    <param name="can_device" value="$(arg socketcan_device)" />
+  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge" if="$(var use_socketcan)">
+    <param name="can_device" value="$(var socketcan_device)" />
     <remap from="received_messages" to="can_tx"/>
     <remap from="sent_messages" to="can_rx"/>
   </node>

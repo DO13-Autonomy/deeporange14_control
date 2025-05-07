@@ -39,12 +39,33 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(rclcpp::Node::SharedPtr node) : node_(node) {
   node->get_parameter("dbc_file_ros", dbcFileRos_);
   node->get_parameter("dbc_file_raptor", dbcFileRaptor_);
 
+  readDbcFile(dbcFileRos_, dbcRosRaw_);
+  readDbcFile(dbcFileRaptor_, dbcRaptorRaw_);
+
   // Instantiate the dbc class
-  rosDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFileRos_);
-  raptorDbc_ = NewEagle::DbcBuilder().NewDbc(dbcFileRaptor_);
+  rosDbc_ = NewEagle::DbcBuilder().NewDbc(dbcRosRaw_);
+  raptorDbc_ = NewEagle::DbcBuilder().NewDbc(dbcRaptorRaw_);
 }
 
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
+
+// TODO - this needs to be tested (it seems to work external to this package/ROS, but not sure if it will also work within the node)
+// function to read the contents of the DBC files, which are needed by the NewDbc function, but ROS2 doesn't allow textfile parameters
+void readDbcFile(std::string &dbc_file, std::string &dbc_raw) {
+  std::stringstream dbc_stream;
+  std::filestream fs{dbc_file, fs.in};
+
+  RCLCPP_INFO(node_->get_logger(), "Reading from DBC file: " + dbc_file);
+
+  if (!is.is_open()) {
+    RCLCPP_ERROR(node_->get_logger(), "Unable to open DBC file " + dbc_file);
+    dbc_raw = "";
+  }
+  else {
+    dbc_stream << fs.rdbuf();
+    dbc_raw = dbc_stream.str();
+  }
+}
 
 void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
   // ROS_WARN("Inside RecvCan. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
