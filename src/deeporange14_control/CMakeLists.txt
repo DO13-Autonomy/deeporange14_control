@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14.4)
 project(deeporange14_control)
 
-if (NOT CMAKE_CXX_STANDARD)
+if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
 
