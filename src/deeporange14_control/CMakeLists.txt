@@ -70,8 +70,18 @@ install(TARGETS ${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
 # set up automated testing for launch files and code
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()  # this runs linters on CPP, PY, CMakeLists.txt, anc package.xml
-#  set(ROSLINT_CPP_OPTS "--filter=-legal/copyright,-readability/todo,-whitespace/todo,-build/header_guard, -whitespace/braces, -runtime/references")
+  list(APPEND AMENT_LINT_AUTO_EXCLUDE
+    ament_cmake_copyright  # don't want to run copyright test
+    ament_cmake_cppcheck  # this gets skipped due to some incompatibility
+    ament_cmake_cpplint  # want to run this test separately so that we can apply filters
+  )
+  ament_lint_auto_find_test_dependencies()  # this runs linters on PY, CMakeLists.txt, anc package.xml
+
+  # run CPP lint with filters to ignore items that differ from general ROS convention
+  find_package(ament_cmake_cpplint REQUIRED)
+  ament_cpplint(FILTERS -legal/copyright -whitespace/braces)
+
+#  set(ROSLINT_CPP_OPTS "--filter=,-readability/todo,-whitespace/todo,-build/header_guard, , -runtime/references")
 endif()
 
 ament_package()
