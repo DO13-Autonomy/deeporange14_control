@@ -66,8 +66,7 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-# TODO: is this needed?
-#install(${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
+install(${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
 
 # set up automated testing for launch files and code
 # TODO: update this to make it work with ROS2
