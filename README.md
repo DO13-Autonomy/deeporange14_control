@@ -47,6 +47,7 @@ Results can be found in multiple locations:
   - Printed to the console (when the `--event-handlers console_direct+` options is used)
   - Log files in `log/latest_test/test_results/deeporange14_control` or (for older tests) `log/test_YYYY-MM-DD_HH-MM-DD/deeporange14_control`
   - Log file `build/deeporange14_control/Testing/LastTest_YYYYMMDD-XXXX.log` (with other summaries in the other files in this `Testing` directory)
+  - XML files in `build/deeporange14_control/test_results` (only latest tests results)
 
 The third-party pacakges also contain some unit tests which can be launched one-at-a-time using the above command (substituting the package name).  All tests in the workspace can be launched with `colcon test --event-handlers console_direct+`.  To exclude console output, just run `colcon test` without the `--event-handler` setting.
 
