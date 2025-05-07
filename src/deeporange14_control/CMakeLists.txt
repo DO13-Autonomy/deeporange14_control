@@ -55,7 +55,6 @@ ament_target_dependencies(${PROJECT_NAME} PUBLIC
   tf2_msgs
 )
 
-# TODO: is this target needed?
 add_executable(${PROJECT_NAME}_dbwnode src/DeepOrangeInterfaceNode.cpp)
 target_link_libraries(${PROJECT_NAME}_dbwnode ${PROJECT_NAME})
 
@@ -66,18 +65,13 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
+install(TARGETS ${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
 
 # set up automated testing for launch files and code
-# TODO: update this to make it work with ROS2
-#if(BUILD_TESTING)
-#  find_package(ament_lint_auto REQUIRED)
-#  ament_lint_auto_find_test_dependencies()  
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()  # this runs linters on CPP, PY, CMakeLists.txt, anc package.xml
 #  set(ROSLINT_CPP_OPTS "--filter=-legal/copyright,-readability/todo,-whitespace/todo,-build/header_guard, -whitespace/braces, -runtime/references")
-#  roslint_cpp()
-#  roslint_add_test()
-
-#  roslaunch_add_file_check(launch/control.launch)
-#endif()
+endif()
 
 ament_package()
