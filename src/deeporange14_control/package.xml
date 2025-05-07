@@ -45,7 +45,7 @@
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>deeporange14_msgs</exec_depend>
-  <!--<exec_depend>socketcan_bridge</exec_depend>-->
+  <exec_depend>ros2_socketcan</exec_depend>
   <exec_depend>can_msgs</exec_depend>
   <exec_depend>tf2_msgs</exec_depend>
   <exec_depend>actionlib_msgs</exec_depend>
