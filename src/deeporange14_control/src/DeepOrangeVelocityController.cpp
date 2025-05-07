@@ -19,53 +19,53 @@ VelocityController::VelocityController(rclcpp::Node::SharedPtr node) : node_(nod
   pub_cmd_vel_cntrl = node->create_publisher<deeporange14_msgs::msg::CmdVelCntrl>(std::string(topic_ns + "/cmd_vel_cntrl"), 10);
 
   // declare parameters with default values
-  node->declare_parameter("pid_gains/kP_linX", 150.0);
-  node->declare_parameter("pid_gains/kI_linX", 30.0);
-  node->declare_parameter("pid_gains/kD_linX", 0.0);
-  node->declare_parameter("pid_gains/kP_omega", 200.0);
-  node->declare_parameter("pid_gains/kI_omega", 8.0);
-  node->declare_parameter("pid_gains/kD_omega", 0.0);
+  node->declare_parameter("pid_gains.kP_linX", 150.0);
+  node->declare_parameter("pid_gains.kI_linX", 30.0);
+  node->declare_parameter("pid_gains.kD_linX", 0.0);
+  node->declare_parameter("pid_gains.kP_omega", 200.0);
+  node->declare_parameter("pid_gains.kI_omega", 8.0);
+  node->declare_parameter("pid_gains.kD_omega", 0.0);
 
-  node->declare_parameter("feedforward/x0", 1500.0);
-  node->declare_parameter("feedforward/x1", 7.8);
-  node->declare_parameter("feedforward/a", 4.37);
-  node->declare_parameter("feedforward/b", 18.0);
+  node->declare_parameter("feedforward.x0", 1500.0);
+  node->declare_parameter("feedforward.x1", 7.8);
+  node->declare_parameter("feedforward.a", 4.37);
+  node->declare_parameter("feedforward.b", 18.0);
 
-  node->declare_parameter("torque_limits/tq_Max", 280.0);
-  node->declare_parameter("torque_limits/tq_Min", -280.0);
+  node->declare_parameter("torque_limits.tq_Max", 280.0);
+  node->declare_parameter("torque_limits.tq_Min", -280.0);
 
-  node->declare_parameter("velocity/max_velocity", 1.6);
-  node->declare_parameter("velocity/min_velocity", -1.0);
+  node->declare_parameter("velocity.max_velocity", 1.6);
+  node->declare_parameter("velocity.min_velocity", -1.0);
 
-  node->declare_parameter("omega_limits/max_omega", 0.6);
-  node->declare_parameter("omega_limits/min_omega", 0.5);
-  node->declare_parameter("omega_limits/R_min", 2.0);
+  node->declare_parameter("omega_limits.max_omega", 0.6);
+  node->declare_parameter("omega_limits.min_omega", 0.5);
+  node->declare_parameter("omega_limits.R_min", 2.0);
 
   node->declare_parameter("deadband_velocity", 0.1);
 
-  node->declare_parameter("rate_limiter/dec_min_for_lin_vel", -0.1);
-  node->declare_parameter("rate_limiter/a_acc_for_lin_vel", 0.5);
-  node->declare_parameter("rate_limiter/b_acc_for_lin_vel", 3.0);
-  node->declare_parameter("rate_limiter/a_dec_for_lin_vel", -0.5);
-  node->declare_parameter("rate_limiter/b_dec_for_lin_vel", -15.0);
-  node->declare_parameter("rate_limiter/acc_max_for_lin_vel", 1.0);
-  node->declare_parameter("rate_limiter/dec_max_for_lin_vel", -1);
-  node->declare_parameter("rate_limiter/smoothing_factor_for_lin_vel", 20.0);
+  node->declare_parameter("rate_limiter.dec_min_for_lin_vel", -0.1);
+  node->declare_parameter("rate_limiter.a_acc_for_lin_vel", 0.5);
+  node->declare_parameter("rate_limiter.b_acc_for_lin_vel", 3.0);
+  node->declare_parameter("rate_limiter.a_dec_for_lin_vel", -0.5);
+  node->declare_parameter("rate_limiter.b_dec_for_lin_vel", -15.0);
+  node->declare_parameter("rate_limiter.acc_max_for_lin_vel", 1.0);
+  node->declare_parameter("rate_limiter.dec_max_for_lin_vel", -1);
+  node->declare_parameter("rate_limiter.smoothing_factor_for_lin_vel", 20.0);
 
-  node->declare_parameter("rate_limiter/dec_min_for_ang_vel", -0.1);
-  node->declare_parameter("rate_limiter/a_acc_for_ang_vel", 0.5);
-  node->declare_parameter("rate_limiter/b_acc_for_ang_vel", 3.0);
-  node->declare_parameter("rate_limiter/a_dec_for_ang_vel", -0.5);
-  node->declare_parameter("rate_limiter/b_dec_for_ang_vel", -15.0);
-  node->declare_parameter("rate_limiter/acc_max_for_ang_vel", 1.0);
-  node->declare_parameter("rate_limiter/dec_max_for_ang_vel", -1.0);
-  node->declare_parameter("rate_limiter/smoothing_factor_for_ang_vel", 20.0);
+  node->declare_parameter("rate_limiter.dec_min_for_ang_vel", -0.1);
+  node->declare_parameter("rate_limiter.a_acc_for_ang_vel", 0.5);
+  node->declare_parameter("rate_limiter.b_acc_for_ang_vel", 3.0);
+  node->declare_parameter("rate_limiter.a_dec_for_ang_vel", -0.5);
+  node->declare_parameter("rate_limiter.b_dec_for_ang_vel", -15.0);
+  node->declare_parameter("rate_limiter.acc_max_for_ang_vel", 1.0);
+  node->declare_parameter("rate_limiter.dec_max_for_ang_vel", -1.0);
+  node->declare_parameter("rate_limiter.smoothing_factor_for_ang_vel", 20.0);
 
   node->declare_parameter("dt", 0.02);
 
-  node->declare_parameter("moving_velocity/v_moving_ss", 0.5);
-  node->declare_parameter("moving_velocity/v_moving", 0.4);
-  node->declare_parameter("moving_velocity/v_stopped", 0.01);
+  node->declare_parameter("moving_velocity.v_moving_ss", 0.5);
+  node->declare_parameter("moving_velocity.v_moving", 0.4);
+  node->declare_parameter("moving_velocity.v_stopped", 0.01);
 
   VelocityController::ReadParameters();
 
@@ -106,53 +106,53 @@ VelocityController::~VelocityController() {}
 
 // function to handle parameter retrieval
 void VelocityController::ReadParameters() {
-  node_->get_parameter("pid_gains/kP_linX", kP_linX_);
-  node_->get_parameter("pid_gains/kI_linX", kI_linX_);
-  node_->get_parameter("pid_gains/kD_linX", kD_linX_);
-  node_->get_parameter("pid_gains/kP_omega", kP_omega_);
-  node_->get_parameter("pid_gains/kI_omega", kI_omega_);
-  node_->get_parameter("pid_gains/kD_omega", kD_omega_);
+  node_->get_parameter("pid_gains.kP_linX", kP_linX_);
+  node_->get_parameter("pid_gains.kI_linX", kI_linX_);
+  node_->get_parameter("pid_gains.kD_linX", kD_linX_);
+  node_->get_parameter("pid_gains.kP_omega", kP_omega_);
+  node_->get_parameter("pid_gains.kI_omega", kI_omega_);
+  node_->get_parameter("pid_gains.kD_omega", kD_omega_);
 
-  node_->get_parameter("feedforward/x0", x0_);
-  node_->get_parameter("feedforward/x1", x1_);
-  node_->get_parameter("feedforward/a", a_);
-  node_->get_parameter("feedforward/b", b_);
+  node_->get_parameter("feedforward.x0", x0_);
+  node_->get_parameter("feedforward.x1", x1_);
+  node_->get_parameter("feedforward.a", a_);
+  node_->get_parameter("feedforward.b", b_);
 
-  node_->get_parameter("torque_limits/tq_Max", tq_Max_);
-  node_->get_parameter("torque_limits/tq_Min", tq_Min_);
+  node_->get_parameter("torque_limits.tq_Max", tq_Max_);
+  node_->get_parameter("torque_limits.tq_Min", tq_Min_);
 
-  node_->get_parameter("velocity/max_velocity", max_velocity);
-  node_->get_parameter("velocity/min_velocity", min_velocity);
+  node_->get_parameter("velocity.max_velocity", max_velocity);
+  node_->get_parameter("velocity.min_velocity", min_velocity);
 
-  node_->get_parameter("omega_limits/max_omega", max_omega);
-  node_->get_parameter("omega_limits/min_omega", min_omega);
-  node_->get_parameter("omega_limits/R_min", R_min);
+  node_->get_parameter("omega_limits.max_omega", max_omega);
+  node_->get_parameter("omega_limits.min_omega", min_omega);
+  node_->get_parameter("omega_limits.R_min", R_min);
 
   node_->get_parameter("deadband_velocity", deadband_velocity);
 
-  node_->get_parameter("rate_limiter/dec_min_for_lin_vel", dec_min_v);
-  node_->get_parameter("rate_limiter/a_acc_for_lin_vel", a_acc_v);
-  node_->get_parameter("rate_limiter/b_acc_for_lin_vel", b_acc_v);
-  node_->get_parameter("rate_limiter/a_dec_for_lin_vel", a_dec_v);
-  node_->get_parameter("rate_limiter/b_dec_for_lin_vel", b_dec_v);
-  node_->get_parameter("rate_limiter/acc_max_for_lin_vel", acc_max_v);
-  node_->get_parameter("rate_limiter/dec_max_for_lin_vel", dec_max_v);
-  node_->get_parameter("rate_limiter/smoothing_factor_for_lin_vel", smoothing_factor_v);
+  node_->get_parameter("rate_limiter.dec_min_for_lin_vel", dec_min_v);
+  node_->get_parameter("rate_limiter.a_acc_for_lin_vel", a_acc_v);
+  node_->get_parameter("rate_limiter.b_acc_for_lin_vel", b_acc_v);
+  node_->get_parameter("rate_limiter.a_dec_for_lin_vel", a_dec_v);
+  node_->get_parameter("rate_limiter.b_dec_for_lin_vel", b_dec_v);
+  node_->get_parameter("rate_limiter.acc_max_for_lin_vel", acc_max_v);
+  node_->get_parameter("rate_limiter.dec_max_for_lin_vel", dec_max_v);
+  node_->get_parameter("rate_limiter.smoothing_factor_for_lin_vel", smoothing_factor_v);
 
-  node_->get_parameter("rate_limiter/dec_min_for_ang_vel", dec_min_w);
-  node_->get_parameter("rate_limiter/a_acc_for_ang_vel", a_acc_w);
-  node_->get_parameter("rate_limiter/b_acc_for_ang_vel", b_acc_w);
-  node_->get_parameter("rate_limiter/a_dec_for_ang_vel", a_dec_w);
-  node_->get_parameter("rate_limiter/b_dec_for_ang_vel", b_dec_w);
-  node_->get_parameter("rate_limiter/acc_max_for_ang_vel", acc_max_w);
-  node_->get_parameter("rate_limiter/dec_max_for_ang_vel", dec_max_w);
-  node_->get_parameter("rate_limiter/smoothing_factor_for_ang_vel", smoothing_factor_w);
+  node_->get_parameter("rate_limiter.dec_min_for_ang_vel", dec_min_w);
+  node_->get_parameter("rate_limiter.a_acc_for_ang_vel", a_acc_w);
+  node_->get_parameter("rate_limiter.b_acc_for_ang_vel", b_acc_w);
+  node_->get_parameter("rate_limiter.a_dec_for_ang_vel", a_dec_w);
+  node_->get_parameter("rate_limiter.b_dec_for_ang_vel", b_dec_w);
+  node_->get_parameter("rate_limiter.acc_max_for_ang_vel", acc_max_w);
+  node_->get_parameter("rate_limiter.dec_max_for_ang_vel", dec_max_w);
+  node_->get_parameter("rate_limiter.smoothing_factor_for_ang_vel", smoothing_factor_w);
 
   node_->get_parameter("dt", dt_);
 
-  node_->get_parameter("moving_velocity/v_moving_ss", v_moving_ss);
-  node_->get_parameter("moving_velocity/v_moving", v_moving);
-  node_->get_parameter("moving_velocity/v_stopped", v_stopped);
+  node_->get_parameter("moving_velocity.v_moving_ss", v_moving_ss);
+  node_->get_parameter("moving_velocity.v_moving", v_moving);
+  node_->get_parameter("moving_velocity.v_stopped", v_stopped);
 }
 
 
