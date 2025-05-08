@@ -34,8 +34,12 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(rclcpp::Node::SharedPtr nod
     10,
     std::bind(&DeepOrangeStateSupervisor::getPhxStatus, this, std::placeholders::_1));
 
-  pub_mobility = node->create_publisher<deeporange14_msgs::msg::Mobility>(std::string(topic_ns + "/cmd_mobility"), 10);
-  pub_states = node->create_publisher<std_msgs::msg::UInt16>(std::string(topic_ns + "/au_states"), 10);
+  pub_mobility = node->create_publisher<deeporange14_msgs::msg::Mobility>(
+    std::string(topic_ns + "/cmd_mobility"),
+    10);
+  pub_states = node->create_publisher<std_msgs::msg::UInt16>(
+    std::string(topic_ns + "/au_states"),
+    10);
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a
      True. This state will be published till the timer object at 50Hz update_freq.
   */
@@ -113,7 +117,8 @@ void DeepOrangeStateSupervisor::supervisorControlUpdate()
   stack_fault = node_->get_clock()->now().seconds() - cmdvel_timestamp > cmdvel_timeout;
   raptor_hb_detected = node_->get_clock()->now().seconds() - raptor_hb_timestamp < raptorhb_timeout;
   stop_ros = (node_->get_clock()->now().seconds() - stop_ros_timestamp) < 5 ? 1 : 0;
-  mission_status = (node_->get_clock()->now().seconds() - mission_update_timestamp < 5) ? mission_status : "";
+  mission_status =
+    (node_->get_clock()->now().seconds() - mission_update_timestamp < 5) ? mission_status : "";
 
   DeepOrangeStateSupervisor::updateROSState();
 
@@ -161,7 +166,10 @@ void DeepOrangeStateSupervisor::updateROSState()
         break;
       } else {
         // do nothing , stay in same state
-        RCLCPP_WARN(node_->get_logger(), "[%s]: Raptor Handshake failed or not established yet", state_str.c_str());
+        RCLCPP_WARN(
+          node_->get_logger(),
+          "[%s]: Raptor Handshake failed or not established yet",
+          state_str.c_str());
         break;
       }
 
@@ -229,16 +237,25 @@ void DeepOrangeStateSupervisor::updateROSState()
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
         // mission_status = "";
-        RCLCPP_WARN(node_->get_logger(), "[%s]: Global Plan Ready, disengaging brakes", state_str.c_str());
+        RCLCPP_WARN(
+          node_->get_logger(),
+          "[%s]: Global Plan Ready, disengaging brakes",
+          state_str.c_str());
         break;
       } else if (mppi_status == 1 || mppi_status == 4) {
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
         // mission_status = "";
-        RCLCPP_WARN(node_->get_logger(), "[%s]: Local Plan Ready, disengaging brakes", state_str.c_str());
+        RCLCPP_WARN(
+          node_->get_logger(),
+          "[%s]: Local Plan Ready, disengaging brakes",
+          state_str.c_str());
         break;
       } else {
-        RCLCPP_WARN(node_->get_logger(), "[%s]: Waiting for globalPlanReady or LocalPlan Ready", state_str.c_str());
+        RCLCPP_WARN(
+          node_->get_logger(),
+          "[%s]: Waiting for globalPlanReady or LocalPlan Ready",
+          state_str.c_str());
         // do nothing
         break;
       }
@@ -268,7 +285,11 @@ void DeepOrangeStateSupervisor::updateROSState()
       } else if (mppi_status == 3) {
         state = AU_3_ROS_MODE_EN;
         break;
-        RCLCPP_ERROR(node_->get_logger(), "[%s]: Phoenix Stack mission changed to %d", state_str.c_str(), mppi_status);
+        RCLCPP_ERROR(
+          node_->get_logger(),
+          "[%s]: Phoenix Stack mission changed to %d",
+          state_str.c_str(),
+          mppi_status);
         break;
       } else if (stop_ros) {
         //  go back to idle
@@ -312,7 +333,11 @@ void DeepOrangeStateSupervisor::updateROSState()
       } else if (mppi_status == 3) {
         state = AU_3_ROS_MODE_EN;
         break;
-        RCLCPP_WARN(node_->get_logger(), "[%s]: Phoenix Stack mission changed to %d", state_str.c_str(), mppi_status);
+        RCLCPP_WARN(
+          node_->get_logger(),
+          "[%s]: Phoenix Stack mission changed to %d",
+          state_str.c_str(),
+          mppi_status);
         break;
       } else if (stop_ros) {
         //  go back to idle
@@ -338,7 +363,6 @@ void DeepOrangeStateSupervisor::updateROSState()
       prevSt = 0;
       RCLCPP_ERROR(node_->get_logger(), " Unknown State, shut down");
       break;
-
   }
 }
 }  // namespace deeporange14

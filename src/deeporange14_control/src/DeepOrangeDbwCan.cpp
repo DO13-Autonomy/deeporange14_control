@@ -101,7 +101,7 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
   if (!msg->is_rtr && !msg->is_error) {
     switch (msg->id) {
       // Getting brake status
-      case ID_VD_Brake_Msg:
+      case ID_VD_Brake_Msg: {
         NewEagle::DbcMessage * message = raptorDbc_.GetMessageById(ID_VD_Brake_Msg);
         if (msg->dlc >= message->GetDlc()) {
           message->SetFrame(msg);
@@ -110,9 +110,9 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           raptorMsg_.brk_lpres = message->GetSignal("brk_ip_Lpres")->GetResult();
         }
         break;
-
+      }
       // Getting raptor state and dbw mode
-      case ID_Raptor_Main_Msg:
+      case ID_Raptor_Main_Msg: {
         NewEagle::DbcMessage * message = raptorDbc_.GetMessageById(ID_Raptor_Main_Msg);
         if (msg->dlc >= message->GetDlc()) {
           message->SetFrame(msg);
@@ -123,6 +123,7 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
           this->pub_raptorState_->publish(raptorMsg_);
         }
         break;
+      }
     }
   }
 }

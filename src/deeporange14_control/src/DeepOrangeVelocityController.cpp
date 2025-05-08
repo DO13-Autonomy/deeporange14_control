@@ -263,7 +263,8 @@ void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist & msg)
     errOmega_derivative_ = (errOmega_current_ - errOmega_prev_) / dt_;
 
     // discrete controller output
-    tqComm_PID_ = (kP_linX_ * errLinX_current_) + (kI_linX_ * errLinX_integral_) + (kD_linX_ * errLinX_derivative_);
+    tqComm_PID_ = (kP_linX_ * errLinX_current_) + (kI_linX_ * errLinX_integral_) +
+      (kD_linX_ * errLinX_derivative_);
     tqDiff_PID_ = (kP_omega_ * errOmega_current_) + (kI_omega_ * errOmega_integral_) +
       (kD_omega_ * errOmega_derivative_);
 
@@ -378,7 +379,6 @@ void VelocityController::linearVelocityReprojection(double & v, double & w)
         // do nothing, remain in this state
         break;
       }
-
   }
 }
 
@@ -448,9 +448,13 @@ void VelocityController::rateLimiter_LinX(double & prev_u_, double & u_)
   } else {
     if (prev_u_ > 0) {
       rmax_v = 0;
-      rmin_v = std::max(-std::max(a_dec_v + b_dec_v * prev_u_, smoothing_factor_v * prev_u_) + dec_min_v, dec_max_v);
+      rmin_v = std::max(
+        -std::max(
+          a_dec_v + b_dec_v * prev_u_, smoothing_factor_v * prev_u_) + dec_min_v, dec_max_v);
     } else {
-      rmax_v = std::min(std::max(a_dec_v + b_dec_v * prev_u_, -smoothing_factor_v * prev_u_) - dec_min_v, -dec_max_v);
+      rmax_v = std::min(
+        std::max(
+          a_dec_v + b_dec_v * prev_u_, -smoothing_factor_v * prev_u_) - dec_min_v, -dec_max_v);
       rmin_v = 0;
     }
   }
@@ -486,9 +490,13 @@ void VelocityController::rateLimiter_AngZ(double & prev_w_, double & w_)
   } else {
     if (prev_w_ > 0) {
       rmax_w = 0;
-      rmin_w = std::max(-std::max(a_dec_w + b_dec_w * prev_w_, smoothing_factor_w * prev_w_) + dec_min_w, dec_max_w);
+      rmin_w = std::max(
+        -std::max(
+          a_dec_w + b_dec_w * prev_w_, smoothing_factor_w * prev_w_) + dec_min_w, dec_max_w);
     } else {
-      rmax_w = std::min(std::max(a_dec_w + b_dec_w * prev_w_, -smoothing_factor_w * prev_w_) - dec_min_w, -dec_max_w);
+      rmax_w = std::min(
+        std::max(
+          a_dec_w + b_dec_w * prev_w_, -smoothing_factor_w * prev_w_) - dec_min_w, -dec_max_w);
       rmin_w = 0;
     }
   }

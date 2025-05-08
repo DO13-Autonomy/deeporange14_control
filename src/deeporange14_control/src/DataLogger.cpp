@@ -108,12 +108,16 @@ void DataLogger::monitorFileSize(const std::string & can_file, const std::string
     curr_can_log_size = system(("stat -c %s " + can_file + " &").c_str());
 
     if (curr_ros_bag_size - ros_bag_size == 0) {
-      RCLCPP_WARN(node_->get_logger(), "ROS bag size not increasing. No new ROS data is being recorded!");
+      RCLCPP_WARN(
+        node_->get_logger(),
+        "ROS bag size not increasing. No new ROS data is being recorded!");
       node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
 
     if (curr_can_log_size - can_log_size == 0) {
-      RCLCPP_WARN(node_->get_logger(), "CAN log file size not increasing. No new CAN data is being recorded!");
+      RCLCPP_WARN(
+        node_->get_logger(),
+        "CAN log file size not increasing. No new CAN data is being recorded!");
       node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
 
