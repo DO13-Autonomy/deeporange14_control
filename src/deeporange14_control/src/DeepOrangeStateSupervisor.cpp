@@ -77,7 +77,7 @@ void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::msg::String &mi
 
 void DeepOrangeStateSupervisor::getTorqueValues(
     const deeporange14_msgs::msg::TorqueCmdStamped &controllerTrqValues)
-    {
+{
   tqL_cmd_controller  = controllerTrqValues.tql_cmd;
   tqR_cmd_controller = controllerTrqValues.tqr_cmd;
 }
