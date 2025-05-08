@@ -37,22 +37,24 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <deeporange14_msgs/msg/mobility.hpp>
 #include <deeporange14_msgs/msg/raptor_state.hpp>
 
-namespace deeporange14 {
-class DeepOrangeDbwCan {
- public:
+namespace deeporange14
+{
+class DeepOrangeDbwCan
+{
+public:
   DeepOrangeDbwCan(rclcpp::Node::SharedPtr node);
   ~DeepOrangeDbwCan();
 
- private:
+private:
   void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
   // void publishCAN(const ros::TimerEvent& event);
-  void publishCommandstoCAN(const deeporange14_msgs::msg::Mobility& msg);
-  void publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus& msg);
-  void getMeasuredVx(const nav_msgs::msg::Odometry& msg);
-  void getMeasuredWz(const sensor_msgs::msg::Imu& msg);
-  void getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg);
+  void publishCommandstoCAN(const deeporange14_msgs::msg::Mobility & msg);
+  void publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus & msg);
+  void getMeasuredVx(const nav_msgs::msg::Odometry & msg);
+  void getMeasuredWz(const sensor_msgs::msg::Imu & msg);
+  void getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX & msg);
   void publishAuStatus();  // const ros::TimerEvent& event);
-  void readDbcFile(std::string &dbc_file, std::string &dbc_raw);
+  void readDbcFile(std::string & dbc_file, std::string & dbc_raw);
 
   rclcpp::Node::SharedPtr node_;
 
@@ -102,7 +104,7 @@ class DeepOrangeDbwCan {
 
   // Heartbeat var & ptr
   int ros_hb_ = 0;
-  int *ros_hb_ptr_ = &ros_hb_;
+  int * ros_hb_ptr_ = &ros_hb_;
 
   // Brake pressure var
   int brk_ip_Rpres_;  // right
@@ -112,17 +114,17 @@ class DeepOrangeDbwCan {
   int rtk_status_ = 0;
   double meas_Vx_ = 0.0;
   double meas_Wz_ = 0.0;
-  int *rtk_status_ptr_ = &rtk_status_;
-  double *measVx_ptr_ = &meas_Vx_;
-  double *measWz_ptr_ = &meas_Wz_;
+  int * rtk_status_ptr_ = &rtk_status_;
+  double * measVx_ptr_ = &meas_Vx_;
+  double * measWz_ptr_ = &meas_Wz_;
 
   // Variables to store timestamp and their pointers
   int time_Vx_ = 0;
   int time_Wz_ = 0;
   int time_Rtk_ = 0;
-  int *time_Vx_ptr_ = &time_Vx_;
-  int *time_Wz_ptr_ = &time_Wz_;
-  int *time_Rtk_ptr_ = &time_Rtk_;
+  int * time_Vx_ptr_ = &time_Vx_;
+  int * time_Wz_ptr_ = &time_Wz_;
+  int * time_Rtk_ptr_ = &time_Rtk_;
 
   // Param to retrive
   int log_st;

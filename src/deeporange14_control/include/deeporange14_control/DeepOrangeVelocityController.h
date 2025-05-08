@@ -19,26 +19,29 @@
 #include <deeporange14_msgs/msg/pid_components.hpp>
 #include <deeporange14_msgs/msg/torque_cmd_stamped.hpp>
 
-namespace deeporange14 {
-class VelocityController {
- public:
+namespace deeporange14
+{
+class VelocityController
+{
+public:
   VelocityController(rclcpp::Node::SharedPtr node);
   ~VelocityController();
 
+private:
   // callback functions
-  void cmdVelCallback(const geometry_msgs::msg::Twist& msg);
-  void odomCallback(const nav_msgs::msg::Odometry& msg);
+  void cmdVelCallback(const geometry_msgs::msg::Twist & msg);
+  void odomCallback(const nav_msgs::msg::Odometry & msg);
   void publishTorques();
-  void brakeCallback(const std_msgs::msg::Bool& msg);
-  void cmdMobilityCallback(const deeporange14_msgs::msg::Mobility& msg);
+  void brakeCallback(const std_msgs::msg::Bool & msg);
+  void cmdMobilityCallback(const deeporange14_msgs::msg::Mobility & msg);
 
   // velocity reprojection to the admissible range
-  void linearVelocityReprojection(double &v, double &w);
-  void twistReprojection(double &v, double &w);
+  void linearVelocityReprojection(double & v, double & w);
+  void twistReprojection(double & v, double & w);
 
   // rate limiter on the commands
-  void rateLimiter_LinX(double &prev_u_, double &u_);
-  void rateLimiter_AngZ(double &prev_omega, double &omega_);
+  void rateLimiter_LinX(double & prev_u_, double & u_);
+  void rateLimiter_AngZ(double & prev_omega, double & omega_);
 
   void ReadParameters();
 

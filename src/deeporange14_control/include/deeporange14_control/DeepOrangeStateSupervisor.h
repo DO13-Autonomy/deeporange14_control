@@ -25,23 +25,25 @@
 #include <deeporange14_msgs/msg/raptor_state.hpp>
 #include <deeporange14_msgs/msg/torque_cmd_stamped.hpp>
 
-namespace deeporange14 {
-class DeepOrangeStateSupervisor {
- public:
+namespace deeporange14
+{
+class DeepOrangeStateSupervisor
+{
+public:
   DeepOrangeStateSupervisor(rclcpp::Node::SharedPtr node);
   ~DeepOrangeStateSupervisor();
 
- private:
-  void checkStackStatus(const geometry_msgs::msg::Twist& cmdVelMsg);
+private:
+  void checkStackStatus(const geometry_msgs::msg::Twist & cmdVelMsg);
 
-  void getMissionStatus(const std_msgs::msg::String& missionStatus);
-  void getTorqueValues(const deeporange14_msgs::msg::TorqueCmdStamped& controllerTrqValues);
-  void getStopRos(const std_msgs::msg::Bool& stopRosMsg);
-  void getRaptorMsg(const deeporange14_msgs::msg::RaptorState& raptorMsg);
+  void getMissionStatus(const std_msgs::msg::String & missionStatus);
+  void getTorqueValues(const deeporange14_msgs::msg::TorqueCmdStamped & controllerTrqValues);
+  void getStopRos(const std_msgs::msg::Bool & stopRosMsg);
+  void getRaptorMsg(const deeporange14_msgs::msg::RaptorState & raptorMsg);
 
   void supervisorControlUpdate();  // const ros::TimerEvent& event);
   void updateROSState();
-  void getPhxStatus(const actionlib_msgs::msg::GoalStatusArray& statusMsg);
+  void getPhxStatus(const actionlib_msgs::msg::GoalStatusArray & statusMsg);
 
   rclcpp::Node::SharedPtr node_;
 

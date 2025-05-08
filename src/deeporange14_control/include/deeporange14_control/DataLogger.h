@@ -18,18 +18,19 @@ an error state is reached
 
 #include <deeporange14_msgs/msg/raptor_state.hpp>
 
-namespace deeporange14 {
-class DataLogger {
- public:
+namespace deeporange14
+{
+class DataLogger
+{
+public:
   DataLogger(rclcpp::Node::SharedPtr node);
   ~DataLogger();
 
- private:
-  void recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg);
-  void monitorFileSize(const std::string &can_file, const std::string &ros_bag);
+private:
+  void recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState & msg);
+  void monitorFileSize(const std::string & can_file, const std::string & ros_bag);
 
   rclcpp::Node::SharedPtr node_;
-
   rclcpp::TimerBase::SharedPtr timer_;
 
   std::string pid_candump;
