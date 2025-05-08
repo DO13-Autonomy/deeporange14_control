@@ -1,6 +1,6 @@
-/* 
+/*
     A class definition to automatically initiate Rosbag record (for certain
-    topics) and CAN data logging (for all CAN buses together). Data logging 
+    topics) and CAN data logging (for all CAN buses together). Data logging
     starts (if not already happening) if the Raptor ECU is in a system state
     from [SS2_WAKE, SS8_NOMINALOP]. The data logging (rosbag and CAN log) is
     stopped if the system state becomes SS_31 or an error state (>= 200) is
@@ -10,27 +10,28 @@
 
 namespace deeporange14
 {
-DataLogger::DataLogger(rclcpp::Node::SharedPtr node) : node_(node)
+DataLogger::DataLogger(rclcpp::Node::SharedPtr node)
+: node_(node)
 {
-    // Obtain ros::Subscriber object
-    // TODO - set QOS to match TCPNoDelay
-    sub_raptor_ = node->create_subscription<deeporange14_msgs::msg::RaptorState>(
-      topic_ns + std::string("/raptor_state"),
-      10,
-      std::bind(&DataLogger::recordRosbagAndCANlog, this, std::placeholders::_1));
+  // Obtain ros::Subscriber object
+  // TODO - set QOS to match TCPNoDelay
+  sub_raptor_ = node->create_subscription<deeporange14_msgs::msg::RaptorState>(
+    topic_ns + std::string("/raptor_state"),
+    10,
+    std::bind(&DataLogger::recordRosbagAndCANlog, this, std::placeholders::_1));
 
-    // Initialize recording state to false
-    isRecording = false;
+  // Initialize recording state to false
+  isRecording = false;
 
-    kill_timer = 400;  // at 50 Hz, 400 should be 8 seconds
-    logging_counter = 200;
+  kill_timer = 400;  // at 50 Hz, 400 should be 8 seconds
+  logging_counter = 200;
 
-    node->declare_parameter("/log_status", rclcpp::PARAMETER_INTEGER);
+  node->declare_parameter("/log_status", rclcpp::PARAMETER_INTEGER);
 }
 
 DataLogger::~DataLogger() {}
 
-void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg)
+void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState & msg)
 {
   if (!isRecording && msg.system_state == 6) {
     node_->set_parameter(rclcpp::Parameter("/log_status", 1));
@@ -63,11 +64,6 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
     // Record ROS bags for relevant topics only
     // TODO: this line is much too long, can it be made shorter (and easier to read/understand)?
     system(("rosbag record -e '(.*)cmd_mobility(.*)' -e '(.*)mission_status(.*)' -e '(.*)cmd_vel_reprojected(.*)' -e '(.*)cmd_trq(.*)' -e '(.*)pid_components(.*)' -e '(.*)remapping_state(.*)' -e '(.*)brake_command(.*)' -e '(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e (.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x '(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x '(.*)goto_object_behavior(.*)' -x '(.*)novatel/oem7(.*)'  -x '(.*)local_costmap(.*)' -x '(.*)omnigraph(.*)' -x '(.*)parameter_updates(.*)' -x '(.*)point_cloud_pipeline(.*)' -x '(.*)point_cloud_cache(.*)' -x '(.*)local_planner(.*)'  -x '(.*)grid(.*)' -x '(.*)center_lidar(.*)' -x '(.*)status(.*)' -x '(.*)server_status(.*)'  -x '(.*)parameter_descriptions(.*)'  -e '(.*)odom(.*)' -x '(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
-    // system(("rosbag record -a -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
-    /* system(("rosbag record /deeporange1314/odom /deeporange1314/cmd_vel /deeporange1314/pose /tf 
-       /deeporange1314/cmd_vel_reprojected /deeporange1314/pid_components /deeporange1314/remapping_state 
-       /deeporange1314/cmd_mobility " + ros_bag_name + " __name:=rosbag_recording &").c_str());
-    */
 
     // Update recording state
     isRecording = true;
@@ -75,7 +71,7 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
     RCLCPP_INFO(node_->get_logger(), "Started data recording");
     // RCLCPP_INFO(node_->get_logger(), "Current System State = %d", msg->system_state);
   }
-  if (isRecording && msg.system_state == 32 || msg.system_state >= 98)   {
+  if (isRecording && msg.system_state == 32 || msg.system_state >= 98) {
     // Wait for timer before killing data logging to capture data in case of system error
     if (kill_timer > 0) {
       kill_timer--;
@@ -96,27 +92,27 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
   }
 }
 
-void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag)
+void DataLogger::monitorFileSize(const std::string & can_file, const std::string & ros_bag)
 {
   if (logging_counter == 100) {
-      // Check for file size after every 2 second
-      can_log_size = system(("stat -c %s " + can_file+ " &").c_str());
-      ros_bag_size = system(("stat -c %s " + ros_bag + ".active"+ " &").c_str());
-      std::cout << "can log size: " << can_log_size << std::endl;
-      std::cout << "ros bag size: " << ros_bag_size << std::endl;
+    // Check for file size after every 2 second
+    can_log_size = system(("stat -c %s " + can_file + " &").c_str());
+    ros_bag_size = system(("stat -c %s " + ros_bag + ".active" + " &").c_str());
+    std::cout << "can log size: " << can_log_size << std::endl;
+    std::cout << "ros bag size: " << ros_bag_size << std::endl;
   }
 
   if (logging_counter == 0) {
     // Check for file size again after every 4 second
-    curr_ros_bag_size = system(("stat -c %s " + ros_bag + ".active"+ " &").c_str());
-    curr_can_log_size = system(("stat -c %s " + can_file+ " &").c_str());
+    curr_ros_bag_size = system(("stat -c %s " + ros_bag + ".active" + " &").c_str());
+    curr_can_log_size = system(("stat -c %s " + can_file + " &").c_str());
 
-    if (curr_ros_bag_size-ros_bag_size == 0) {
+    if (curr_ros_bag_size - ros_bag_size == 0) {
       RCLCPP_WARN(node_->get_logger(), "ROS bag size not increasing. No new ROS data is being recorded!");
       node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
 
-    if (curr_can_log_size-can_log_size == 0) {
+    if (curr_can_log_size - can_log_size == 0) {
       RCLCPP_WARN(node_->get_logger(), "CAN log file size not increasing. No new CAN data is being recorded!");
       node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
