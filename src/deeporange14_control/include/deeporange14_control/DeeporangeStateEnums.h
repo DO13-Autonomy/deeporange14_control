@@ -2,8 +2,8 @@
 Refer to DO13 Raptor DBW state machine for info on states
  *********************************************************************/
 
-#ifndef DEEPORANGE_STATE_ENUMS_H_
-#define DEEPORANGE_STATE_ENUMS_H_
+#ifndef DEEPORANGE14_CONTROL__DEEPORANGESTATEENUMS_H_
+#define DEEPORANGE14_CONTROL__DEEPORANGESTATEENUMS_H_
 #include <stdint.h>
 
 namespace deeporange14 {
@@ -31,4 +31,4 @@ enum allStates {
 };
 }  // namespace deeporange14
 
-#endif  // DEEPORANGE_STATE_ENUMS_H_
+#endif  // DEEPORANGE14_CONTROL__DEEPORANGESTATEENUMS_H_

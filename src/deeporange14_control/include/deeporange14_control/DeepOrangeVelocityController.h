@@ -1,5 +1,5 @@
-#ifndef DEEPORANGE_VELOCITY_CONTROLLER_H_
-#define DEEPORANGE_VELOCITY_CONTROLLER_H_
+#ifndef DEEPORANGE14_CONTROL__DEEPORANGEVELOCITYCONTROLLER_H_
+#define DEEPORANGE14_CONTROL__DEEPORANGEVELOCITYCONTROLLER_H_
 
 #include <algorithm>
 #include <limits>
@@ -7,7 +7,6 @@
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
-//#include <ros/console.h>
 
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -107,9 +106,9 @@ class VelocityController {
   double tq_Max_;
   double tq_Min_;
 
-  double v_sz;                            // intersection of max curvature line and max lateral acceleration curve
-  double R_min;                           // minimum allowable radius of curvature
-  double lat_acc_max;                     // maximum allowable lateral acceleration
+  double v_sz;         // intersection of max curvature line and max lateral acceleration curve
+  double R_min;        // minimum allowable radius of curvature
+  double lat_acc_max;  // maximum allowable lateral acceleration
   double prev_time_;
   double current_time_;
   double dt_;
@@ -156,4 +155,4 @@ class VelocityController {
 };
 }  // namespace deeporange14
 
-#endif  // DEEPORANGE_VELOCITY_CONTROLLER_H_
+#endif  // DEEPORANGE14_CONTROL__DEEPORANGEVELOCITYCONTROLLER_H_

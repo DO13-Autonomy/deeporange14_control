@@ -1,12 +1,11 @@
 /* A high level state machine to interact with Raptor to control brakes torque command */
 
-#ifndef DEEPORANGE_STATE_SUPERVISOR_H_
-#define DEEPORANGE_STATE_SUPERVISOR_H_
+#ifndef DEEPORANGE14_CONTROL__DEEPORANGESTATESUPERVISOR_H_
+#define DEEPORANGE14_CONTROL__DEEPORANGESTATESUPERVISOR_H_
 
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
-//#include <ros/console.h>
 
 // TODO: are all of these needed?
 #include <actionlib_msgs/msg/goal_status_array.hpp>
@@ -40,7 +39,7 @@ class DeepOrangeStateSupervisor {
   void getStopRos(const std_msgs::msg::Bool& stopRosMsg);
   void getRaptorMsg(const deeporange14_msgs::msg::RaptorState& raptorMsg);
 
-  void supervisorControlUpdate(); //const ros::TimerEvent& event);
+  void supervisorControlUpdate();  // const ros::TimerEvent& event);
   void updateROSState();
   void getPhxStatus(const actionlib_msgs::msg::GoalStatusArray& statusMsg);
 
@@ -86,9 +85,9 @@ class DeepOrangeStateSupervisor {
   // Subscribers
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmdVel;
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr sub_missionStatus;
-  //rclcpp::Subscriber sub_brakeStatus;
+  // rclcpp::Subscriber sub_brakeStatus;
   rclcpp::Subscription<deeporange14_msgs::msg::TorqueCmdStamped>::SharedPtr sub_rosController;
-  //rclcpp::Subscriber sub_rosStop;
+  // rclcpp::Subscriber sub_rosStop;
   rclcpp::Subscription<deeporange14_msgs::msg::RaptorState>::SharedPtr sub_raptorState;
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_stopRos;
   rclcpp::Subscription<actionlib_msgs::msg::GoalStatusArray>::SharedPtr sub_mppi_mission;
@@ -102,4 +101,4 @@ class DeepOrangeStateSupervisor {
 };
 }  // namespace deeporange14
 
-#endif  // DEEPORANGE_STATE_SUPERVISOR_H_
+#endif  // DEEPORANGE14_CONTROL__DEEPORANGESTATESUPERVISOR_H_

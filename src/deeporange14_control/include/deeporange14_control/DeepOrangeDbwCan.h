@@ -4,8 +4,8 @@ Relies on DbwSupervisor to figure out what to send to Raptor. Uses "ros_state" t
 Receives CAN data from socketcan node and provides info to DbwSupervisor
 */
 
-#ifndef DEEPORANGE_DBW_CAN_H_
-#define DEEPORANGE_DBW_CAN_H_
+#ifndef DEEPORANGE14_CONTROL__DEEPORANGEDBWCAN_H_
+#define DEEPORANGE14_CONTROL__DEEPORANGEDBWCAN_H_
 
 #include <chrono>
 #include <fstream>
@@ -14,7 +14,6 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
-//#include <ros/console.h>
 
 // TODO: are all of these needed?
 #include <can_msgs/msg/frame.hpp>
@@ -33,26 +32,26 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <can_dbc_parser/Dbc.hpp>
 #include <can_dbc_parser/DbcBuilder.hpp>
 
-#include <deeporange14_msgs/msg/au_status.hpp>
 #include <deeporange14_control/dispatch_can_msgs.h>
+#include <deeporange14_msgs/msg/au_status.hpp>
 #include <deeporange14_msgs/msg/mobility.hpp>
 #include <deeporange14_msgs/msg/raptor_state.hpp>
 
 namespace deeporange14 {
 class DeepOrangeDbwCan {
  public:
-  DeepOrangeDbwCan(rclcpp::Node::SharedPtr node);//, ros::NodeHandle &priv_nh);
+  DeepOrangeDbwCan(rclcpp::Node::SharedPtr node);
   ~DeepOrangeDbwCan();
 
  private:
   void recvCAN(const can_msgs::msg::Frame::SharedPtr msg);
-  //void publishCAN(const ros::TimerEvent& event);
+  // void publishCAN(const ros::TimerEvent& event);
   void publishCommandstoCAN(const deeporange14_msgs::msg::Mobility& msg);
   void publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus& msg);
   void getMeasuredVx(const nav_msgs::msg::Odometry& msg);
   void getMeasuredWz(const sensor_msgs::msg::Imu& msg);
   void getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg);
-  void publishAuStatus(); //const ros::TimerEvent& event);
+  void publishAuStatus();  // const ros::TimerEvent& event);
   void readDbcFile(std::string &dbc_file, std::string &dbc_raw);
 
   rclcpp::Node::SharedPtr node_;
@@ -68,7 +67,7 @@ class DeepOrangeDbwCan {
   // Subscribers
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
   rclcpp::Subscription<deeporange14_msgs::msg::Mobility>::SharedPtr sub_auMobility_;
-  //rclcpp::Subscriber<deeporange14_msgs::msg::AuStatus>::SharedPtr sub_auStatus_;
+  // rclcpp::Subscriber<deeporange14_msgs::msg::AuStatus>::SharedPtr sub_auStatus_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_gpsImu_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom_;
   rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVAX>::SharedPtr sub_rtk_;
@@ -131,4 +130,4 @@ class DeepOrangeDbwCan {
 };
 }  // namespace deeporange14
 
-#endif  // DEEPORANGE_DBW_CAN_H_
+#endif  // DEEPORANGE14_CONTROL__DEEPORANGEDBWCAN_H_
