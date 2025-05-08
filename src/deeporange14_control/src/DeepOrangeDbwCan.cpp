@@ -7,33 +7,49 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <deeporange14_control/DeepOrangeDbwCan.h>
 
 namespace deeporange14 {  // TODO -> change namespace
-DeepOrangeDbwCan::DeepOrangeDbwCan(rclcpp::Node::SharedPtr node) : node_(node) { //}, ros::NodeHandle &priv_nh) {
+DeepOrangeDbwCan::DeepOrangeDbwCan(rclcpp::Node::SharedPtr node) : node_(node)
+{
   /* Instantiating subscribers and publishers */
-  sub_can_ = node->create_subscription<can_msgs::msg::Frame>("can_tx", 10, std::bind(&DeepOrangeDbwCan::recvCAN, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true)
+  // TODO - add QOS settings to the following subscribers to match TCPNoDelay: sub_can_, sub_odom_, sub_gpsImu,
+  // sub_autonomyLog_, sub_rtk_, sub_auMobility_
+  sub_can_ = node->create_subscription<can_msgs::msg::Frame>("can_tx", 10,
+    std::bind(&DeepOrangeDbwCan::recvCAN, this, std::placeholders::_1));
   pub_can_ = node->create_publisher<can_msgs::msg::Frame>("can_rx", 10);
 
   // --------------- To ROS --------------- //
   // Raptor state & brake status
-  pub_raptorState_ = node->create_publisher<deeporange14_msgs::msg::RaptorState>(std::string(topic_ns +"/raptor_state"), 10);
+  pub_raptorState_ = node->create_publisher<deeporange14_msgs::msg::RaptorState>(
+    std::string(topic_ns +"/raptor_state"),
+    10);
 
   // --------------- To CAN --------------- //
   // Measured velocities
-  pub_auStatus_ = node->create_publisher<deeporange14_msgs::msg::AuStatus>(std::string(topic_ns + "/autonomy_log_status"), 10);
-  sub_odom_ = node->create_subscription<nav_msgs::msg::Odometry>("/novatel/oem7/odom", 10, std::bind(&DeepOrangeDbwCan::getMeasuredVx, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true)
-  sub_gpsImu_ = node->create_subscription<sensor_msgs::msg::Imu>("/gps/imu", 10, std::bind(&DeepOrangeDbwCan::getMeasuredWz, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true)
-  sub_autonomyLog_ = node->create_subscription<deeporange14_msgs::msg::AuStatus>(std::string(topic_ns + "/autonomy_log_status"), 10,
-                                    std::bind(&DeepOrangeDbwCan::publishAuStatustoCAN, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true)
+  pub_auStatus_ = node->create_publisher<deeporange14_msgs::msg::AuStatus>(
+    std::string(topic_ns + "/autonomy_log_status"),
+    10);
+  sub_odom_ = node->create_subscription<nav_msgs::msg::Odometry>("/novatel/oem7/odom", 10,
+    std::bind(&DeepOrangeDbwCan::getMeasuredVx, this, std::placeholders::_1));
+  sub_gpsImu_ = node->create_subscription<sensor_msgs::msg::Imu>("/gps/imu", 10,
+    std::bind(&DeepOrangeDbwCan::getMeasuredWz, this, std::placeholders::_1));
+  sub_autonomyLog_ = node->create_subscription<deeporange14_msgs::msg::AuStatus>(
+    std::string(topic_ns + "/autonomy_log_status"),
+    10,
+    std::bind(&DeepOrangeDbwCan::publishAuStatustoCAN, this, std::placeholders::_1));
 
   // Rtk & log status
-  sub_rtk_ = node->create_subscription<novatel_oem7_msgs::msg::INSPVAX>("/novatel/oem7/inspvax", 10, std::bind(&DeepOrangeDbwCan::getRtkStatus, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true)
+  sub_rtk_ = node->create_subscription<novatel_oem7_msgs::msg::INSPVAX>("/novatel/oem7/inspvax", 10,
+    std::bind(&DeepOrangeDbwCan::getRtkStatus, this, std::placeholders::_1));
 
   // AU State, Torque & Brake cmds
-  sub_auMobility_ = node->create_subscription<deeporange14_msgs::msg::Mobility>(std::string(topic_ns + "/cmd_mobility"), 10, 
-                            std::bind(&DeepOrangeDbwCan::publishCommandstoCAN, this, std::placeholders::_1)); // TODO - QOS settings to match ros::TransportHints().tcpNoDelay(true),  TODO (old) -> RENAME TOPIC
+  sub_auMobility_ = node->create_subscription<deeporange14_msgs::msg::Mobility>(
+    std::string(topic_ns + "/cmd_mobility"),
+    10,
+    std::bind(&DeepOrangeDbwCan::publishCommandstoCAN, this, std::placeholders::_1));
 
   // Setting up a timer
   float timer_period = 1.0 / 50;
-  timer_ = node->create_wall_timer(std::chrono::duration<double, std::nano>(timer_period), std::bind(&DeepOrangeDbwCan::publishAuStatus, this));
+  timer_ = node->create_wall_timer(std::chrono::duration<double, std::nano>(timer_period),
+    std::bind(&DeepOrangeDbwCan::publishAuStatus, this));
 
   // Get dbc param values
   node->get_parameter("dbc_file_ros", dbcFileRos_);
@@ -49,9 +65,11 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(rclcpp::Node::SharedPtr node) : node_(node) {
 
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
 
-// TODO - this needs to be tested (it seems to work external to this package/ROS, but not sure if it will also work within the node)
-// function to read the contents of the DBC files, which are needed by the NewDbc function, but ROS2 doesn't allow textfile parameters
-void DeepOrangeDbwCan::readDbcFile(std::string &dbc_file, std::string &dbc_raw) {
+// TODO - this needs to be tested (worka external to this package/ROS)
+// function to read the contents of the DBC files, needed by the NewDbc function,
+// previously used textfile parameter type in launch file, but this is not supported in ROS2
+void DeepOrangeDbwCan::readDbcFile(std::string &dbc_file, std::string &dbc_raw)
+{
   std::stringstream dbc_stream;
   std::fstream dbc_fstream{dbc_file, dbc_fstream.in};
 
@@ -60,14 +78,14 @@ void DeepOrangeDbwCan::readDbcFile(std::string &dbc_file, std::string &dbc_raw) 
   if (!dbc_fstream.is_open()) {
     RCLCPP_ERROR(node_->get_logger(), "Unable to open DBC file %s", dbc_file.c_str());
     dbc_raw = "";
-  }
-  else {
+  } else {
     dbc_stream << dbc_fstream.rdbuf();
     dbc_raw = dbc_stream.str();
   }
 }
 
-void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
+void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg)
+{
   // ROS_WARN("Inside RecvCan. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
   if (!msg->is_rtr && !msg->is_error) {
     switch (msg->id) {
@@ -100,12 +118,16 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::msg::Frame::SharedPtr msg) {
   }
 }
 
-void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::msg::Mobility& msg) {
+void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::msg::Mobility& msg)
+{
 // Get AU state, Torque & Brake commands
   NewEagle::DbcMessage* message = rosDbc_ .GetMessageById(ID_AU_CONTROL_MSG);
   // Increamenting Ros heartbeat by `1` until `15`
-  if (*ros_hb_ptr_ < 15) (*ros_hb_ptr_)++;
-  else *ros_hb_ptr_ = 1;
+  if (*ros_hb_ptr_ < 15) {
+    (*ros_hb_ptr_)++;
+  } else {
+    *ros_hb_ptr_ = 1;
+  }
 
   message->GetSignal("auSt")->SetResult(msg.au_state);
   message->GetSignal("au_heartbeat")->SetResult(*ros_hb_ptr_);
@@ -117,37 +139,49 @@ void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::msg::Mobili
 }
 
 // Publishing measured velocities, rtk and logging status to CAN
-void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus& msg) {
+void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::msg::AuStatus& msg)
+{
   NewEagle::DbcMessage* message = rosDbc_.GetMessageById(ID_AU_STATUS_MSG);
   // Get current time
-  //log_st = this->get_parameter("/log_status").as_int();
+  // log_st = this->get_parameter("/log_status").as_int();
   double currTime = node_->get_clock()->now().seconds();
   // Set values if they are less than 2 seconds old otherwise `0`
-  if (currTime - msg.timesec_vx < 2) message->GetSignal("meas_gps_lin")->SetResult(msg.measured_vx);
-  else message->GetSignal("meas_gps_lin")->SetResult(0);
+  if (currTime - msg.timesec_vx < 2) {
+    message->GetSignal("meas_gps_lin")->SetResult(msg.measured_vx);
+  } else {
+    message->GetSignal("meas_gps_lin")->SetResult(0);
+  }
 
-  if (currTime - msg.timesec_wz < 2) message->GetSignal("meas_gps_ang")->SetResult(msg.measured_wz);
-  else message->GetSignal("meas_gps_ang")->SetResult(0);
+  if (currTime - msg.timesec_wz < 2) {
+    message->GetSignal("meas_gps_ang")->SetResult(msg.measured_wz);
+  } else {
+    message->GetSignal("meas_gps_ang")->SetResult(0);
+  }
 
-  if (currTime - msg.timesec_rtk < 2) message->GetSignal("rtk_ack")->SetResult(msg.rtk_status);
-  else message->GetSignal("rtk_ack")->SetResult(0);
+  if (currTime - msg.timesec_rtk < 2) {
+    message->GetSignal("rtk_ack")->SetResult(msg.rtk_status);
+  } else {
+    message->GetSignal("rtk_ack")->SetResult(0);
+  }
 
   // Getting logging status using param value set by data logger
   bool has_log_status = node_->get_parameter("/log_status", log_st);
   if (has_log_status) {
     // If param has value then get it otherwise send `0`
-    //log_st = this->get_parameter("/log_status").as_int()
+    // log_st = this->get_parameter("/log_status").as_int()
     message->GetSignal("log_ack")->SetResult(log_st);
+  } else {
+    message->GetSignal("log_ack")->SetResult(0);
   }
-  else message->GetSignal("log_ack")->SetResult(0);
 
   frame_ = message->GetFrame();
   this->pub_can_->publish(frame_);
 }
 
 // Publish AU status at 50hz
-void DeepOrangeDbwCan::publishAuStatus() { //const ros::TimerEvent& event) {
-  auStatusMsg_.header.stamp = builtin_interfaces::msg::Time(); //rclcpp::Time::now();
+void DeepOrangeDbwCan::publishAuStatus()
+{
+  auStatusMsg_.header.stamp = builtin_interfaces::msg::Time();  // rclcpp::Time::now();
 
   // Updating values
   auStatusMsg_.rtk_status = *rtk_status_ptr_;
@@ -164,18 +198,19 @@ void DeepOrangeDbwCan::publishAuStatus() { //const ros::TimerEvent& event) {
 }
 
 // Getting RTK status
-void DeepOrangeDbwCan::getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg) {
+void DeepOrangeDbwCan::getRtkStatus(const novatel_oem7_msgs::msg::INSPVAX& msg)
+{
   *time_Rtk_ptr_ = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9;
   if (msg.pos_type.type == 50 || msg.pos_type.type == 56)   {
     *rtk_status_ptr_ = 1;
-  }
-  else {
+  } else {
     *rtk_status_ptr_ = 0;
   }
 }
 
 // Getting Measured Wz
-void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::msg::Imu& msg) {
+void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::msg::Imu& msg)
+{
   *time_Wz_ptr_ = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9;
   vectorWz_.push_back(msg.angular_velocity.z);
 
@@ -194,7 +229,8 @@ void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::msg::Imu& msg) {
 }
 
 // Getting Measured Vx
-void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::msg::Odometry& msg) {
+void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::msg::Odometry& msg)
+{
   *time_Vx_ptr_ = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9;
   vectorVx_.push_back(msg.twist.twist.linear.x);
 
