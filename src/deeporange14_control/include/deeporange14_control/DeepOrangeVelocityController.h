@@ -13,7 +13,7 @@
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/u_int16.hpp>
 
-#include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/msg/cmd_vel_cntrl.hpp>
 #include <deeporange14_msgs/msg/mobility.hpp>
 #include <deeporange14_msgs/msg/pid_components.hpp>
