@@ -1,22 +1,35 @@
 #include <deeporange14_control/DeepOrangeVelocityController.h>
 
 namespace deeporange14 {
-VelocityController::VelocityController(rclcpp::Node::SharedPtr node) : node_(node) {
+VelocityController::VelocityController(rclcpp::Node::SharedPtr node) : node_(node)
+{
   // initialize other member variables and set up subscriptions and publishers
   sub_cmd_vel_ = node->create_subscription<geometry_msgs::msg::Twist>(std::string(topic_ns+"/cmd_vel"), 10,
-                                      std::bind(&VelocityController::cmdVelCallback, this, std::placeholders::_1));
+    std::bind(&VelocityController::cmdVelCallback, this, std::placeholders::_1));
   sub_odom_ = node->create_subscription<nav_msgs::msg::Odometry>(std::string(topic_ns+"/odom"), 10,
-                                      std::bind(&VelocityController::odomCallback, this, std::placeholders::_1));
-  sub_moboility_msg_ = node->create_subscription<deeporange14_msgs::msg::Mobility>(std::string(topic_ns+"/cmd_mobility"), 10,
-                                      std::bind(&VelocityController::cmdMobilityCallback, this, std::placeholders::_1));
+    std::bind(&VelocityController::odomCallback, this, std::placeholders::_1));
+  sub_moboility_msg_ = node->create_subscription<deeporange14_msgs::msg::Mobility>(
+    std::string(topic_ns+"/cmd_mobility"),
+    10,
+    std::bind(&VelocityController::cmdMobilityCallback, this, std::placeholders::_1));
   sub_brakes_ = node->create_subscription<std_msgs::msg::Bool>(std::string(topic_ns+"/brake_command"), 10,
-                                      std::bind(&VelocityController::brakeCallback, this, std::placeholders::_1));
+    std::bind(&VelocityController::brakeCallback, this, std::placeholders::_1));
 
-  pub_cmd_trq_ = node->create_publisher<deeporange14_msgs::msg::TorqueCmdStamped>(std::string(topic_ns+"/cmd_trq"), 10);
-  pub_cmd_vel_reprojected_ = node->create_publisher<geometry_msgs::msg::Twist>(std::string(topic_ns+"/cmd_vel_reprojected"), 10);
-  pub_remap_state_ = node->create_publisher<std_msgs::msg::UInt16>(std::string(topic_ns+"/remapping_state"), 10);
-  pub_pid_components_ = node->create_publisher<deeporange14_msgs::msg::PIDComponents>(std::string(topic_ns + "/pid_components"), 10);
-  pub_cmd_vel_cntrl = node->create_publisher<deeporange14_msgs::msg::CmdVelCntrl>(std::string(topic_ns + "/cmd_vel_cntrl"), 10);
+  pub_cmd_trq_ = node->create_publisher<deeporange14_msgs::msg::TorqueCmdStamped>(
+    std::string(topic_ns+"/cmd_trq"),
+    10);
+  pub_cmd_vel_reprojected_ = node->create_publisher<geometry_msgs::msg::Twist>(
+    std::string(topic_ns+"/cmd_vel_reprojected"),
+    10);
+  pub_remap_state_ = node->create_publisher<std_msgs::msg::UInt16>(
+    std::string(topic_ns+"/remapping_state"),
+    10);
+  pub_pid_components_ = node->create_publisher<deeporange14_msgs::msg::PIDComponents>(
+    std::string(topic_ns + "/pid_components"),
+    10);
+  pub_cmd_vel_cntrl = node->create_publisher<deeporange14_msgs::msg::CmdVelCntrl>(
+    std::string(topic_ns + "/cmd_vel_cntrl"),
+    10);
 
   // declare parameters with default values
   node->declare_parameter("pid_gains.kP_linX", 150.0);
@@ -99,13 +112,15 @@ VelocityController::VelocityController(rclcpp::Node::SharedPtr node) : node_(nod
   remapping_state = VEHICLE_STOPPED;
 
   float timer_period = 1.0 / 50;
-  timer_ = node->create_wall_timer(std::chrono::duration<double, std::nano>(timer_period), std::bind(&VelocityController::publishTorques, this));
+  timer_ = node->create_wall_timer(std::chrono::duration<double, std::nano>(timer_period),
+    std::bind(&VelocityController::publishTorques, this));
 }
 
 VelocityController::~VelocityController() {}
 
 // function to handle parameter retrieval
-void VelocityController::ReadParameters() {
+void VelocityController::ReadParameters()
+{
   node_->get_parameter("pid_gains.kP_linX", kP_linX_);
   node_->get_parameter("pid_gains.kI_linX", kI_linX_);
   node_->get_parameter("pid_gains.kD_linX", kD_linX_);
@@ -157,22 +172,26 @@ void VelocityController::ReadParameters() {
 
 
 // define the odom callback -- to be used by the controller as a feedback of the actual vehicle velocity
-void VelocityController::odomCallback(const nav_msgs::msg::Odometry& msg) {
+void VelocityController::odomCallback(const nav_msgs::msg::Odometry& msg)
+{
   vehLinX_ = msg.twist.twist.linear.x;
   vehAngZ_ = msg.twist.twist.angular.z;
 }
 
 // define the brake callback -- used to determine when the the controller needs to be used to control the vehicle speeds
-void VelocityController::brakeCallback(const std_msgs::msg::Bool& msg) {
+void VelocityController::brakeCallback(const std_msgs::msg::Bool& msg)
+{
   brake_engage_ = msg.data;
 }
 
 // calback for reading the current state of the autonomy state-machine
-void VelocityController::cmdMobilityCallback(const deeporange14_msgs::msg::Mobility& msg) {
+void VelocityController::cmdMobilityCallback(const deeporange14_msgs::msg::Mobility& msg)
+{
   autonomy_state_ = msg.au_state;
 }
 
-void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg) {
+void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg)
+{
   cmdLinX_ = msg.linear.x;
   cmdAngZ_ = msg.angular.z;  // will be positive for nlopt, negative for mppi
   errLinX_prev_ = errLinX_current_;
@@ -189,9 +208,9 @@ void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg) {
     prev_omega_ = 0.0;
     remapping_state = VEHICLE_STOPPED;
     RCLCPP_WARN(node_->get_logger(), "Left: %f, Right: %f", tqL_, tqR_);
-    // RCLCPP_INFO(node_->get_logger(), "Velocity error integral: %f, Curvature error integral: %f",errLinX_integral_,errOmega_integral_);
-  }
-  else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES) {
+    // RCLCPP_INFO(node_->get_logger(), "Velocity error integral: %f, Curvature error integral: %f",
+    //  errLinX_integral_, errOmega_integral_);
+  } else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES) {
     // letting the controller kick in only when we move in the appropriate autonomy state
     // rate limiting the linear velocity and the curvature
     // velocity reprojection on the commanded velocities
@@ -250,9 +269,11 @@ void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg) {
 
     // printing the components
     RCLCPP_INFO(node_->get_logger(), "PVx: %f, IVx: %f, DVx: %f", kP_linX_*errLinX_current_, kI_linX_*errLinX_integral_,
-                                          kD_linX_*errLinX_derivative_);
-    RCLCPP_INFO(node_->get_logger(), "PWz: %f, IWz: %f, DWz: %f", kP_omega_*errOmega_current_, kI_omega_*errOmega_integral_,
-                                          kD_omega_*errOmega_derivative_);
+      kD_linX_*errLinX_derivative_);
+    RCLCPP_INFO(node_->get_logger(), "PWz: %f, IWz: %f, DWz: %f",
+      kP_omega_*errOmega_current_,
+      kI_omega_*errOmega_integral_,
+      kD_omega_*errOmega_derivative_);
 
     // feedforward + PID output
     tqDiff_ = tqDiff_ff_ + tqDiff_PID_;
@@ -269,8 +290,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg) {
       if (tqComm_PID_*errLinX_current_ > 0) {
         // stop integration for common torque for the next timestep, hence only curvature integral updated
         errOmega_integral_+=errOmega_current_*dt_;
-      }
-      else {
+      } else {
         // resume integration for common torque the next timestep, hence both integrals updated
         errLinX_integral_+=errLinX_current_*dt_;
         errOmega_integral_+=errOmega_current_*dt_;
@@ -278,23 +298,22 @@ void VelocityController::cmdVelCallback(const geometry_msgs::msg::Twist& msg) {
       // publish the torques at saturation limit in either case
       tqL_ = std::max((std::min(tqL_, tq_Max_)), tq_Min_);
       tqR_ = std::max((std::min(tqR_, tq_Max_)), tq_Min_);
-    }
-    else {
+    } else {
       RCLCPP_WARN(node_->get_logger(), "Unsaturated Left: %f, Unsaturated Right: %f", tqL_, tqR_);
       // only update the error integrals, and NOT limit the torques since we haven't reached the limit
       errLinX_integral_+=errLinX_current_*dt_;
       errOmega_integral_+=errOmega_current_*dt_;
     }
     // RCLCPP_INFO(node_->get_logger(), "Curvature error integral: %f",errOmega_integral_);
-  }
-  else {
+  } else {
     // publish zero torques for all other states since brakes are enabled and velocity controller shouldn't kick in
     tqL_ = 0.0;
     tqR_ = 0.0;
   }
 }
 
-void VelocityController::linearVelocityReprojection(double& v,  double& w) {
+void VelocityController::linearVelocityReprojection(double& v,  double& w)
+{
   switch (remapping_state) {
     case VEHICLE_STOPPED: {
       remapping_state_msg_.data = 0;
@@ -307,8 +326,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
         v = std::max(v, v_moving_ss);  // minimum steady state velocity that we want the vehicle to move forward with
         remapping_state = VEHICLE_ACCELERATING;
         break;
-      }
-      else {
+      } else {
         v = 0;
         // do nothing, remain in this state
         break;
@@ -323,8 +341,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
       if (std::abs(vehLinX_) >= v_moving) {
         remapping_state = VEHICLE_MOVING;
         break;
-      }
-      else {
+      } else {
         // do nothing, remain in this state
         v = std::max(v, v_moving_ss);
         break;
@@ -341,8 +358,7 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
         v = 0;
         remapping_state = VEHICLE_STOPPED;
         break;
-      }
-      else {
+      } else {
         // do nothing, remain in this state
         break;
       }
@@ -350,7 +366,8 @@ void VelocityController::linearVelocityReprojection(double& v,  double& w) {
   }
 }
 
-void VelocityController::twistReprojection(double &v, double &w) {
+void VelocityController::twistReprojection(double &v, double &w)
+{
 // Function to reproject commanded stack velocities onto a velocity
 // space that is executable by the Deep Orange 14 vehicle
 
@@ -367,19 +384,17 @@ void VelocityController::twistReprojection(double &v, double &w) {
     v = max_velocity;  // limited to max forward
   }
 
-  // First Zone: Deadband (If small linear velocities -> go linear only and make angular velocities zero to avoid stall)
   if (fabs(v) <= deadband_velocity) {
+    // First Zone: Deadband (If small linear velocities -> linear only and make angular velocities zero to avoid stall)
     w = 0;
-  }
-  // Second zone: Commanded curvature should not exceed max curvature
-  else if (fabs(v) <= v_sz && fabs(R) < R_min) {
+  } else if (fabs(v) <= v_sz && fabs(R) < R_min) {
+    // Second zone: Commanded curvature should not exceed max curvature
     w = v/R_min * (w/fabs(w));
     if (!isfinite(w)) {
       RCLCPP_WARN(node_->get_logger(), "Deep Orange: w is not finite within reprojection");
     }
-  }
-  // Third zone: Commanded lateral acceleration should not exceed max
-  else if (fabs(v) <= max_velocity && fabs(lat_acc) > lat_acc_max) {
+  } else if (fabs(v) <= max_velocity && fabs(lat_acc) > lat_acc_max) {
+    // Third zone: Commanded lateral acceleration should not exceed max
     // Maintaining same curvature but reducing v and w to lie on v*w = lat_acc_max
     v = sqrt(lat_acc_max*fabs(R)) * (v/fabs(v));
     if (!isfinite(v)) {
@@ -395,35 +410,30 @@ void VelocityController::twistReprojection(double &v, double &w) {
 }
 
 // rate limiter for linear velocity
-void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_) {
+void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_)
+{
   // if positive command
   if ( u_ > 0 ) {
     if (prev_u_ >= 0) {
       rmax_v = std::min(a_acc_v+b_acc_v*std::abs(prev_u_), acc_max_v);
       rmin_v = std::max(a_dec_v+b_dec_v*std::abs(prev_u_), dec_max_v);
-    }
-    else {
+    } else {
       rmax_v = std::min(-(a_dec_v+b_dec_v*std::abs(prev_u_)), -dec_max_v);
       rmin_v = std::max(-(a_acc_v+b_acc_v*std::abs(prev_u_)), -acc_max_v);
     }
-  }
-  else if (u_ < 0) {
+  } else if (u_ < 0) {
     if (prev_u_ < 0) {
       rmax_v = std::min(-(a_dec_v+b_dec_v*std::abs(prev_u_)), -dec_max_v);
       rmin_v = std::max(-(a_acc_v+b_acc_v*std::abs(prev_u_)), -acc_max_v);
-    }
-
-    else {
+    } else {
       rmax_v = std::min(a_acc_v+b_acc_v*std::abs(prev_u_), acc_max_v);
       rmin_v = std::max(a_dec_v+b_dec_v*std::abs(prev_u_), dec_max_v);
     }
-  }
-  else {
+  } else {
     if (prev_u_ >0) {
       rmax_v = 0;
       rmin_v = std::max(-std::max(a_dec_v+b_dec_v*prev_u_, smoothing_factor_v*prev_u_) + dec_min_v, dec_max_v);
-    }
-    else {
+    } else {
       rmax_v = std::min(std::max(a_dec_v+b_dec_v*prev_u_, -smoothing_factor_v*prev_u_) - dec_min_v, -dec_max_v);
       rmin_v = 0;
     }
@@ -438,49 +448,47 @@ void VelocityController::rateLimiter_LinX(double &prev_u_, double &u_) {
 }
 
 // rate limiter for angular velocity
-void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
+void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_)
+{
   // if positive command
   if ( w_ > 0 ){
-  if (prev_w_ >= 0) {
-  rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
-  rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
-  }
-  else {
+    if (prev_w_ >= 0) {
+      rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
+      rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
+    } else {
       rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
       rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
-  }
-  }
-  else if (w_ < 0){
-      if (prev_w_ < 0){
-          rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
-          rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
-      }
-      else{
-          rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
-          rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
-      }
-  }
-  else{
-      if (prev_w_ >0){
-          rmax_w = 0;
-          rmin_w = std::max(-std::max(a_dec_w+b_dec_w*prev_w_, smoothing_factor_w*prev_w_)+dec_min_w, dec_max_w);
-      }
-      else{
-          rmax_w = std::min(std::max(a_dec_w+b_dec_w*prev_w_, -smoothing_factor_w*prev_w_)-dec_min_w, -dec_max_w);
-          rmin_w = 0;
-      }
+    }
+  } else if (w_ < 0){
+    if (prev_w_ < 0){
+      rmax_w = std::min(-(a_dec_w+b_dec_w*std::abs(prev_w_)), -dec_max_w);
+      rmin_w = std::max(-(a_acc_w+b_acc_w*std::abs(prev_w_)), -acc_max_w);
+    } else{
+      rmax_w = std::min(a_acc_w+b_acc_w*std::abs(prev_w_), acc_max_w);
+      rmin_w = std::max(a_dec_w+b_dec_w*std::abs(prev_w_), dec_max_w);
+    }
+  } else{
+    if (prev_w_ >0){
+      rmax_w = 0;
+      rmin_w = std::max(-std::max(a_dec_w+b_dec_w*prev_w_, smoothing_factor_w*prev_w_)+dec_min_w, dec_max_w);
+    } else{
+      rmax_w = std::min(std::max(a_dec_w+b_dec_w*prev_w_, -smoothing_factor_w*prev_w_)-dec_min_w, -dec_max_w);
+      rmin_w = 0;
+    }
   }
 
   // linear velocity rate limiter
   double rate_w_ = (w_ - prev_w_)/dt_;
   double allowable_rate_w_ = std::max(std::min(rate_w_, rmax_w), rmin_w);
-  RCLCPP_INFO(node_->get_logger(), "CURRENT RATE: %f, Maximum Rate Limiter ANG: %f,Minimum Rate Limiter ANG: %f", rate_w_, rmax_w, rmin_w);
+  RCLCPP_INFO(node_->get_logger(), "CURRENT RATE: %f, Maximum Rate Limiter ANG: %f,Minimum Rate Limiter ANG: %f",
+    rate_w_, rmax_w, rmin_w);
 
   w_ = prev_w_+allowable_rate_w_*dt_;
   prev_w_ = w_;
 }
 
-void VelocityController::publishTorques() {
+void VelocityController::publishTorques()
+{
   deeporange14_msgs::msg::TorqueCmdStamped trq_cmd_;
 
   trq_cmd_.header.stamp = builtin_interfaces::msg::Time();
