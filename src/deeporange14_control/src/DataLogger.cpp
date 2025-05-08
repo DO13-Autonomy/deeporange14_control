@@ -10,10 +10,14 @@
 
 namespace deeporange14
 {
-DataLogger::DataLogger(rclcpp::Node::SharedPtr node) : node_(node) {
+DataLogger::DataLogger(rclcpp::Node::SharedPtr node) : node_(node)
+{
     // Obtain ros::Subscriber object
     // TODO - set QOS to match TCPNoDelay
-    sub_raptor_ = node->create_subscription<deeporange14_msgs::msg::RaptorState>(topic_ns + std::string("/raptor_state"), 10, std::bind(&DataLogger::recordRosbagAndCANlog, this, std::placeholders::_1));  //ros::TransportHints().tcpNoDelay(true));
+    sub_raptor_ = node->create_subscription<deeporange14_msgs::msg::RaptorState>(
+      topic_ns + std::string("/raptor_state"),
+      10,
+      std::bind(&DataLogger::recordRosbagAndCANlog, this, std::placeholders::_1));
 
     // Initialize recording state to false
     isRecording = false;
@@ -26,20 +30,24 @@ DataLogger::DataLogger(rclcpp::Node::SharedPtr node) : node_(node) {
 
 DataLogger::~DataLogger() {}
 
-void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg) {
+void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState& msg)
+{
   if (!isRecording && msg.system_state == 6) {
     node_->set_parameter(rclcpp::Parameter("/log_status", 1));
     RCLCPP_INFO(node_->get_logger(), "Entered Data logger");
 
     // Obtaining timestamp (EST) to name ROS bag and CAN dump
-    boost::posix_time::ptime my_posix_time(boost::posix_time::microsec_clock::universal_time());  // time in UTC with microsecond resolution
+    // this uses the UTC clock with microsecond resultion from the Boost::posix_time package
+    boost::posix_time::ptime my_posix_time(boost::posix_time::microsec_clock::universal_time());
     typedef boost::date_time::local_adjustor<boost::posix_time::ptime, -5, boost::posix_time::us_dst> us_eastern;
-    my_posix_time = us_eastern::utc_to_local(my_posix_time);    // Conversion from UTC to EST (Clemson, South Carolina)
+    my_posix_time = us_eastern::utc_to_local(my_posix_time);  // Conversion from UTC to EST (Clemson, South Carolina)
     std::string iso_time_str = boost::posix_time::to_iso_string(my_posix_time);
-    std::string file_name_header = std::string("do14_") + iso_time_str.substr(0, 4) + std::string("-") +
-        iso_time_str.substr(4, 2) + std::string("-") + iso_time_str.substr(6, 2) + std::string("_") +
-        iso_time_str.substr(9, 2) + std::string("-") + iso_time_str.substr(11, 2) + std::string("-") +
-        iso_time_str.substr(13, 2);
+
+    // construct the file name by extracting date/time from the ISO time-string
+    std::string file_name_header = std::string("do14_") + iso_time_str.substr(0, 4) +
+      std::string("-") + iso_time_str.substr(4, 2) + std::string("-") + iso_time_str.substr(6, 2) +
+      std::string("_") + iso_time_str.substr(9, 2) + std::string("-") +
+      iso_time_str.substr(11, 2) + std::string("-") + iso_time_str.substr(13, 2);
     can_log_name = file_name_header + std::string(".CAN.log");
     ros_bag_name = file_name_header + std::string(".ROS.bag");
     std::string logs_dir = std::string("~/do14_logs/");
@@ -53,7 +61,7 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
     system(("candump any -ta >" + can_log_name + " &").c_str());
 
     // Record ROS bags for relevant topics only
-    // TODO: this line is much too long, can it be written in a way that is easier to read/understand?
+    // TODO: this line is much too long, can it be made shorter (and easier to read/understand)?
     system(("rosbag record -e '(.*)cmd_mobility(.*)' -e '(.*)mission_status(.*)' -e '(.*)cmd_vel_reprojected(.*)' -e '(.*)cmd_trq(.*)' -e '(.*)pid_components(.*)' -e '(.*)remapping_state(.*)' -e '(.*)brake_command(.*)' -e '(.*)gps(.*)' -e '(.*)pose(.*)' -e '(.*)cmd_vel(.*)' -e '(.*)/novatel/oem7(.*)' -e (.*)local_planner_and_controller(.*)' -e '(.*)tf(.*)' -x '(.*)approach_object(.*)' -x '(.*)approach_object_behavior(.*)' -x '(.*)global_costmap(.*)' -e '(.*)global_planner(.*)' -x '(.*)goto_object_behavior(.*)' -x '(.*)novatel/oem7(.*)'  -x '(.*)local_costmap(.*)' -x '(.*)omnigraph(.*)' -x '(.*)parameter_updates(.*)' -x '(.*)point_cloud_pipeline(.*)' -x '(.*)point_cloud_cache(.*)' -x '(.*)local_planner(.*)'  -x '(.*)grid(.*)' -x '(.*)center_lidar(.*)' -x '(.*)status(.*)' -x '(.*)server_status(.*)'  -x '(.*)parameter_descriptions(.*)'  -e '(.*)odom(.*)' -x '(.*)navigation_manager(.*)' -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
     // system(("rosbag record -a -O " + ros_bag_name + " __name:=rosbag_recording &").c_str());
     /* system(("rosbag record /deeporange1314/odom /deeporange1314/cmd_vel /deeporange1314/pose /tf 
@@ -68,14 +76,11 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
     // RCLCPP_INFO(node_->get_logger(), "Current System State = %d", msg->system_state);
   }
   if (isRecording && msg.system_state == 32 || msg.system_state >= 98)   {
-    // Wait for 10 seconds before killing data logging to capture crucial data in case of system error
-    // ros::Duration(10).sleep();
-
+    // Wait for timer before killing data logging to capture data in case of system error
     if (kill_timer > 0) {
       kill_timer--;
       return;
-    }
-    else     {
+    } else {
       // Kill rosbag record and CAN logging
       system("rosnode kill /rosbag_recording");
       system("killall -SIGKILL candump");
@@ -86,18 +91,13 @@ void DataLogger::recordRosbagAndCANlog(const deeporange14_msgs::msg::RaptorState
       RCLCPP_INFO(node_->get_logger(), "Rosbag record and CAN dump killed");
       node_->set_parameter(rclcpp::Parameter("/log_status", 0));
     }
-  }
-  // Keep checking for file size if logging is started
-  // if(isRecording)
-  // {
-  //     this->monitorFileSize(can_log_name, ros_bag_name);
-  // }
-  else {
+  } else {
     // DO NOTHING
   }
 }
 
-void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag) {
+void DataLogger::monitorFileSize(const std::string &can_file, const std::string &ros_bag)
+{
   if (logging_counter == 100) {
       // Check for file size after every 2 second
       can_log_size = system(("stat -c %s " + can_file+ " &").c_str());
