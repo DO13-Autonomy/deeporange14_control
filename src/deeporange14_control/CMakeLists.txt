@@ -67,7 +67,7 @@ install(
 
 install(TARGETS ${PROJECT_NAME}_dbwnode DESTINATION lib/${PROJECT_NAME}_dbwnode)
 
-# set up automated testing for launch files and code
+# set up automated testing for code and (some) supporting files
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   list(APPEND AMENT_LINT_AUTO_EXCLUDE
@@ -79,9 +79,7 @@ if(BUILD_TESTING)
 
   # run CPP lint with filters to ignore items that differ from general ROS convention
   find_package(ament_cmake_cpplint REQUIRED)
-  ament_cpplint(FILTERS -legal/copyright -whitespace/braces)
-
-#  set(ROSLINT_CPP_OPTS "--filter=,-readability/todo,-whitespace/todo,-build/header_guard, , -runtime/references")
+  ament_cpplint(MAX_LINE_LENGTH 120 FILTERS -legal/copyright -runtime/explicit -readability/todo)
 endif()
 
 ament_package()
