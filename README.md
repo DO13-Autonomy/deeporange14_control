@@ -46,7 +46,7 @@ colcon test --event-handlers console_direct+ --packages-select deeporange14_cont
 Results can be found in multiple locations:
   - Printed to the console (when the `--event-handlers console_direct+` options is used)
   - Log files in `log/latest_test/test_results/deeporange14_control` or (for older tests) `log/test_YYYY-MM-DD_HH-MM-DD/deeporange14_control`
-  - Log file `build/deeporange14_control/Testing/LastTest_YYYYMMDD-XXXX.log` (with other summaries in the other files in this `Testing` directory)
+  - Log file `build/deeporange14_control/Testing/Temporary/LastTest_YYYYMMDD-XXXX.log` (with other summaries in the other files in this `Testing` directory)
   - XML files in `build/deeporange14_control/test_results` (only latest tests results)
 
 The third-party pacakges also contain some unit tests which can be launched one-at-a-time using the above command (substituting the package name).  All tests in the workspace can be launched with `colcon test --event-handlers console_direct+`.  To exclude console output, just run `colcon test` without the `--event-handler` setting.
@@ -56,6 +56,20 @@ To check an XML launch file (or any other XML-formatted file), use `ament_xmllin
 ament_lint src/deeporange14_control/launch/control.lauch
 ```
 (Run without an argument, this will produce results for every file with the XML extension found, recursively, in the working directory.  It does not detect XML-formatted files that do not have the XML extension, such as launch files.)
+
+Note that the following failures are expected, and will be addressed once the code progresses to a more complete state:
+- `ament_cpplint`: performs static lint on the source code
+  - Expected to fail in for 9 files (9 total failures)
+    - 4 failures in `deeporange14_control` header files due to `build/include_order` wanting the header file to be included in itself (not possible to pass this check as it is being run)
+    - 4 failures in `DeepOrangeInterfaceNode.cpp` due to `build/include_order` wanting a header file with this same file name to be included (not possible to pass this check as there is no `DeepOrangeInterfaceNode.h` file in the package)
+    - 1 failure in `DataLogger.cpp` due to exceeding the recommended line length.  The line in question is a system command that contains a list of topics to record.  This is not addressed/fixed because of the uncertain future of this particular component within the node (and the potential to rework this part of the code if the logger is retained).
+- `ament_uncrustify`: applies a configuration file, based on the [ROS2 coding standards](https://docs.ros.org/en/rolling/The-ROS2-Project/Contributing/Code-Style-Language-Versions.html#id1), to ensure consistent formatting
+  - Expected to fail for 8 files
+    - 6 failures in `deeporange14_control` header files due to a check that wants the contents of a namespace block to be indented, but `public`/`private` keywords within a(n indented) class to align all the way to the left.  This is a discrepancy with both the Google Style Guide and the changes to this made by the ROS2 style guide, and so was left as-is.
+    - 1 failure in `DataLogger.cpp` due to the same problem identified by `ament_cpplint`
+    - 1 failure in `DeepOrangeDbwCan.cpp` due to the code not compiling after following the advice provided by `ament_uncrustify`
+
+An additional format checker, `ament_clang_format`, is also available to run as a test, but it was found that many of those setting actively work against `ament_uncrustify`, so that it is not possible to pass both format checkers simultaneously.  It was opted to retain use of `ament_uncrustify` since this is the format checked packaged in the "automatic testing" provided by ament_cmake.  (Conversations on issues raised in ament_cmake_lint related to this discrepancy also point to Uncrustify being more flexible/easier to configure to check for the formatting requirements, partially driving the decision to keep that check in place for this code, for now.)
 
 ### Contributors:
 
