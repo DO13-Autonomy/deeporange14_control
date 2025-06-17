@@ -27,7 +27,6 @@ int main(int argc, char **argv)
   deeporange14::VelocityController deeporange_velocityController(nh, priv_nh);
 
   // create Data Logger object
-  deeporange14::DataLogger deeporange_datalogger(nh, priv_nh);
   deeporange14::DeepOrangeDbwCan deeporange_canNode(nh, priv_nh);
   
   ros::spin();
