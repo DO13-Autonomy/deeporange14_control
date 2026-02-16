@@ -19,7 +19,7 @@
 #include <std_msgs/UInt8.h>
 #include <tf2_msgs/TFMessage.h>
 
-#include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/MissionStatus.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/RaptorStateMsg.h>

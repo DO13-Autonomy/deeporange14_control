@@ -12,7 +12,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt8.h>
 
-#include <deeporange14_control/DeeporangeStateEnums.h>
+#include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/CmdVelCntrlMsg.h>
 #include <deeporange14_msgs/MobilityMsg.h>
 #include <deeporange14_msgs/PIDComponentsMsg.h>
