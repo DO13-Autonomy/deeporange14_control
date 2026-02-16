@@ -24,30 +24,20 @@ class DataLogger {
   DataLogger(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
   ~DataLogger();
 
- private:
-  void recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg);
-  void monitorFileSize(const std::string &can_file, const std::string &ros_bag);
+        private:
+        void recordRosbagAndCANlog(const deeporange14_msgs::RaptorStateMsg::ConstPtr& msg);
+        
+        // Subscriber object
+        ros::Subscriber sub_raptor_;
 
-  ros::Timer timer_;
+        // Recording status (currently recording / not recording)
+        bool isRecording;
+        bool isSystemFault;
+        ros::Time lastStartcandump;
+        ros::Duration startcandumpPeriod;
 
-  std::string pid_candump;
-
-  // Subscriber object
-  ros::Subscriber sub_raptor_;
-  int kill_timer;
-  int logging_counter;
-  double can_log_size;
-  double ros_bag_size;
-  double curr_can_log_size;
-  double curr_ros_bag_size;
-  std::string can_log_name;
-  std::string ros_bag_name;
-
-  // Recording status (currently recording / not recording)
-  bool isRecording;
-
-  std::string topic_ns = "/deeporange1314";
-};
-}  // namespace deeporange14
+        std::string topic_ns = "/deeporange1314";
+    };
+}
 
 #endif  // DEEPORANGE_DATA_LOGGER_H_

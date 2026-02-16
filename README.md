@@ -68,7 +68,6 @@ catkin_lint --pkg deeporange14_control
 
 
 ### Contributors:
-
  - Pavan Kumar Athinarapu (athinak@clemson.edu)
  - Anirudh Kyatham (akyata@clemson.edu)
  - Mrunali Mahadeo Sawant (msawant@clemson.edu)

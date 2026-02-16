@@ -4,7 +4,6 @@ devel/**
 install/**
 logs/**
 
-
 # ignore VS Code-created files in any directory
 **/.vscode/**
 

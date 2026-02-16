@@ -143,10 +143,10 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     double reprojection_x = cmdLinX_;
     double reprojection_w = cmdAngZ_;
 
-    ROS_INFO("Angular Velocity from to rate limiter is : %f", cmdAngZ_);
+    ROS_INFO("Angular velocity from local planer to rate limiter is : %f", cmdAngZ_);
     this->rateLimiter_LinX(prev_v_, cmdLinX_);
     this->rateLimiter_AngZ(prev_omega_, cmdAngZ_);
-    ROS_INFO("Angular Velocity From Rate Limter is : %f", cmdAngZ_);
+    ROS_INFO("Angular velocity from rate limter is : %f", cmdAngZ_);
 
     double ratelimiter_x = cmdLinX_;
     double ratelimiter_w = cmdAngZ_;
@@ -173,7 +173,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     // current errors
     errLinX_current_ = cmdLinX_-vehLinX_;
     errOmega_current_ = cmdAngZ_-vehAngZ_;
-    ROS_INFO("Error in Angular velocities is %f", errOmega_current_);
+    ROS_INFO("Error in angular velocities is %f", errOmega_current_);
 
     // current derivatives
     errLinX_derivative_ = (errLinX_current_-errLinX_prev_)/dt_;
@@ -210,7 +210,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
 
     // anti-windup behavior
     if (((tqL_ >= tq_Max_ || tqR_ >= tq_Max_) || ((tqL_ <= tq_Min_) || (tqR_ <= tq_Min_)))) {
-      ROS_WARN("Saturated Left: %f, Saturated Right: %f", tqL_, tqR_);
+      ROS_WARN("Saturated left: %f, Saturated right: %f", tqL_, tqR_);
       if (tqComm_PID_*errLinX_current_ > 0) {
         // stop integration for common torque for the next timestep, hence only curvature integral updated
         errOmega_integral_+=errOmega_current_*dt_;
@@ -225,7 +225,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
       tqR_ = std::max((std::min(tqR_, tq_Max_)), tq_Min_);
     }
     else {
-      ROS_WARN("Unsaturated Left: %f, Unsaturated Right: %f", tqL_, tqR_);
+      ROS_WARN("Unsaturated left: %f, Unsaturated right: %f", tqL_, tqR_);
       // only update the error integrals, and NOT limit the torques since we haven't reached the limit
       errLinX_integral_+=errLinX_current_*dt_;
       errOmega_integral_+=errOmega_current_*dt_;
@@ -416,7 +416,7 @@ void VelocityController::rateLimiter_AngZ(double &prev_w_, double &w_){
       }
   }
 
-  // linear velocity rate limiter
+  // angular velocity rate limiter
   double rate_w_ = (w_ - prev_w_)/dt_;
   double allowable_rate_w_ = std::max(std::min(rate_w_, rmax_w), rmin_w);
   ROS_INFO("CURRENT RATE: %f, Maximum Rate Limiter ANG: %f,Minimum Rate Limiter ANG: %f", rate_w_, rmax_w, rmin_w);

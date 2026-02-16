@@ -22,7 +22,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
   pub_mobility = nh.advertise<deeporange14_msgs::MobilityMsg>(std::string(topic_ns + "/cmd_mobility"), 10, this);
   pub_states = nh.advertise<std_msgs::UInt8>(std::string(topic_ns + "/au_states"), 10, this);
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a 
-     True. This state will be published till the timer object at 50Hz update_freq.
+     True. This state will be published by the timer object at 50Hz update_freq.
   */
 
   state = AU_0_DEFAULT;
@@ -66,7 +66,7 @@ void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPt
 }
 
 void DeepOrangeStateSupervisor::getTorqueValues(
-    const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues) {
+  const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues) {
   tqL_cmd_controller  = controllerTrqValues->tqL_cmd;
   tqR_cmd_controller = controllerTrqValues->tqR_cmd;
 }
@@ -201,13 +201,6 @@ void DeepOrangeStateSupervisor::updateROSState() {
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stop button is pressed ");
         break;
       }
-      else if (mission_status == "globalPlanReady") {
-        prevSt = 3;
-        state = AU_4_DISENGAGING_BRAKES;
-        // mission_status = "";
-        ROS_WARN("[AU_3_ROS_MODE_EN]: Global Plan Ready, transitioning to disengaging brakes ");
-        break;
-      }
       else if (mppi_status == 1 || mppi_status == 4) {
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
@@ -216,7 +209,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for globalPlanReady or LocalPlan Ready");
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for LocalPlan Ready");
         // do nothing
         break;
       }
@@ -227,7 +220,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.brkL_cmd = 0.0;
       mobilityMsg.brkL_cmd = 0.0;
       // Also check from stack if brake_enable command is false from stack,
-      //  because now global plan is ready and brakes should be disengaged
+      // because now global plan is ready and brakes should be disengaged
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
