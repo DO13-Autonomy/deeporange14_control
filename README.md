@@ -41,15 +41,14 @@ sudo apt install ros-noetic-kvaser-interface
 
 ### How to Use:
 - To add/update CAN msg IDs- update these in the dbc in the `dbc` folder as well as `dispatch_can_msgs.h` include file
-- Vehicle and subsystem states are enumerated in `DeeporangeStateEnums.h`
+- Vehicle and subsystem states are enumerated in `DeepOrangeStateEnums.h`
 
 
-### Dependencies:
+### External Dependencies:
 - `can_dbc_parser`: Developed by New Eagle as part of metapackage - https://github.com/NewEagleRaptor/raptor-dbw-ros
-- `deeporange14_msgs` : Package for custom messages for DO13 DBW operation
 - `socketcan_bridge` : Package for interfacing CAN to ROS on Linux - https://github.com/ros-industrial/ros_canopen
 - `can_msgs` : Package to support CAN msg format on ROS topics. - https://github.com/ros-industrial/ros_canopen
-- 'pugixml': Package for processing XML files. - https://github.com/joselusl/pugixml
+- `pugixml`: Package for processing XML files. - https://github.com/joselusl/pugixml
 
 
 ### Testing:
