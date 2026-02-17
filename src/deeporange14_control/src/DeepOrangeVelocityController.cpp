@@ -133,8 +133,8 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
     prev_v_ = 0.0;
     prev_omega_ = 0.0;
     remapping_state = VEHICLE_STOPPED;
-    ROS_WARN("Left: %f, Right: %f", tqL_, tqR_);
-    // ROS_INFO("Velocity error integral: %f, Curvature error integral: %f",errLinX_integral_,errOmega_integral_);
+    ROS_INFO("Left: %f, Right: %f", tqL_, tqR_);
+    ROS_DEBUG("Velocity error integral: %f, Curvature error integral: %f",errLinX_integral_,errOmega_integral_);
   }
   else if (autonomy_state_ == AU_5_ROS_CONTROLLED || autonomy_state_ == AU_4_DISENGAGING_BRAKES) {
     // letting the controller kick in only when we move in the appropriate autonomy state
@@ -210,7 +210,7 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
 
     // anti-windup behavior
     if (((tqL_ >= tq_Max_ || tqR_ >= tq_Max_) || ((tqL_ <= tq_Min_) || (tqR_ <= tq_Min_)))) {
-      ROS_WARN("Saturated left: %f, Saturated right: %f", tqL_, tqR_);
+      ROS_INFO("Saturated left: %f, Saturated right: %f", tqL_, tqR_);
       if (tqComm_PID_*errLinX_current_ > 0) {
         // stop integration for common torque for the next timestep, hence only curvature integral updated
         errOmega_integral_+=errOmega_current_*dt_;
@@ -225,12 +225,12 @@ void VelocityController::cmdVelCallback(const geometry_msgs::Twist::ConstPtr& ms
       tqR_ = std::max((std::min(tqR_, tq_Max_)), tq_Min_);
     }
     else {
-      ROS_WARN("Unsaturated left: %f, Unsaturated right: %f", tqL_, tqR_);
+      ROS_INFO("Unsaturated left: %f, Unsaturated right: %f", tqL_, tqR_);
       // only update the error integrals, and NOT limit the torques since we haven't reached the limit
       errLinX_integral_+=errLinX_current_*dt_;
       errOmega_integral_+=errOmega_current_*dt_;
     }
-    // ROS_INFO("Curvature error integral: %f",errOmega_integral_);
+    ROS_DEBUG("Curvature error integral: %f",errOmega_integral_);
   }
   else {
     // publish zero torques for all other states since brakes are enabled and velocity controller shouldn't kick in

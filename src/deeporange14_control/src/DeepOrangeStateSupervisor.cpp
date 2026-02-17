@@ -105,37 +105,42 @@ void DeepOrangeStateSupervisor::getPhxStatus(const actionlib_msgs::GoalStatusArr
   if (!statusMsg->status_list.empty())
   {
     mppi_status = statusMsg->status_list[0].status;
-    // ROS_INFO("MPPI Status: %d", mppi_status);
+    ROS_DEBUG("MPPI Status: %d", mppi_status);
   }
 }
 
 void DeepOrangeStateSupervisor::updateROSState() {
   switch (state) {
     case AU_0_DEFAULT: {
+      ROS_DEBUG("In default state, AU_0_DEFAULT");
+
       prevSt = AU_0_DEFAULT;
       state = AU_1_STARTUP;
-      ROS_INFO("In Default 0 st");
       break;
     }
     case AU_1_STARTUP: {
+      ROS_DEBUG("In startup state, AU_1_STARTUP");
+
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
 
       if (raptor_hb_detected) {
-        ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
+        ROS_INFO("[AU_1_STARTUP]: Raptor handshake is established, transitioning to AU_2_IDLE");
         prevSt = AU_1_STARTUP;
         state = AU_2_IDLE;
         break;
       }
       else {
-        // do nothing , stay in same state
-        ROS_WARN("[AU_1_STARTUP]: Raptor Handshake failed or not established yet");
+        // do nothing, stay in same state
+        ROS_DEBUG("[AU_1_STARTUP]: Raptor handshake not established yet");
         break;
       }
     }
     case AU_2_IDLE: {
+      ROS_DEBUG("In idle state, AU_2_IDLE");
+
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
@@ -143,7 +148,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
-        ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
+        ROS_WARN("[AU_2_IDLE]: Raptor handshake failed");
         break;
       }
       else if (prevSt > AU_1_STARTUP) {
@@ -158,18 +163,20 @@ void DeepOrangeStateSupervisor::updateROSState() {
         }
       }
       else if (dbw_ros_mode) {
-        ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
+        ROS_INFO("[AU_2_IDLE]: Transitioning to AU_3_ROS_EN");
         prevSt = AU_2_IDLE;
         state = AU_3_ROS_MODE_EN;
         break;
       }
       else {
         // do nothing, stay in same state
-        // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled");
+        ROS_DEBUG("[AU_2_IDLE]: Ready to enter DBW-ROS mode");
         break;
       }
     }
     case AU_3_ROS_MODE_EN: {
+      ROS_DEBUG("In DBW-ROS state, AU_3_ROS_MODE_EN");
+
       mobilityMsg.tqL_cmd = 0.0;
       mobilityMsg.tqR_cmd = 0.0;  // Also check from stack if brake_enable command from stack should be true
       mobilityMsg.brkL_cmd = 1.0;
@@ -177,22 +184,22 @@ void DeepOrangeStateSupervisor::updateROSState() {
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
-        ROS_ERROR("ERROR:[AU_3_ROS_MODE_EN]: RaptorHandshake failed ");
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Raptor handshake failed");
         break;
       }
       else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Out of ROS dbwMode ");
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Exiting DBW-ROS mode");
         break;
       }
       else if (stack_fault) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stack Crashed or failed ");
+        ROS_ERROR("[AU_3_ROS_MODE_EN]: Stack crashed or failed");
         break;
       }
       else if (stop_ros) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stop button is pressed ");
+        ROS_WARN("[AU_3_ROS_MODE_EN]: Stop button is pressed");
         break;
       }
       else if (mppi_status == 1 || mppi_status == 4) {
@@ -203,11 +210,13 @@ void DeepOrangeStateSupervisor::updateROSState() {
       }
       else {
         // do nothing, stay in same state
-        // do nothing
+        ROS_DEBUG("[AU_3_ROS_MODE_EN]: Waiting for local plan ready signal");
         break;
       }
     }
     case AU_4_DISENGAGING_BRAKES: {
+      ROS_DEBUG("In disengage brake state, AU_4_DISENGAGING_BRAKES");
+
       mobilityMsg.tqL_cmd = tqL_cmd_controller;
       mobilityMsg.tqR_cmd = tqR_cmd_controller;
       mobilityMsg.brkL_cmd = 0.0;
@@ -217,46 +226,45 @@ void DeepOrangeStateSupervisor::updateROSState() {
       // because plan is ready and brakes should be disengaged before moving
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: RaptorHandshake failed ");
+        ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Raptor handshake failed");
         break;
       }
       else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR:[AU_4_DISENGAGING_BRAKES]: Out of dbwMode ");
+        ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Exiting DBW-ROS mode");
         break;
       }
       else if (stack_fault) {
         state = AU_2_IDLE;
-        break;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Stack Crashed or failed ");
+        ROS_ERROR("[AU_4_DISENGAGING_BRAKES]: Stack crashed or failed");
         break;
       }
       else if (mppi_status == 3) {
         state = AU_3_ROS_MODE_EN;
-        break;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Phoenix Stack mission changed to %d", mppi_status);
+        ROS_DEBUG("[AU_4_DISENGAGING_BRAKES]: Phoenix stack mission status changed to %d", mppi_status);
         break;
       }
       else if (stop_ros) {
         //  go back to idle
         state = AU_2_IDLE;
-        // stop_ros = false;
-        ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: Stop button is pressed ");
+        ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Stop button is pressed");
         break;
       }
       else if (speed_state == SPEED_STATE_Ready2Move) {
         prevSt = AU_4_DISENGAGING_BRAKES;
         state = AU_5_ROS_CONTROLLED;
-        ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, transitioning to Ros controlled, about to move ");
+        ROS_INFO("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, transitioning to ROS-controlled mode, ready to move");
         break;
       }
       else {
         // do nothing, stay in same state
-        // ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
+        ROS_DEBUG("[AU_4_DISENGAGING_BRAKES]: Waiting for ROS-controlled mode");
         break;
       }
     }
     case AU_5_ROS_CONTROLLED: {
+      ROS_DEBUG("In ROS-controlled state, AU_5_ROS_CONTROLLED");
+
       mobilityMsg.tqL_cmd = tqL_cmd_controller;
       mobilityMsg.tqR_cmd = tqR_cmd_controller;
       mobilityMsg.brkL_cmd = 0.0;
@@ -264,47 +272,45 @@ void DeepOrangeStateSupervisor::updateROSState() {
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
-        ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]: RaptorHandshake failed ");
+        ROS_WARN("[AU_5_ROS_CONTROLLED]: Raptor handshake failed");
         break;
       }
       else if (!dbw_ros_mode) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]:Out of dbwMode ");
+        ROS_WARN("[AU_5_ROS_CONTROLLED]: Exiting DBW-ROS mode");
         break;
       }
       else if (stack_fault) {
         state = AU_2_IDLE;
-        ROS_ERROR("ERROR: [AU_5_ROS_CONTROLLED]: Stack Crashed or failed ");
+        ROS_ERROR("[AU_5_ROS_CONTROLLED]: Stack crashed or failed ");
         break;
       }
       else if (mppi_status == 3) {
         state = AU_3_ROS_MODE_EN;
-        break;
-        ROS_WARN("WARN: [AU_5_ROS_CONTROLLED]: Phoenix Stack mission changed to %d", mppi_status);
+        ROS_DEBUG("WARN: [AU_5_ROS_CONTROLLED]: Phoenix Stack mission status changed to %d", mppi_status);
         break;
       }
       else if (stop_ros) {
         //  go back to idle
         state = AU_2_IDLE;
-        // stop_ros = false;
-        ROS_ERROR("Warning: [AU_5_ROS_CONTROLLED]: Stop button is pressed ");
+        ROS_WARN("[AU_5_ROS_CONTROLLED]: Stop button is pressed");
         break;
       }
       else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled") {
         prevSt = AU_5_ROS_CONTROLLED;
         state = AU_3_ROS_MODE_EN;
-        ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
+        ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission completed or cancelled; returning to AU_3_ROS_MODE_EN");
         break;
       }
       else {
         // do nothing, stay in same state
-        // ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
+        ROS_DEBUG("[AU_5_ROS_CONTROLLED]: Mission Executing");
         break;
       }
     }
     default: {
       prevSt = AU_0_DEFAULT;
-      ROS_ERROR(" Unknown State, shut down");
+      ROS_ERROR("Unknown State, shut down");
       break;
     }
   }

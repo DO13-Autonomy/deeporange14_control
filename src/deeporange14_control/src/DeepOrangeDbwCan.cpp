@@ -52,7 +52,8 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
 
 void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg) {
-  // ROS_WARN("Inside RecvCan. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
+  ROS_DEBUG("CAN message received. is_rtr: %d, is_error: %d",msg->is_rtr, msg->is_error);
+
   if (!msg->is_rtr && !msg->is_error) {
     switch (msg->id) {
       // Getting brake status
@@ -85,7 +86,7 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg) {
 }
 
 void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg) {
-// Get AU state, Torque & Brake commands
+  // Get AU state, Torque & Brake commands
   NewEagle::DbcMessage* message = rosDbc_ .GetMessageById(ID_AU_CONTROL_MSG);
   
   // Increamenting Ros heartbeat by `1` until `15`
