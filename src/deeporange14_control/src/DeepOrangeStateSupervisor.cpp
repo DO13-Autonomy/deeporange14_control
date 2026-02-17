@@ -21,9 +21,9 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
                             &DeepOrangeStateSupervisor::getPhxStatus, this, ros::TransportHints().tcpNoDelay(true));
   pub_mobility = nh.advertise<deeporange14_msgs::MobilityMsg>(std::string(topic_ns + "/cmd_mobility"), 10, this);
   pub_states = nh.advertise<std_msgs::UInt8>(std::string(topic_ns + "/au_states"), 10, this);
+  
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a 
-     True. This state will be published by the timer object at 50Hz update_freq.
-  */
+     True. This state will be published by the timer object at 50Hz update_freq. */
 
   state = AU_0_DEFAULT;
   raptor_hb_detected = false;
@@ -38,7 +38,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
   brake_disengaged_threshold = 2.0;
   delay = 0;
 
-  //  Initiate the mobility torque and brake commands to avoid garbage value initialization
+  // Initiate the mobility torque and brake commands to avoid garbage value initialization
   mobilityMsg.tqL_cmd = 0.0;
   mobilityMsg.tqR_cmd = 0.0;
   mobilityMsg.brkL_cmd = 1.0;
@@ -77,6 +77,7 @@ void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopR
 
 void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg) {
   raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
+  
   // transition to DBW mode if ROS mode 3 or 4
   dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED;
   brkL_pr = raptorMsg->brk_Lpres;

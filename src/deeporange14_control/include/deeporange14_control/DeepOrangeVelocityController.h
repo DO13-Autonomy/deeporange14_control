@@ -100,9 +100,9 @@ class VelocityController {
   double tq_Max_;
   double tq_Min_;
 
-  double v_sz;                            // intersection of max curvature line and max lateral acceleration curve
-  double R_min;                           // minimum allowable radius of curvature
-  double lat_acc_max;                     // maximum allowable lateral acceleration
+  double v_sz;         // intersection of max curvature line and max lateral acceleration curve
+  double R_min;        // minimum allowable radius of curvature
+  double lat_acc_max;  // maximum allowable lateral acceleration
   double prev_time_;
   double current_time_;
   double dt_;

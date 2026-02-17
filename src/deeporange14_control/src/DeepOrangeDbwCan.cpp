@@ -87,6 +87,7 @@ void DeepOrangeDbwCan::recvCAN(const can_msgs::Frame::ConstPtr& msg) {
 void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg& msg) {
 // Get AU state, Torque & Brake commands
   NewEagle::DbcMessage* message = rosDbc_ .GetMessageById(ID_AU_CONTROL_MSG);
+  
   // Increamenting Ros heartbeat by `1` until `15`
   if (*ros_hb_ptr_ < 15) (*ros_hb_ptr_)++;
   else *ros_hb_ptr_ = 1;
@@ -103,9 +104,11 @@ void DeepOrangeDbwCan::publishCommandstoCAN(const deeporange14_msgs::MobilityMsg
 // Publishing measured velocities, rtk and logging status to CAN
 void DeepOrangeDbwCan::publishAuStatustoCAN(const deeporange14_msgs::AuStatusMsg& msg) {
   NewEagle::DbcMessage* message = rosDbc_.GetMessageById(ID_AU_STATUS_MSG);
+  
   // Get current time
   ros::param::get("/log_status", log_st);
   double currTime = ros::Time::now().toSec();
+  
   // Set values if they are less than 2 seconds old otherwise `0`
   if (currTime - msg.timesecVx < 2) message->GetSignal("meas_gps_lin")->SetResult(msg.measuredVx);
   else message->GetSignal("meas_gps_lin")->SetResult(0);

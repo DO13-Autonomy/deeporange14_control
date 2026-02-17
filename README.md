@@ -2,7 +2,6 @@
 # Deep Orange DBW Controls Interface Package for Autonomous Driving
 
 ### Functionality:
-
 - DeepOrangeDbwCan.cpp: Enable passing the ROS topics to the Raptor DBW controller via SocketCAN, which executes the commands for the platform to move. Additionally monitors rtk fix, logging status
 - VelocityController.cpp: Use the vehicle dynamics model to convert vehicle velocity to left and right track velocity/torques.
 - StateMachine.cpp: A ROS state machine in sync with the Raptor controller state machine.
@@ -38,18 +37,15 @@ sudo apt install ros-noetic-kvaser-interface
 ```
 - Build the code by calling `catkin build` in the top-level of the repo
 
-
 ### How to Use:
 - To add/update CAN msg IDs- update these in the dbc in the `dbc` folder as well as `dispatch_can_msgs.h` include file
 - Vehicle and subsystem states are enumerated in `DeepOrangeStateEnums.h`
-
 
 ### External Dependencies:
 - `can_dbc_parser`: Developed by New Eagle as part of metapackage - https://github.com/NewEagleRaptor/raptor-dbw-ros
 - `socketcan_bridge` : Package for interfacing CAN to ROS on Linux - https://github.com/ros-industrial/ros_canopen
 - `can_msgs` : Package to support CAN msg format on ROS topics. - https://github.com/ros-industrial/ros_canopen
 - `pugixml`: Package for processing XML files. - https://github.com/joselusl/pugixml
-
 
 ### Testing:
 Automatic linting capability was added to the deeporange14_control package through `roslint` and `roslaunch-check`.  After building the pacakge, the tests can be launched using
@@ -64,7 +60,6 @@ Additional linting can be done with the [catkin_lint](https://fkie.github.io/cat
 ```
 catkin_lint --pkg deeporange14_control
 ```
-
 
 ### Contributors:
  - Pavan Kumar Athinarapu (athinak@clemson.edu)
