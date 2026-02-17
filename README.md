@@ -3,10 +3,8 @@
 
 ### Functionality:
 - DeepOrangeDbwCan.cpp: Enable passing the ROS topics to the Raptor DBW controller via SocketCAN, which executes the commands for the platform to move. Additionally monitors rtk fix, logging status
-- VelocityController.cpp: Use the vehicle dynamics model to convert vehicle velocity to left and right track velocity/torques.
 - StateMachine.cpp: A ROS state machine in sync with the Raptor controller state machine.
 - RosHealthMonitor.cpp: A node that Monitor health of raptor hanshake, brake acknowledgement from raptor , autonomy stack fault and dbw ros mode
-- DataLoggerNode.cpp: logging CAN and ROS data while monitoring logging status active or Fail
 - Node.cpp - Instantiates the three objects in a single node (as of now).
 
 ### Cloning and building:
