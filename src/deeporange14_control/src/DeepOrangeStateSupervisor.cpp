@@ -51,7 +51,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
   desired_delay = 20;  // Adding 20 secs delay after fault to wait for transition
   delay_threshold = desired_delay * update_freq;
 
-  // Set up Timer - with calback to publish ROS state all the time that the node is running
+  // Set up timer - with calback to publish ROS state all the time that the node is running
   timer = nh.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
 }
 DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
@@ -147,7 +147,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else if (prevSt > 1) {
-        //  it has returned from fault of below states, add delay
+        // it has returned from fault of below states, add delay
         if (delay < delay_threshold) {
           delay++;
           break;
@@ -164,7 +164,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        // do nothing ,stay in same state
+        // do nothing, stay in same state
         // ROS_WARN("WARN: [AU_2_IDLE]: RaptorHandshake failed or DBW ros mode disabled");
         break;
       }
@@ -202,7 +202,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        ROS_WARN("[AU_3_ROS_MODE_EN]: Waiting for LocalPlan Ready");
+        // do nothing, stay in same state
         // do nothing
         break;
       }
@@ -212,9 +212,9 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.tqR_cmd = tqR_cmd_controller;
       mobilityMsg.brkL_cmd = 0.0;
       mobilityMsg.brkL_cmd = 0.0;
-      // Also check from stack if brake_enable command is false from stack,
-      // because now global plan is ready and brakes should be disengaged
 
+      // Also check from stack if brake_enable command is false from stack,
+      // because plan is ready and brakes should be disengaged before moving
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
         ROS_ERROR("ERROR: [AU_4_DISENGAGING_BRAKES]: RaptorHandshake failed ");
@@ -251,7 +251,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        // do nothing
+        // do nothing, stay in same state
         // ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Waiting for brakes to be disengaged ");
         break;
       }
@@ -297,7 +297,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else {
-        // do nothing, remain in same state
+        // do nothing, stay in same state
         // ROS_WARN("[AU_5_ROS_CONTROLLED]: Mission Executing");
         break;
       }

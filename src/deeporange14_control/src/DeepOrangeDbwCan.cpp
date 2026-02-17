@@ -29,7 +29,7 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
                                     &DeepOrangeDbwCan::publishAuStatustoCAN, this,
                                     ros::TransportHints().tcpNoDelay(true));
 
-  // Rtk & log status
+  // RTK & log status
   sub_rtk_ = node.subscribe("/novatel/oem7/inspvax", 10, &DeepOrangeDbwCan::getRtkStatus, this,
                             ros::TransportHints().tcpNoDelay(true));
 
@@ -160,7 +160,7 @@ void DeepOrangeDbwCan::getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg) {
   }
 }
 
-// Getting Measured Wz
+// Getting measured wz
 void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg) {
   *time_Wz_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
   vectorWz_.push_back(msg.angular_velocity.z);
@@ -172,14 +172,14 @@ void DeepOrangeDbwCan::getMeasuredWz(const sensor_msgs::Imu& msg) {
 
     averageWz_ = averageWz_/4;
 
-    // Publishing the average of 4 imu values
+    // Publishing the average of 4 IMU values
     *measWz_ptr_ = averageWz_;
     vectorWz_.clear();
   }
   averageWz_ = 0;
 }
 
-// Getting Measured Vx
+// Getting measured vx
 void DeepOrangeDbwCan::getMeasuredVx(const nav_msgs::Odometry& msg) {
   *time_Vx_ptr_ = msg.header.stamp.sec + msg.header.stamp.nsec*1e-9;
   vectorVx_.push_back(msg.twist.twist.linear.x);
