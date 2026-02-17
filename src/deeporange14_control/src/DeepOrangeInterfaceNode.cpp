@@ -8,7 +8,6 @@ Makes use of New Eagle package can_dbc_parser:
 
 #include<deeporange14_control/DeepOrangeStateSupervisor.h>
 #include<deeporange14_control/DeepOrangeVelocityController.h>
-#include<deeporange14_control/DataLogger.h>
 #include<deeporange14_control/DeepOrangeDbwCan.h>
 
 int main(int argc, char **argv) {

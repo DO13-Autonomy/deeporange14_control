@@ -52,7 +52,6 @@ add_library(${PROJECT_NAME}
   src/DeepOrangeStateSupervisor.cpp
   src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
-  src/DataLogger.cpp
 )
 
 add_executable(${PROJECT_NAME}_node 
