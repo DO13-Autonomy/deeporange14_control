@@ -112,7 +112,7 @@ void DeepOrangeStateSupervisor::getPhxStatus(const actionlib_msgs::GoalStatusArr
 void DeepOrangeStateSupervisor::updateROSState() {
   switch (state) {
     case AU_0_DEFAULT: {
-      prevSt = 0;
+      prevSt = AU_0_DEFAULT;
       state = AU_1_STARTUP;
       ROS_INFO("In Default 0 st");
       break;
@@ -125,7 +125,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
 
       if (raptor_hb_detected) {
         ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
-        prevSt = 1;
+        prevSt = AU_1_STARTUP;
         state = AU_2_IDLE;
         break;
       }
@@ -146,20 +146,20 @@ void DeepOrangeStateSupervisor::updateROSState() {
         ROS_ERROR("ERROR: [AU_2_IDLE]: RaptorHandshake failed ");
         break;
       }
-      else if (prevSt > 1) {
+      else if (prevSt > AU_1_STARTUP) {
         // it has returned from fault of below states, add delay
         if (delay < delay_threshold) {
           delay++;
           break;
         }
         else {
-          prevSt = 1;
+          prevSt = AU_1_STARTUP;
           break;
         }
       }
       else if (dbw_ros_mode) {
         ROS_WARN("WARN: [AU_2_IDLE]: Transitioning to AU_3_ROS_EN ");
-        prevSt = 2;
+        prevSt = AU_2_IDLE;
         state = AU_3_ROS_MODE_EN;
         break;
       }
@@ -196,7 +196,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else if (mppi_status == 1 || mppi_status == 4) {
-        prevSt = 3;
+        prevSt = AU_3_ROS_MODE_EN;
         state = AU_4_DISENGAGING_BRAKES;
         ROS_INFO("[AU_3_ROS_MODE_EN]: Local plan ready, disengaging brakes");
         break;
@@ -245,7 +245,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else if (speed_state == SPEED_STATE_Ready2Move) {
-        prevSt = 4;
+        prevSt = AU_4_DISENGAGING_BRAKES;
         state = AU_5_ROS_CONTROLLED;
         ROS_WARN("[AU_4_DISENGAGING_BRAKES]: Brakes disengaged, transitioning to Ros controlled, about to move ");
         break;
@@ -291,7 +291,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else if (mission_status == "MissionCompleted" || mission_status == "MissionCancelled") {
-        prevSt = 5;
+        prevSt = AU_5_ROS_CONTROLLED;
         state = AU_3_ROS_MODE_EN;
         ROS_INFO("[AU_5_ROS_CONTROLLED]: Mission Completed or Mission Cancelled going back to AU_3_ROS_MODE_EN");
         break;
@@ -303,7 +303,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       }
     }
     default: {
-      prevSt = 0;
+      prevSt = AU_0_DEFAULT;
       ROS_ERROR(" Unknown State, shut down");
       break;
     }
