@@ -1,8 +1,7 @@
 /*********************************************************************
 Written for use in Deep Orange 14 Drive-by-wire package
-Makes use of New Eagle package can_dbc_parser: (https://github.com/NewEagleRaptor/raptor-dbw-ros/tree/master/can_dbc_parser)
-#include <deeporange14_control/DeepOrangeDbwCan.h>
-#include <deeporange14_control/DataLogger.h>
+Makes use of New Eagle package can_dbc_parser:
+(https://github.com/NewEagleRaptor/raptor-dbw-ros/tree/master/can_dbc_parser)
  *********************************************************************/
 
 #include <ros/ros.h>

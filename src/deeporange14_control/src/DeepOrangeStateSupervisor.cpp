@@ -122,8 +122,6 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
-      // mission_status = "";
-      // ROS_INFO("In startup State");
 
       if (raptor_hb_detected) {
         ROS_WARN("WARN:[AU_1_STARTUP]: RaptorHandshake is established, transitioning to AU_2_IDLE ");
@@ -142,9 +140,6 @@ void DeepOrangeStateSupervisor::updateROSState() {
       mobilityMsg.tqR_cmd = 0.0;
       mobilityMsg.brkL_cmd = 1.0;
       mobilityMsg.brkR_cmd = 1.0;
-      // mission_status = "";
-      // ROS_INFO("In Idle State");
-      // ROS_WARN("In Idle");
 
       if (!raptor_hb_detected) {
         state = AU_1_STARTUP;
@@ -196,8 +191,6 @@ void DeepOrangeStateSupervisor::updateROSState() {
         break;
       }
       else if (stop_ros) {
-        // go backuint8 left_brkPressure
-        // stop_ros = false;
         state = AU_2_IDLE;
         ROS_ERROR("ERROR: [AU_3_ROS_MODE_EN]: Stop button is pressed ");
         break;
@@ -205,8 +198,7 @@ void DeepOrangeStateSupervisor::updateROSState() {
       else if (mppi_status == 1 || mppi_status == 4) {
         prevSt = 3;
         state = AU_4_DISENGAGING_BRAKES;
-        // mission_status = "";
-        ROS_WARN("[AU_3_ROS_MODE_EN]: Local Plan Ready, transitioning to disengaging brakes ");
+        ROS_INFO("[AU_3_ROS_MODE_EN]: Local plan ready, disengaging brakes");
         break;
       }
       else {

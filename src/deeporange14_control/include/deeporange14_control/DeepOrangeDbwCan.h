@@ -50,7 +50,6 @@ class DeepOrangeDbwCan {
   void getMeasuredWz(const sensor_msgs::Imu& msg);
   void getRtkStatus(const novatel_oem7_msgs::INSPVAX& msg);
   void publishAuStatus(const ros::TimerEvent& event);
-  // int getLogStatus(const deeporange14_msgs::*****& msg); // TODO -> Include message
 
   // Ros timer object
   ros::Timer timer_;
