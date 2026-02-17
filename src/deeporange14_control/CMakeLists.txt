@@ -50,7 +50,6 @@ include_directories(
 
 add_library(${PROJECT_NAME}
   src/DeepOrangeStateSupervisor.cpp
-  src/DeepOrangeVelocityController.cpp
   src/DeepOrangeDbwCan.cpp
 )
 
