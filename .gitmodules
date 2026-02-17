@@ -1,9 +1,12 @@
 [submodule "src/pugixml"]
 	path = src/pugixml
 	url = https://github.com/joselusl/pugixml.git
+	branch = master
 [submodule "src/ros_canopen"]
 	path = src/ros_canopen
 	url = https://github.com/ros-industrial/ros_canopen.git
+	branch = melodic-devel
 [submodule "src/raptor-dbw-ros"]
 	path = src/raptor-dbw-ros
 	url = https://github.com/NewEagleRaptor/raptor-dbw-ros.git
+	branch = master
