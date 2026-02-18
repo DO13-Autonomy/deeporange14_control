@@ -60,7 +60,17 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
 DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
 
 void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg) {
-  // TODO
+  // unpack the AutonomyMeasurement message to get information from the Raptor
+  float vx_tmp = msg->vx_meas;
+  float curv_tmp = msg->curv_meas;
+
+  // speed and curvature must be (1) multiplied by the factor and (2) clamped by the limits in the message
+  vx_meas_ = std::min(std::max(vx_tmp * msg->VX_FACTOR, msg->VX_MIN), msg->VX_MAX);
+  curv_meas_ = std::min(std::max(curv_tmp * msg->CURV_FACTOR, msg->CURV_MIN), msg->CURV_MAX);
+
+  dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message
+
+  // TODO - publish these measurements to appropriate topic, calculate yaw_rate and publish?
 }
 
 void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg) {
