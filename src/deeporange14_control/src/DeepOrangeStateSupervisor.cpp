@@ -70,7 +70,7 @@ void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::Autonom
 
   dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message
 
-  // TODO - publish these measurements to appropriate topic, calculate yaw_rate and publish?
+  // TODO - calculate yaw_rate from measurements?
 }
 
 void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg) {
