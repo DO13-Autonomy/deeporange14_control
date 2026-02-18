@@ -45,10 +45,6 @@ class DeepOrangeStateSupervisor {
   bool dbw_ros_mode;
   std::string mission_status;
   bool stop_ros;
-  int delay;
-  int desired_delay;
-  int delay_threshold;
-  int prevSt;
 
   allStates state;
   double raptor_hb_timestamp;
@@ -56,13 +52,25 @@ class DeepOrangeStateSupervisor {
   double stop_ros_timestamp;
   double mission_update_timestamp;
   uint speed_state;
-  uint au_state;
   uint8_t mppi_status;
   double counter;
   float cmdvel_timeout;
   float raptorhb_timeout;
   int update_freq;
   float brake_disengaged_threshold;
+
+  // temp -- collecting what are used
+  float vx_meas_;
+  float vx_cmd_;
+  float curv_meas_;
+  float curv_cmd_;
+  uint dbw_state_;
+  uint au_state_;
+  uint prev_au_state_;
+
+  int fault_delay_s_;
+  int fault_delay_ct_;
+  int fault_delay_;
 
   // Publishers
   ros::Publisher pub_au_cmd_;

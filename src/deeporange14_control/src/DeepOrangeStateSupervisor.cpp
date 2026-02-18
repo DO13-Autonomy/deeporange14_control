@@ -37,21 +37,22 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
 
   mission_status = "";
   stop_ros = false;
-  brake_disengaged_threshold = 2.0;
-  delay = 0;
-
-  // Initiate the mobility torque and brake commands to avoid garbage value initialization
-  mobilityMsg.tqL_cmd = 0.0;
-  mobilityMsg.tqR_cmd = 0.0;
-  mobilityMsg.brkL_cmd = 1.0;
-  mobilityMsg.brkR_cmd = 1.0;
-  mobilityMsg.au_state = state;
+  
+  vx_meas_ = 0.0;
+  vx_cmd_ = 0.0;
+  curv_meas_ = 0.0;
+  curv_cmd_ = 0.0;
+  dbw_state_ = DBW_0_AUTO_OFF;
+  au_state_ = AU_0_NO_HEARTBEAT;
+  prev_au_state_ = AU_0_NO_HEARTBEAT;
 
   priv_nh.getParam("cmdvel_timeout", cmdvel_timeout);
   priv_nh.getParam("raptorhb_timeout", raptorhb_timeout);
   priv_nh.getParam("update_freq", update_freq);
-  desired_delay = 20;  // Adding 20 secs delay after fault to wait for transition
-  delay_threshold = desired_delay * update_freq;
+
+  fault_delay_s_ = 20;  // after fault, wait 20 sec before state transition
+  fault_delay_ct_ = fault_delay_s_ * update_freq;  // threshold for counter
+  fault_delay_ = 0;  // delay counter
 
   // Set up timer - with calback to publish ROS state all the time that the node is running
   timer = nh.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
