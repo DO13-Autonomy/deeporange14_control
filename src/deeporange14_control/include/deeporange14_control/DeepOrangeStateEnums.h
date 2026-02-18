@@ -11,16 +11,18 @@ namespace deeporange14 {
 
 enum allStates {
   // ROS States
-  AU_0_DEFAULT                   = 0,
-  AU_1_STARTUP                   = 1,
-  AU_2_IDLE                      = 2,
-  AU_3_ROS_MODE_EN               = 3,
-  AU_4_DISENGAGING_BRAKES        = 4,
-  AU_5_ROS_CONTROLLED            = 5,
+  AU_0_NO_HEARTBEAT        = 0,
+  AU_1_WAITING_HEARTBEAT   = 1,
+  AU_2_WAITING_HANDOFF     = 2,
+  AU_3_READY_FOR_MISSION   = 3,
+  AU_4_MISSION_IN_PROGRESS = 4,
 
   // Raptor States
-  DBW_3_ROS_EN                   = 3,
-  DBW_4_ROS_CONTROLLED           = 4,
+  DBW_0_AUTO_OFF           = 0,
+  DBW_1_WAITING_HEARTBEAT  = 1,
+  DBW_2_WAITING_DRIVE_REQ  = 2,
+  DBW_3_READY_TO_DRIVE     = 3,
+  DBW_4_DRIVING            = 4,
 
   SPEED_STATE_Ready2Move         = 3,
 
