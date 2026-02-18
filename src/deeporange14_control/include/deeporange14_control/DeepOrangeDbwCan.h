@@ -33,9 +33,6 @@ class DeepOrangeDbwCan {
   void recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg);
   void pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& msg);
 
-  // Ros timer object
-  ros::Timer timer_;
-
   // publishers
   ros::Publisher pub_can_;
   ros::Publisher pub_auMeas_;
