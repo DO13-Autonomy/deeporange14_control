@@ -85,10 +85,10 @@ void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &e
 
   DeepOrangeStateSupervisor::updateROSState();
 
-  mobilityMsg.au_state = state;
-  auStateMsg.data = state;
-  pub_states.publish(auStateMsg);  // Additional standard msg for stack side
-  pub_mobility.publish(mobilityMsg);  // custom deeporange14 msg for DBW Can node
+  //mobilityMsg.au_state = state;
+  //auStateMsg.data = state;
+  //pub_states.publish(auStateMsg);  // Additional standard msg for stack side
+  //pub_mobility.publish(mobilityMsg);  // custom deeporange14 msg for DBW Can node
 }
 
 void DeepOrangeStateSupervisor::getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr &statusMsg)
