@@ -1,8 +1,9 @@
-/*********************************************************************
-Written for use in Deep Orange 14 Drive-by-wire package
-Makes use of New Eagle package can_dbc_parser:
+/*
+Implement a controller node in the Deep Orange 14 drive-by-wire package
+
+Uses the New Eagle package can_dbc_parser, included as a submodule:
 (https://github.com/NewEagleRaptor/raptor-dbw-ros/tree/master/can_dbc_parser)
- *********************************************************************/
+*/
 
 #include <ros/ros.h>
 
