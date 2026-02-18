@@ -6,23 +6,25 @@ Implement a state machine based on information from both the Raptor and Phoenix 
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
 
 namespace deeporange14 {
-DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::NodeHandle &priv_nh) {
-  // Instantiate sub/pubs
-  sub_missionStatus = nh.subscribe(std::string(topic_ns + "/mission_status"), 10,
+DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
+  /* subscribers and publishers */
+
+  // from Phoenix
+  sub_missionStatus_ = node.subscribe(std::string(topic_ns_ + "/mission_status"), 10,
                                    &DeepOrangeStateSupervisor::getMissionStatus, this,
-                                   ros::TransportHints().tcpNoDelay(true));
-  sub_stopRos = nh.subscribe(std::string(topic_ns + "/stop_ros"), 10, &DeepOrangeStateSupervisor::getStopRos, this,
-                             ros::TransportHints().tcpNoDelay(true));
-  sub_rosController = nh.subscribe(std::string(topic_ns + "/cmd_trq"), 10, &DeepOrangeStateSupervisor::getTorqueValues,
-                                   this, ros::TransportHints().tcpNoDelay(true));
-  sub_raptorState = nh.subscribe(std::string(topic_ns + "/raptor_state"), 10, &DeepOrangeStateSupervisor::getRaptorMsg,
-                                 this, ros::TransportHints().tcpNoDelay(true));
-  sub_cmdVel = nh.subscribe(std::string(topic_ns + "/cmd_vel"), 10, &DeepOrangeStateSupervisor::checkStackStatus, this,
-                            ros::TransportHints().tcpNoDelay(true));
-  sub_mppi_mission = nh.subscribe(std::string(topic_ns + "/mission/status"), 10,
+                                   ros::TransportHints().tcpNoDelay(true));  // TODO - this is for sequence controller, needed?
+  sub_mppi_mission_ = node.subscribe(std::string(topic_ns_ + "/mission/status"), 10,
                             &DeepOrangeStateSupervisor::getPhxStatus, this, ros::TransportHints().tcpNoDelay(true));
-  pub_mobility = nh.advertise<deeporange14_msgs::MobilityMsg>(std::string(topic_ns + "/cmd_mobility"), 10, this);
-  pub_states = nh.advertise<std_msgs::UInt8>(std::string(topic_ns + "/au_states"), 10, this);
+
+  sub_stopRos_ = node.subscribe(std::string(topic_ns_ + "/stop_ros"), 10, &DeepOrangeStateSupervisor::getStopRos, this,
+                             ros::TransportHints().tcpNoDelay(true));
+  sub_cmdVel_ = node.subscribe(std::string(topic_ns_ + "/cmd_vel"), 10, &DeepOrangeStateSupervisor::checkStackStatus, this,
+                            ros::TransportHints().tcpNoDelay(true));
+
+  sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/au_meas"), 10,
+                              &DeepOrangeStateSupervisor::getMeasurements, this, ros::TransportHints().tcpNoDelay(true));
+
+  pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(std::string(topic_ns + "/au_cmd"), 10, this);
   
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a 
      True. This state will be published by the timer object at 50Hz update_freq. */
@@ -34,8 +36,6 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
   stop_ros_timestamp = 0.0;
 
   mission_status = "";
-  tqL_cmd_controller = 0.0;
-  tqR_cmd_controller = 0.0;
   stop_ros = false;
   brake_disengaged_threshold = 2.0;
   delay = 0;
@@ -58,6 +58,10 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &nh, ros::N
 }
 DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
 
+void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg) {
+  // TODO
+}
+
 void DeepOrangeStateSupervisor::checkStackStatus(const geometry_msgs::Twist::ConstPtr &cmdVelMsg) {
   cmdvel_timestamp = ros::Time::now().toSec();
 }
@@ -67,24 +71,8 @@ void DeepOrangeStateSupervisor::getMissionStatus(const std_msgs::String::ConstPt
   mission_status = missionStatus->data;
 }
 
-void DeepOrangeStateSupervisor::getTorqueValues(
-  const deeporange14_msgs::TorqueCmdStamped::ConstPtr &controllerTrqValues) {
-  tqL_cmd_controller  = controllerTrqValues->tqL_cmd;
-  tqR_cmd_controller = controllerTrqValues->tqR_cmd;
-}
-
 void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &stopRosMsg) {
   stop_ros_timestamp = ros::Time::now().toSec();
-}
-
-void DeepOrangeStateSupervisor::getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr &raptorMsg) {
-  raptor_hb_timestamp = raptorMsg->header.stamp.sec + raptorMsg->header.stamp.nsec * (1e-9);
-  
-  // transition to DBW mode if ROS mode 3 or 4
-  dbw_ros_mode = raptorMsg->dbw_mode == DBW_3_ROS_EN || raptorMsg->dbw_mode == DBW_4_ROS_CONTROLLED;
-  brkL_pr = raptorMsg->brk_Lpres;
-  brkR_pr = raptorMsg->brk_Rpres;
-  speed_state = raptorMsg->speed_state;
 }
 
 void DeepOrangeStateSupervisor::supervisorControlUpdate(const ros::TimerEvent &event) {

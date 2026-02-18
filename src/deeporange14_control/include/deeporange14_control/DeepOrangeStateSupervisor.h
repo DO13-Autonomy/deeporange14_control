@@ -9,21 +9,17 @@
 #include <ros/console.h>
 
 #include <actionlib_msgs/GoalStatusArray.h>
-#include <can_msgs/Frame.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>  // TODO - not needed if mission_status is not sub'd
+
+// TODO - are these needed?
 #include <std_msgs/Float32.h>
-#include <std_msgs/String.h>
 #include <std_msgs/UInt8.h>
-#include <tf2_msgs/TFMessage.h>
 
 #include <deeporange14_control/DeepOrangeStateEnums.h>
-#include <deeporange14_msgs/MissionStatus.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <deeporange14_msgs/RaptorStateMsg.h>
-#include <deeporange14_msgs/TorqueCmdStamped.h>
+#include <deeporange14_msgs/AutonomyCommandMsg.h>
+#include <deeporange14_msgs/AutonomyMeasurementMsg.h>
 
 namespace deeporange14 {
 class DeepOrangeStateSupervisor {
@@ -33,27 +29,22 @@ class DeepOrangeStateSupervisor {
 
  private:
   void checkStackStatus(const geometry_msgs::Twist::ConstPtr& cmdVelMsg);
-
   void getMissionStatus(const std_msgs::String::ConstPtr& missionStatus);
-  void getTorqueValues(const deeporange14_msgs::TorqueCmdStamped::ConstPtr& controllerTrqValues);
   void getStopRos(const std_msgs::Bool::ConstPtr& stopRosMsg);
-  void getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr& raptorMsg);
 
   void supervisorControlUpdate(const ros::TimerEvent& event);
-  void updateROSState();
   void getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& statusMsg);
+
+  void getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg);
+
+  void updateROSState();
 
   // member variables
   bool raptor_hb_detected;
   bool stack_fault;
   bool dbw_ros_mode;
   std::string mission_status;
-  float brkL_pr;
-  float brkR_pr;
-  float tqL_cmd_controller;
-  float tqR_cmd_controller;
   bool stop_ros;
-  bool raptorbrakeAck;
   int delay;
   int desired_delay;
   int delay_threshold;
@@ -74,26 +65,23 @@ class DeepOrangeStateSupervisor {
   float brake_disengaged_threshold;
 
   // Publishers
-  ros::Timer timer;
-  ros::Publisher pub_mobility;
-  ros::Publisher pub_states;
+  ros::Publisher pub_au_cmd_;
 
   // Subscribers
-  ros::Subscriber sub_cmdVel;
-  ros::Subscriber sub_missionStatus;
-  ros::Subscriber sub_brakeStatus;
-  ros::Subscriber sub_rosController;
-  ros::Subscriber sub_rosStop;
-  ros::Subscriber sub_raptorState;
-  ros::Subscriber sub_stopRos;
-  ros::Subscriber sub_mppi_mission;
-  std::string topic_ns = "/deeporange1314";
+  ros::Subscriber sub_cmdVel_;
+  ros::Subscriber sub_missionStatus_;
+  ros::Subscriber sub_rosStop_;
+  ros::Subscriber sub_stopRos_;
+  ros::Subscriber sub_mppi_mission_;
+  std::string topic_ns_ = "/deeporange1314";
+
+  ros::Subscriber sub_au_meas_;
+
+  ros::Timer timer;
 
   // Init the msg variables
-  std_msgs::UInt8 auStateMsg;
-  deeporange14_msgs::MobilityMsg mobilityMsg;
-  deeporange14_msgs::TorqueCmdStamped trqvalues;
-  deeporange14_msgs::RaptorStateMsg raptorMsg;
+  deeporange14_msgs::AutonomyCommandMsg auCmdMsg_;
+  deeporange14_msgs::AutonomyMeasurementMsg auMeasMsg_;
 };
 }  // namespace deeporange14
 
