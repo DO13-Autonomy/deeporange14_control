@@ -20,10 +20,10 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
   pub_can_ = node.advertise<can_msgs::Frame>("can_from_ros", 10);
 
   // --------------- to ROS --------------- //
-  pub_auMeas_ = node.advertise<deeporange14_msgs::AutonomyMeasurementMsg>(std::string(topic_ns + "/au_meas"), 10);
+  pub_auMeas_ = node.advertise<deeporange14_msgs::AutonomyMeasurementMsg>(std::string(topic_ns_ + "/au_meas"), 10);
 
   // -------------- from ROS -------------- //
-  sub_auCmd_ = node.subscribe(std::string(topic_ns + "/au_cmd"), 10, &DeepOrangeDbwCan::pubCmdToCan,
+  sub_auCmd_ = node.subscribe(std::string(topic_ns_ + "/au_cmd"), 10, &DeepOrangeDbwCan::pubCmdToCan,
                               this, ros::TransportHints().tcpNoDelay(true));
 
   // get DBC filename

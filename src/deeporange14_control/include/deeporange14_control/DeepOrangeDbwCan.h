@@ -57,7 +57,7 @@ class DeepOrangeDbwCan {
   int ros_hb_ = 0;
 
   // TODO - make this a parameter
-  std::string topic_ns = "/deeporange1314";
+  std::string topic_ns_ = "/deeporange1314";
 };
 }  // namespace deeporange14
 
