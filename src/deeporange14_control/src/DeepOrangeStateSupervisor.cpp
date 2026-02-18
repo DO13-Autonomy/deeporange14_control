@@ -24,7 +24,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/au_meas"), 10,
                               &DeepOrangeStateSupervisor::getMeasurements, this, ros::TransportHints().tcpNoDelay(true));
 
-  pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(std::string(topic_ns + "/au_cmd"), 10, this);
+  pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(std::string(topic_ns_ + "/au_cmd"), 10, this);
   
   /* Initiate ROS State in the Default state and false booleans to ensure transition only when it actually receives a 
      True. This state will be published by the timer object at 50Hz update_freq. */
