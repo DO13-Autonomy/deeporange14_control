@@ -54,8 +54,8 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   fault_delay_ct_ = fault_delay_s_ * update_freq;  // threshold for counter
   fault_delay_ = 0;  // delay counter
 
-  // Set up timer - with calback to publish ROS state all the time that the node is running
-  timer = nh.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
+  // set up timer to publish autonomy commands
+  timer_ = node.createTimer(ros::Duration(1.0 / update_freq), &DeepOrangeStateSupervisor::supervisorControlUpdate, this);
 }
 DeepOrangeStateSupervisor::~DeepOrangeStateSupervisor() {}
 
@@ -134,8 +134,9 @@ void DeepOrangeStateSupervisor::updateROSState() {
       }
       else if (prev_au_state_ > AU_1_WAITING_HEARTBEAT) {
         // it has returned from fault of below states, add delay
-        if (delay < delay_threshold) {
-          delay++;
+        // TODO - resetting this counter (if it is kept)
+        if (fault_delay_ < fault_delay_ct_) {
+          fault_delay_++;
           break;
         }
         else {

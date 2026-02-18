@@ -85,7 +85,7 @@ class DeepOrangeStateSupervisor {
 
   ros::Subscriber sub_au_meas_;
 
-  ros::Timer timer;
+  ros::Timer timer_;
 
   // Init the msg variables
   deeporange14_msgs::AutonomyCommandMsg auCmdMsg_;
