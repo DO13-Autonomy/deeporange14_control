@@ -1,0 +1,55 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: ROS RAPTOR
+
+
+BO_ 81 auto_meas_msg: 7 ROS
+ SG_ dbw_state : 40|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ dbw_seq : 48|8@1+ (1,0) [0|255] "-" Vector__XXX
+ SG_ vx_meas : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" Vector__XXX
+ SG_ curv_meas : 16|18@1- (0.001,0) [-131.072|131.071] "1/m" Vector__XXX
+
+BO_ 80 auto_cmd_msg: 7 ROS
+ SG_ curv_cmd : 16|18@1- (0.001,0) [-131.072|131.071] "1/m" Vector__XXX
+ SG_ vx_cmd : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" Vector__XXX
+ SG_ au_state : 40|8@1+ (1,0) [0|255] "-"  RAPTOR
+ SG_ au_seq : 48|8@1+ (1,0) [0|255] "-"  RAPTOR
+
+
+
+CM_ BO_ 81 "Measured velocities, Logging and RTK status";
+CM_ BO_ 80 "Mobility commands form ROS (Torque and Velocity)";
+
