@@ -4,8 +4,8 @@
   <arg name="socketcan_device" default="can0" />
 
   <node pkg="deeporange14_control" type="deeporange14_control_node" name="deeporange14" output="screen">
-    <param name="cmdvel_timeout" value="5" />
-    <param name="raptorhb_timeout" value="5" />
+    <param name="cmd_recv_timeout" value="5" />
+    <param name="raptor_timeout" value="5" />
     <param name="update_freq" value="50" />
     <param name="dbc_file" textfile="$(find deeporange14_control)/dbc/auto.dbc" />
   </node>
