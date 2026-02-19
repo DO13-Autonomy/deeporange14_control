@@ -12,11 +12,8 @@
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Bool.h>
-#include <std_msgs/String.h>  // TODO - not needed if mission_status is not sub'd
-
-// TODO - are these needed?
 #include <std_msgs/Float32.h>
-#include <std_msgs/UInt8.h>
+#include <std_msgs/String.h>  // TODO - not needed if mission_status is not sub'd
 
 #include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/AutonomyCommandMsg.h>
@@ -29,42 +26,42 @@ class DeepOrangeStateSupervisor {
   ~DeepOrangeStateSupervisor();
 
  private:
-  void checkStackStatus(const geometry_msgs::Twist::ConstPtr& cmdVelMsg);
-  void getMissionStatus(const std_msgs::String::ConstPtr& missionStatus);
-  void getStopRos(const std_msgs::Bool::ConstPtr& stopRosMsg);
+  void pubMeasurements(const ros::TimerEvent& event);
 
-  void supervisorControlUpdate(const ros::TimerEvent& event);
-  void getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& statusMsg);
-
+  void getCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
+  void getStopRos(const std_msgs::Bool::ConstPtr& msg);
+  void getMissionStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg);
 
-  void updateROSState();
-
+  void supervisorControlUpdate(const ros::TimerEvent& event);  // TODO - needed?
+ 
+  void updateStateMachine();
+  
   // member variables
-  bool raptor_hb_detected;
-  bool stack_fault;
+  // TODO - clean up
+  
   bool dbw_ros_mode;
-  std::string mission_status;
-  bool stop_ros;
-
-  allStates state;
-  double raptor_hb_timestamp;
-  double cmdvel_timestamp;
-  double stop_ros_timestamp;
-  double mission_update_timestamp;
   uint speed_state;
-  uint8_t mppi_status;
+  
   double counter;
-  float cmdvel_timeout;
-  float raptorhb_timeout;
-  int update_freq;
-  float brake_disengaged_threshold;
-
+  
   // temp -- collecting what are used
   float vx_meas_;
   float vx_cmd_;
   float curv_meas_;
   float curv_cmd_;
+  float wx_meas_calc_;
+  int update_freq_hz_;
+  float cmd_recv_timeout_s_;
+  float raptor_timeout_s_;
+
+  float last_cmd_recv_time_;
+  float last_raptor_hb_time_;
+  float ros_stop_time_;
+
+  bool raptor_fault_;
+  bool stack_fault_;
+
   uint dbw_state_;
   uint au_state_;
   uint prev_au_state_;
@@ -73,24 +70,31 @@ class DeepOrangeStateSupervisor {
   int fault_delay_ct_;
   int fault_delay_;
 
+  bool stop_ros_;
+
+  uint8_t mppi_mission_status_;
+
   // Publishers
   ros::Publisher pub_au_cmd_;
+  ros::Publisher pub_vx_meas_;
+  ros::Publisher pub_curv_meas_;
+  ros::Publisher pub_wx_meas_;
 
   // Subscribers
-  ros::Subscriber sub_cmdVel_;
-  ros::Subscriber sub_missionStatus_;
-  ros::Subscriber sub_rosStop_;
-  ros::Subscriber sub_stopRos_;
-  ros::Subscriber sub_mppi_mission_;
-  std::string topic_ns_ = "/deeporange1314";
-
+  ros::Subscriber sub_cmd_vel_;
+  ros::Subscriber sub_stop_ros_;
+  ros::Subscriber sub_mission_status_;
   ros::Subscriber sub_au_meas_;
 
   ros::Timer timer_;
+  ros::Timer meas_timer_;
 
   // Init the msg variables
-  deeporange14_msgs::AutonomyCommandMsg auCmdMsg_;
-  deeporange14_msgs::AutonomyMeasurementMsg auMeasMsg_;
+  deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
+
+  // namespace
+  // TODO - make this a parameter
+  std::string topic_ns_ = "/deeporange1314";
 };
 }  // namespace deeporange14
 
