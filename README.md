@@ -2,10 +2,9 @@
 # Deep Orange DBW Controls Interface Package for Autonomous Driving
 
 ### Functionality:
-- DeepOrangeDbwCan.cpp: Enable passing the ROS topics to the Raptor DBW controller via SocketCAN, which executes the commands for the platform to move. Additionally monitors rtk fix, logging status
-- StateMachine.cpp: A ROS state machine in sync with the Raptor controller state machine.
-- RosHealthMonitor.cpp: A node that Monitor health of raptor hanshake, brake acknowledgement from raptor , autonomy stack fault and dbw ros mode
-- Node.cpp - Instantiates the three objects in a single node (as of now).
+- DeepOrangeDbwCan.cpp: handles the CAN-ROS interface, leveraging SocketCAN, to send commands to Raptor and receive command from Raptor
+- DeepOrangeStateSupervisor.cpp: ROS state machine in sync with the Raptor controller state machine
+- DeepOrangeInterfaceNode.cpp - instantiates the ROS node for the controller
 
 ### Cloning and building:
 - Use the following to clone this repository and properly set up submodules:
@@ -22,22 +21,11 @@ git submodule update
 ```
 rosdep install --from-paths src --ignore-src -r -y 
 ```
-- Install the [Kvaser interface package](https://github.com/astuff/kvaser_interface) with the following steps from the `README.md` for that repo:
-```
-sudo apt-add-repository ppa:astuff/kvaser-linux 
-sudo apt update 
-sudo apt install kvaser-canlib-dev kvaser-drivers-dkms 
-
-sudo apt install apt-transport-https 
-sudo sh -c 'echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/autonomoustuff-public.list' 
-sudo apt update 
-sudo apt install ros-noetic-kvaser-interface 
-```
 - Build the code by calling `catkin build` in the top-level of the repo
 
 ### How to Use:
-- To add/update CAN msg IDs- update these in the dbc in the `dbc` folder as well as `dispatch_can_msgs.h` include file
-- Vehicle and subsystem states are enumerated in `DeepOrangeStateEnums.h`
+- To add/update CAN msg IDs- update these in the dbc in the `dbc` folder and `DeepOrangeCanDispatch.h`
+- State machine enumerations are given in `DeepOrangeStateEnums.h`
 
 ### External Dependencies:
 - `can_dbc_parser`: Developed by New Eagle as part of metapackage - https://github.com/NewEagleRaptor/raptor-dbw-ros
@@ -56,6 +44,7 @@ The third-party pacakges also contain some unit tests which can be launched one-
 
 Additional linting can be done with the [catkin_lint](https://fkie.github.io/catkin_lint/) tool, which can be installed following the instructions at the link and launched from the root of the catkin workspace using
 ```
+source devel/setup.bash
 catkin_lint --pkg deeporange14_control
 ```
 
