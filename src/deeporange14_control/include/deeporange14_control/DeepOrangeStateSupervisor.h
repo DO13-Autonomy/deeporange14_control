@@ -10,6 +10,7 @@
 #include <ros/console.h>
 
 #include <actionlib_msgs/GoalStatusArray.h>
+#include <actionlib_msgs/GoalStatus.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
@@ -27,25 +28,19 @@ class DeepOrangeStateSupervisor {
 
  private:
   void pubMeasurements(const ros::TimerEvent& event);
+  void pubCommands();
 
   void getCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
   void getStopRos(const std_msgs::Bool::ConstPtr& msg);
   void getMissionStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg);
 
-  void supervisorControlUpdate(const ros::TimerEvent& event);  // TODO - needed?
+  void updateControlCommands(const ros::TimerEvent& event);
  
+  void updateMissionStatusBools();
   void updateStateMachine();
   
   // member variables
-  // TODO - clean up
-  
-  bool dbw_ros_mode;
-  uint speed_state;
-  
-  double counter;
-  
-  // temp -- collecting what are used
   float vx_meas_;
   float vx_cmd_;
   float curv_meas_;
@@ -53,10 +48,8 @@ class DeepOrangeStateSupervisor {
   float wx_meas_calc_;
   int update_freq_hz_;
   float cmd_recv_timeout_s_;
-  float raptor_timeout_s_;
 
   float last_cmd_recv_time_;
-  float last_raptor_hb_time_;
   float ros_stop_time_;
 
   bool raptor_fault_;
@@ -66,13 +59,12 @@ class DeepOrangeStateSupervisor {
   uint au_state_;
   uint prev_au_state_;
 
-  int fault_delay_s_;
-  int fault_delay_ct_;
-  int fault_delay_;
+  uint8_t mission_status_;
 
   bool stop_ros_;
-
-  uint8_t mppi_mission_status_;
+  bool mission_running_;
+  bool mission_completed_;
+  bool mission_aborted_;
 
   // Publishers
   ros::Publisher pub_au_cmd_;
@@ -91,6 +83,7 @@ class DeepOrangeStateSupervisor {
 
   // Init the msg variables
   deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
+  actionlib_msgs::GoalStatus goal_status_dummy_;
 
   // namespace
   // TODO - make this a parameter
