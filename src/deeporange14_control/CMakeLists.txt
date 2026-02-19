@@ -7,69 +7,75 @@ project(deeporange14_control)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  nav_msgs
+set(PKG_DEPENDS
+  actionlib_msgs
   can_dbc_parser
-  sensor_msgs
-  geometry_msgs
+  can_msgs
   deeporange14_msgs
-  roslaunch
-  message_generation
-  novatel_oem7_msgs
-  roslint
-  roslaunch
-)
-
-catkin_package(
-  CATKIN_DEPENDS
-  message_runtime
-  std_msgs
   geometry_msgs
-  sensor_msgs
-  deeporange14_msgs
-  nav_msgs
   roscpp
   rospy
-  novatel_oem7_msgs
+  sensor_msgs
+  socketcan_bridge
+  std_msgs
 )
 
-catkin_package(
-  LIBRARIES
-  ${PROJECT_NAME}
-  INCLUDE
-  include/
+set(BUILD_DEPENDS
+  roslaunch
+  roslint
+  ${PKG_DEPENDS}
 )
+
+set(RUN_DEPENDS
+  message_runtime
+  ${PKG_DEPENDS}
+)
+
+find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME}
-  src/DeepOrangeStateSupervisor.cpp
-  src/DeepOrangeDbwCan.cpp
+catkin_package(
+  LIBRARIES ${PROJECT_NAME}
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS ${RUN_DEPENDS}
 )
 
-add_executable(${PROJECT_NAME}_node 
-  src/DeepOrangeInterfaceNode.cpp
+add_library(${PROJECT_NAME}
+  src/DeepOrangeDbwCan.cpp
+  src/DeepOrangeStateSupervisor.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}
+add_executable(${PROJECT_NAME}_node
+  src/DeepOrangeInterfaceNode.cpp
 )
 
-install(
-  DIRECTORY
-    launch
-    src
-    dbc
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DIRECTORY}
+)
+
+install(DIRECTORY dbc/
+  DESTINATION ${CATKIN_INSTALL_PREFIX}/dbc
+  FILES_MATCHING PATTERN "*.dbc"
+)
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_INSTALL_PREFIX}/launch
+  FILES_MATCHING PATTERN "*.launch"
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_INSTALL_PREFIX}/include
+  FILES_MATCHING PATTERN "*.h"
 )
 
 if(CATKIN_ENABLE_TESTING)
