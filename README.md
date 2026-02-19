@@ -23,6 +23,27 @@ rosdep install --from-paths src --ignore-src -r -y
 ```
 - Build the code by calling `catkin build` in the top-level of the repo
 
+### Viewing or editing files in VS Code:
+- It is recommended to open the top-level folder (e.g., `deeporange14_control`) in VS Code, as the file `.vscode/c_cpp_properties.json` include paths are relative to this workspace directory
+  - If the `src` subfolder is opened in VS Code, IntelliSense may indicate false-positive errors about missing include paths
+  - This file is written to be agnostic to clone location and should not require editing
+- VS Code will detect that this is a Git repository and can be used for making commits in the GUI, rather than relying on using the CLI
+  - It is recommended to take advantage of this and commit changes in incremental, related chuncks, rather than one big commit at the end
+  - When looking at diffs, it is also possible to stage partial file changes by selecting the lines in the RHS pane (the new file), right-clicking, and selecting "Stage Selected Revisions" -- this can be helpful when trying to create modular commits from larger-scale changes
+  - The commandline may still be used for pushing and pulling, or use the option in the bottom left of the VS Code window to simultaneous pull from, then push to, the remote repository
+- Recommended extensions to consider installing:
+  - CMakeTools
+  - Pylance
+  - Python
+  - Python Debugger
+  - Python Environments
+  - C/C++
+  - C/C++ DevTools
+  - C/C++ Extension pack
+  - C/C++ Themes
+  - Robot Developer Environment
+  - Robot Developer Extensions for URDF
+
 ### How to Use:
 - To add/update CAN msg IDs- update these in the dbc in the `dbc` folder and `DeepOrangeCanDispatch.h`
 - State machine enumerations are given in `DeepOrangeStateEnums.h`
