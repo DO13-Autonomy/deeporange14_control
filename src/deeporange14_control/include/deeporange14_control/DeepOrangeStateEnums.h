@@ -23,13 +23,6 @@ enum allStates {
   DBW_2_WAITING_DRIVE_REQ  = 2,
   DBW_3_READY_TO_DRIVE     = 3,
   DBW_4_DRIVING            = 4,
-
-  SPEED_STATE_Ready2Move         = 3,
-
-  // linear velocity
-  VEHICLE_STOPPED                = 0,
-  VEHICLE_ACCELERATING           = 1,
-  VEHICLE_MOVING                 = 2
 };
 }  // namespace deeporange14
 
