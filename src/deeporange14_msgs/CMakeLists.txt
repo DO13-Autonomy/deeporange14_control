@@ -19,6 +19,7 @@ generate_messages(DEPENDENCIES
 catkin_package(CATKIN_DEPENDS
   message_runtime
   roscpp
+  std_msgs
 )
 
 install(DIRECTORY msgs
