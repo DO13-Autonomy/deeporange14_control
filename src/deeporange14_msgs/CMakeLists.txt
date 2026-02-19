@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(deeporange14_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  std_msgs
   geometry_msgs
+  message_generation
   roscpp
+  std_msgs
 )
 
 add_message_files(DIRECTORY msgs FILES
@@ -14,15 +14,15 @@ add_message_files(DIRECTORY msgs FILES
 )
 
 generate_messages(DEPENDENCIES
-  std_msgs
   geometry_msgs
+  std_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
-  roscpp
-  message_runtime
-  std_msgs
   geometry_msgs
+  message_runtime
+  roscpp
+  std_msgs
 )
 
 install(DIRECTORY msgs
