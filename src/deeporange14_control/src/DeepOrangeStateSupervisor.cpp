@@ -2,7 +2,9 @@
 Implement a state machine based on information from both the Raptor and Phoenix autonomy stack
 */
 
+#include <algorithm>
 #include <string>
+
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
 
 namespace deeporange14 {
@@ -10,19 +12,31 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   /* subscribers and publishers */
 
   // ---------- from Phoenix (ROS) ---------- //
-  sub_mission_status_ = node.subscribe(std::string(topic_ns_ + "/mission/status"), 10,
-                            &DeepOrangeStateSupervisor::getMissionStatus, this, ros::TransportHints().tcpNoDelay(true));
+  sub_mission_status_ = node.subscribe(std::string(topic_ns_ + "/mission/status"),
+                                                   10,
+                                                   &DeepOrangeStateSupervisor::getMissionStatus,
+                                                   this,
+                                                   ros::TransportHints().tcpNoDelay(true));
 
-  sub_stop_ros_ = node.subscribe(std::string(topic_ns_ + "/stop_ros"), 10, &DeepOrangeStateSupervisor::getStopRos, this,
-                             ros::TransportHints().tcpNoDelay(true));
+  sub_stop_ros_ = node.subscribe(std::string(topic_ns_ + "/stop_ros"),
+                                             10,
+                                             &DeepOrangeStateSupervisor::getStopRos,
+                                             this,
+                                             ros::TransportHints().tcpNoDelay(true));
 
-  sub_cmd_vel_ = node.subscribe(std::string(topic_ns_ + "/cmd_vel"), 10, &DeepOrangeStateSupervisor::getCmdVel, this,
-                            ros::TransportHints().tcpNoDelay(true)); 
+  sub_cmd_vel_ = node.subscribe(std::string(topic_ns_ + "/cmd_vel"),
+                                10,
+                                &DeepOrangeStateSupervisor::getCmdVel,
+                                this,
+                                ros::TransportHints().tcpNoDelay(true));
 
   // --- from Raptor (CAN-ROS interface) ---- //
   // from Raptor (CAN-ROS interface)
-  sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/au_meas"), 10,
-                              &DeepOrangeStateSupervisor::getMeasurements, this, ros::TransportHints().tcpNoDelay(true));
+  sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/au_meas"),
+                                10,
+                                &DeepOrangeStateSupervisor::getMeasurements,
+                                this,
+                                ros::TransportHints().tcpNoDelay(true));
 
   // ----------- to Phoenix (ROS) ----------- //
   // Phoenix doesn't use these topics, but make them available for monitoring purposes
@@ -38,8 +52,13 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   priv_nh.getParam("update_freq", update_freq_hz_);
 
   // set up timer to publish autonomy commands
-  timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_), &DeepOrangeStateSupervisor::updateControlCommands, this);
-  meas_timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_), &DeepOrangeStateSupervisor::pubMeasurements, this);
+  timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
+                            &DeepOrangeStateSupervisor::updateControlCommands,
+                            this);
+
+  meas_timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
+                                 &DeepOrangeStateSupervisor::pubMeasurements,
+                                 this);
 
   // initialize private variables
   vx_meas_ = 0.0;
@@ -47,9 +66,9 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
 
   curv_meas_ = 0.0;
   curv_cmd_ = 0.0;
-  
+
   wx_meas_calc_ = 0.0;
-  
+
   dbw_state_ = DBW_0_AUTO_OFF;
   au_state_ = AU_0_NO_HEARTBEAT;
   prev_au_state_ = AU_0_NO_HEARTBEAT;
@@ -75,7 +94,7 @@ void DeepOrangeStateSupervisor::pubMeasurements(const ros::TimerEvent& event) {
 
   meas_msg.data = vx_meas_;
   pub_vx_meas_.publish(meas_msg);
-  
+
   meas_msg.data = curv_meas_;
   pub_curv_meas_.publish(meas_msg);
 
@@ -88,8 +107,11 @@ void DeepOrangeStateSupervisor::pubCommands() {
   au_cmd_msg_.header.stamp = ros::Time::now();
 
   // speed and curvature need to be clamped and scaled
-  au_cmd_msg_.vx_cmd = std::min(std::max(vx_cmd_, au_cmd_msg_.VX_MIN), au_cmd_msg_.VX_MAX) / au_cmd_msg_.VX_FACTOR;
-  au_cmd_msg_.curv_cmd = std::min(std::max(curv_cmd_, au_cmd_msg_.CURV_MIN), au_cmd_msg_.CURV_MAX) / au_cmd_msg_.CURV_FACTOR;
+  au_cmd_msg_.vx_cmd = std::min(std::max(vx_cmd_, au_cmd_msg_.VX_MIN),
+                                au_cmd_msg_.VX_MAX) / au_cmd_msg_.VX_FACTOR;
+
+  au_cmd_msg_.curv_cmd = std::min(std::max(curv_cmd_, au_cmd_msg_.CURV_MIN),
+                                  au_cmd_msg_.CURV_MAX) / au_cmd_msg_.CURV_FACTOR;
 
   au_cmd_msg_.au_state = au_state_;
 
@@ -107,7 +129,7 @@ void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::Autonom
   wx_meas_calc_ = curv_meas_ * vx_meas_;  // TODO - curvature * vx, but need to consider signs (TODO)
 
   dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message
-  
+
   updateStateMachine();  // make sure the state machine is updated each time a new measurement is received
 }
 
@@ -182,7 +204,7 @@ void DeepOrangeStateSupervisor::updateMissionStatusBools() {
       mission_completed_ = false;
       mission_aborted_ = false;
       break;
-    } 
+    }
   }
 }
 
@@ -257,7 +279,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
         au_state_ = AU_4_MISSION_IN_PROGRESS;  // go to state 4 when the mission is started
         ROS_INFO("[AU_3_READY_FOR_MISSION]: Transitioning to AU_4_MISSION_IN_PROGRESS");
       }
-      else if (mission_completed_ || mission_aborted_ ) {
+      else if (mission_completed_ || mission_aborted_) {
         au_state_ = AU_2_WAITING_HANDOFF;  // go to state 4 when the mission has ended (or been stopped)
         ROS_INFO("[AU_3_READY_FOR_MISSION]: Mission complete or aborted, transitioning to AU_2_WAITING_HANDOFF");
       }
@@ -276,7 +298,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
         au_state_ = AU_1_WAITING_HEARTBEAT;  // go back to state 1 if the Raptor heartbeat is lost
         ROS_WARN("[AU_4_MISSION_IN_PROGRESS]: Raptor handshake failed");
       }
-      else if (mission_completed_ || mission_aborted_ || stack_fault_) {  // TODO - is it still valid to check for stack_fault_?
+      else if (mission_completed_ || mission_aborted_ || stack_fault_) {  // TODO - still valid to check stack_fault_?
         au_state_ = AU_2_WAITING_HANDOFF;  // go to state 4 when the mission has ended (or been stopped)
 
         if (stack_fault_) {

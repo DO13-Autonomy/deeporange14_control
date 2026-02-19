@@ -16,15 +16,23 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
   // ---------- socketcan_bridge ---------- //
   // topic names are defined in control.launch
   // TODO - consider making these topic names parameters for consistency
-  sub_can_ = node.subscribe("ros_from_can", 10, &DeepOrangeDbwCan::recvMeasFromCan, this, ros::TransportHints().tcpNoDelay(true));
+  sub_can_ = node.subscribe("ros_from_can",
+                            10,
+                            &DeepOrangeDbwCan::recvMeasFromCan,
+                            this,
+                            ros::TransportHints().tcpNoDelay(true));
+
   pub_can_ = node.advertise<can_msgs::Frame>("can_from_ros", 10);
 
   // --------------- to ROS --------------- //
   pub_auMeas_ = node.advertise<deeporange14_msgs::AutonomyMeasurementMsg>(std::string(topic_ns_ + "/au_meas"), 10);
 
   // -------------- from ROS -------------- //
-  sub_auCmd_ = node.subscribe(std::string(topic_ns_ + "/au_cmd"), 10, &DeepOrangeDbwCan::pubCmdToCan,
-                              this, ros::TransportHints().tcpNoDelay(true));
+  sub_auCmd_ = node.subscribe(std::string(topic_ns_ + "/au_cmd"),
+                              10,
+                              &DeepOrangeDbwCan::pubCmdToCan,
+                              this,
+                              ros::TransportHints().tcpNoDelay(true));
 
   // get DBC filename
   priv_nh.getParam("dbc_file", dbcFile_);
@@ -62,7 +70,7 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
 void DeepOrangeDbwCan::pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& msg) {
   // build CAN frame from commands and state
   NewEagle::DbcMessage* message = autonomyDbc_ .GetMessageById(ID_AUTONOMY_CMD);
-  
+
   // increment the sequencer for the autonomy message from 0 to 255 (limites defined in message file)
   if (ros_hb_ < msg.SEQ_MAX) ros_hb_++;
   else ros_hb_ = msg.SEQ_MIN;

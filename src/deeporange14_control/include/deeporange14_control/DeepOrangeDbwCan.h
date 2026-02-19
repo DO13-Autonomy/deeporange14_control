@@ -52,7 +52,7 @@ class DeepOrangeDbwCan {
   // for DBC file processing
   NewEagle::Dbc autonomyDbc_;
   std::string dbcFile_;
-  
+
   // heartbeat for autonomy stack
   int ros_hb_ = 0;
 

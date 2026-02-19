@@ -36,10 +36,9 @@ class DeepOrangeStateSupervisor {
   void getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg);
 
   void updateControlCommands(const ros::TimerEvent& event);
- 
   void updateMissionStatusBools();
   void updateStateMachine();
-  
+
   // member variables
   float vx_meas_;
   float vx_cmd_;
