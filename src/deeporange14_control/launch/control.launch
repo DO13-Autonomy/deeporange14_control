@@ -15,7 +15,7 @@
     <param name="au_cmd_topic" value="$(arg au_cmd_topic)" />
     <param name="au_meas_topic" value="$(arg au_meas_topic)" />
     <param name="cmd_recv_timeout" value="$(arg command_timeout_s)" />
-    <param name="update_freq" value="$(arg control_update_freq)" />
+    <param name="update_freq" value="$(arg control_update_freq_hz)" />
     <param name="dbc_file" textfile="$(arg autonomy_dbc_file)" />
     <param name="ros_from_can" value="$(arg can_rx_topic)" />
     <param name="can_from_ros" value="$(arg can_tx_topic)" />
