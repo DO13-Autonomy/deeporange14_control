@@ -59,14 +59,14 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
 
       if (msg->dlc >= message->GetDlc()) {
         message->SetFrame(msg);
-        auMeasMsg_.header.stamp = msg->header.stamp;
+        au_meas_msg_.header.stamp = msg->header.stamp;
 
         // the assumption here is that clamping/scaling is done on the receiving end
-        auMeasMsg_.vx_meas = message->GetSignal("vx_meas")->GetResult();
-        auMeasMsg_.curv_meas = message->GetSignal("curv_meas")->GetResult();
-        auMeasMsg_.dbw_state = message->GetSignal("dbw_state")->GetResult();
-        auMeasMsg_.dbw_seq = message->GetSignal("dbw_state")->GetResult();
-        pub_auMeas_.publish(auMeasMsg_);
+        au_meas_msg_.vx_meas = message->GetSignal("vx_meas")->GetResult();
+        au_meas_msg_.curv_meas = message->GetSignal("curv_meas")->GetResult();
+        au_meas_msg_.dbw_state = message->GetSignal("dbw_state")->GetResult();
+        au_meas_msg_.dbw_seq = message->GetSignal("dbw_state")->GetResult();
+        pub_auMeas_.publish(au_meas_msg_);
       }
     }
   }

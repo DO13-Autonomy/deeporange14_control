@@ -42,11 +42,9 @@ class DeepOrangeDbwCan {
   ros::Subscriber sub_auCmd_;
 
   // relevant message objects
-  deeporange14_msgs::AutonomyCommandMsg auCmdMsg_;
-  deeporange14_msgs::AutonomyMeasurementMsg auMeasMsg_;
+  deeporange14_msgs::AutonomyMeasurementMsg au_meas_msg_;
 
   // for handling CAN frames
-  std::string frameId_;
   can_msgs::Frame frame_;
 
   // for DBC file processing
