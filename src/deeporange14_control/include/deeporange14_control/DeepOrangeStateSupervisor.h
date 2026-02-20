@@ -87,7 +87,6 @@ class DeepOrangeStateSupervisor {
   std::string topic_au_meas_;
   int update_freq_hz_;
   float cmd_recv_timeout_s_;
-
 };
 }  // namespace deeporange14
 
