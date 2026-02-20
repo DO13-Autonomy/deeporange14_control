@@ -81,7 +81,6 @@ class DeepOrangeStateSupervisor {
   actionlib_msgs::GoalStatus goal_status_dummy_;
 
   // variables for parameters
-  // TODO - make this a parameter
   std::string topic_ns_ = "/deeporange1314";
   std::string topic_au_cmd_;
   std::string topic_au_meas_;
