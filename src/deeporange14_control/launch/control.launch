@@ -1,18 +1,30 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="use_socketcan" default="true" />
-  <arg name="socketcan_device" default="can0" />
+  <arg name="vehicle_namespace" default="deeporange1314" doc="namespace for controller topics; this should match the vehicle namespace in Phoenix" />
+  <arg name="au_cmd_topic" default="au_cmd" doc="topic on which autonomy command message is published, before writing to CAN" />
+  <arg name="au_meas_topic" default="au_meas" doc="topic on which autonomy measurement message is published, after reading from CAN" />
+  <arg name="command_timeout_s" default="5" doc="timeout, in sec, for commands from Phoenix, after which the vehicle will safely stop" />
+  <arg name="control_update_freq_hz" default="50" doc="frequency, in hz, at which controller will publish command topics" />
+  <arg name="autonomy_dbc_file" default="$(find deeporange14_control)/dbc/auto.dbc" doc="path to the DBC file defining the CAN messages used by the controller"/>
+  <arg name="can_rx_topic" default="ros_from_can" doc="topic from which received CAN messages are translated"/>
+  <arg name="can_tx_topic" default="can_from_ros" doc="topic to which CAN messages to be sent are translated"/>
+  <arg name="socketcan_device" default="can0" doc="name assigned to the CAN device to monitor" />
 
   <node pkg="deeporange14_control" type="deeporange14_control_node" name="deeporange14" output="screen">
-    <param name="cmd_recv_timeout" value="5" />
-    <param name="update_freq" value="50" />
-    <param name="dbc_file" textfile="$(find deeporange14_control)/dbc/auto.dbc" />
+    <param name="vehicle_ns" value="$(arg vehicle_namespace)" />
+    <param name="au_cmd_topic" value="$(arg au_cmd_topic)" />
+    <param name="au_meas_topic" value="$(arg au_meas_topic)" />
+    <param name="cmd_recv_timeout" value="$(arg command_timeout_s)" />
+    <param name="update_freq" value="$(arg control_update_freq)" />
+    <param name="dbc_file" textfile="$(arg autonomy_dbc_file)" />
+    <param name="ros_from_can" value="$(arg can_rx_topic)" />
+    <param name="can_from_ros" value="$(arg can_tx_topic)" />
   </node>
 
-  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge" if="$(arg use_socketcan)">
+  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge">
     <param name="can_device" value="$(arg socketcan_device)" />
-    <remap from="received_messages" to="ros_from_can"/>
-    <remap from="sent_messages" to="can_from_ros"/>
+    <remap from="received_messages" to="$(arg can_rx_topic)" />
+    <remap from="sent_messages" to="$(arg can_tx_topic)" />
   </node>
 
 </launch>
