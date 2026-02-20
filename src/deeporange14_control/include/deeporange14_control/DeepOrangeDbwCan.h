@@ -50,14 +50,18 @@ class DeepOrangeDbwCan {
   can_msgs::Frame frame_;
 
   // for DBC file processing
-  NewEagle::Dbc autonomyDbc_;
-  std::string dbcFile_;
+  NewEagle::Dbc autonomy_dbc_;
 
   // heartbeat for autonomy stack
   int ros_hb_ = 0;
 
-  // TODO - make this a parameter
-  std::string topic_ns_ = "/deeporange1314";
+  // variables to hold parameters
+  std::string topic_ns_;
+  std::string topic_au_cmd_;
+  std::string topic_au_meas_;
+  std::string topic_from_can_;
+  std::string topic_to_can_;
+  std::string dbc_file_;
 };
 }  // namespace deeporange14
 
