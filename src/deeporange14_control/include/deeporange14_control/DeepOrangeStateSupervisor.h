@@ -14,7 +14,6 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
-#include <std_msgs/String.h>  // TODO - not needed if mission_status is not sub'd
 
 #include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/AutonomyCommandMsg.h>
@@ -45,13 +44,10 @@ class DeepOrangeStateSupervisor {
   float curv_meas_;
   float curv_cmd_;
   float wx_meas_calc_;
-  int update_freq_hz_;
-  float cmd_recv_timeout_s_;
 
   float last_cmd_recv_time_;
   float ros_stop_time_;
 
-  bool raptor_fault_;
   bool stack_fault_;
 
   uint dbw_state_;
@@ -84,9 +80,14 @@ class DeepOrangeStateSupervisor {
   deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
   actionlib_msgs::GoalStatus goal_status_dummy_;
 
-  // namespace
+  // variables for parameters
   // TODO - make this a parameter
   std::string topic_ns_ = "/deeporange1314";
+  std::string topic_au_cmd_;
+  std::string topic_au_meas_;
+  int update_freq_hz_;
+  float cmd_recv_timeout_s_;
+
 };
 }  // namespace deeporange14
 

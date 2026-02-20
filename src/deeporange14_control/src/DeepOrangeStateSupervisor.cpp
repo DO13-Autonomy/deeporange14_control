@@ -9,6 +9,13 @@ Implement a state machine based on information from both the Raptor and Phoenix 
 
 namespace deeporange14 {
 DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
+  /* get parameters from launch file */
+  priv_nh.getParam("vehicle_ns", topic_ns_);
+  priv_nh.getParam("au_cmd_topic", topic_au_cmd_);
+  priv_nh.getParam("au_meas_topic", topic_au_meas_);
+  priv_nh.getParam("cmd_recv_timeout", cmd_recv_timeout_s_);
+  priv_nh.getParam("update_freq", update_freq_hz_);
+
   /* subscribers and publishers */
 
   // ---------- from Phoenix (ROS) ---------- //
@@ -32,7 +39,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
 
   // --- from Raptor (CAN-ROS interface) ---- //
   // from Raptor (CAN-ROS interface)
-  sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/au_meas"),
+  sub_au_meas_ = node.subscribe(std::string(topic_ns_ + "/" + topic_au_meas_),
                                 10,
                                 &DeepOrangeStateSupervisor::getMeasurements,
                                 this,
@@ -45,11 +52,8 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   pub_wx_meas_ = node.advertise<std_msgs::Float32>(std::string(topic_ns_ + "/meas_wx"), 10, this);
 
   // ---- to Raptor (CAN-ROS interface) ----- //
-  pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(std::string(topic_ns_ + "/au_cmd"), 10, this);
-
-  // get parameters
-  priv_nh.getParam("cmd_recv_timeout", cmd_recv_timeout_s_);
-  priv_nh.getParam("update_freq", update_freq_hz_);
+  pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(
+    std::string(topic_ns_ + "/" + topic_au_cmd_), 10, this);
 
   // set up timer to publish autonomy commands
   timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
@@ -135,7 +139,7 @@ void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::Autonom
   // speed and curvature must be (1) multiplied by the factor and (2) clamped by the limits in the message
   vx_meas_ = std::min(std::max(vx_tmp * msg->VX_FACTOR, msg->VX_MIN), msg->VX_MAX);
   curv_meas_ = std::min(std::max(curv_tmp * msg->CURV_FACTOR, msg->CURV_MIN), msg->CURV_MAX);
-  wx_meas_calc_ = curv_meas_ * vx_meas_;  // TODO - curvature * vx, but need to consider signs (TODO)
+  wx_meas_calc_ = curv_meas_ * vx_meas_;  // TODO - curvature * vx, but need to consider signs
 
   dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message
 
@@ -149,10 +153,10 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
   float wx_cmd = msg->angular.z;
 
   // only command non-zero speed and curvature while the mission is operating
-  // TODO - make sure this is correct
+  // TODO - make sure this is correct (curvature)
   if (au_state_ == AU_4_MISSION_IN_PROGRESS) {
     vx_cmd_ = msg->linear.x;
-    curv_cmd_ = wx_cmd / vx_cmd_;  // TODO - get the correct sign
+    curv_cmd_ = wx_cmd / vx_cmd_;
   }
   else {
     vx_cmd_ = 0.0;
