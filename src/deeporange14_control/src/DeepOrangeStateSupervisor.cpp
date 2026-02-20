@@ -106,12 +106,21 @@ void DeepOrangeStateSupervisor::pubCommands() {
   // build the AutonomyCommand message, then publish it
   au_cmd_msg_.header.stamp = ros::Time::now();
 
-  // speed and curvature need to be clamped and scaled
-  au_cmd_msg_.vx_cmd = std::min(std::max(vx_cmd_, au_cmd_msg_.VX_MIN),
-                                au_cmd_msg_.VX_MAX) / au_cmd_msg_.VX_FACTOR;
+  if (au_state_ == AU_4_MISSION_IN_PROGRESS) {
+    // speed and curvature need to be clamped and scaled
+    au_cmd_msg_.vx_cmd = std::min(std::max(vx_cmd_, au_cmd_msg_.VX_MIN),
+                                  au_cmd_msg_.VX_MAX) / au_cmd_msg_.VX_FACTOR;
 
-  au_cmd_msg_.curv_cmd = std::min(std::max(curv_cmd_, au_cmd_msg_.CURV_MIN),
-                                  au_cmd_msg_.CURV_MAX) / au_cmd_msg_.CURV_FACTOR;
+    au_cmd_msg_.curv_cmd = std::min(std::max(curv_cmd_, au_cmd_msg_.CURV_MIN),
+                                    au_cmd_msg_.CURV_MAX) / au_cmd_msg_.CURV_FACTOR;
+  }
+  else {
+    // command no movement when no mission is in progress
+    // this is a bit redundant to getCmdVel, but takes care in case the state has
+    // changed since the last time a command was received
+    au_cmd_msg_.vx_cmd = 0.0;
+    au_cmd_msg_.curv_cmd = 0.0;
+  }
 
   au_cmd_msg_.au_state = au_state_;
 
