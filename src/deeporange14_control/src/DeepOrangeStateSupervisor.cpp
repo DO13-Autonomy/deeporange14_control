@@ -275,7 +275,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
       }
       else {
         // do nothing, stay in same state
-        ROS_DEBUG("[AU_2_WAITING_HANDOFF]: Ready to enter DBW-ROS mode");
+        ROS_DEBUG("[AU_2_WAITING_HANDOFF]: Waiting for Raptor to be ready for mission");
       }
 
       prev_au_state_ = AU_2_WAITING_HANDOFF;
@@ -298,7 +298,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
       }
       else {
         // do nothing, stay in same state
-        ROS_DEBUG("[AU_3_READY_FOR_MISSION]: Ready to enter DBW-ROS mode");
+        ROS_DEBUG("[AU_3_READY_FOR_MISSION]: Waiting for mission");
       }
 
       prev_au_state_ = AU_3_READY_FOR_MISSION;
@@ -323,7 +323,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
       }
       else {
         // do nothing, stay in same state
-        ROS_DEBUG("[AU_4_MISSION_IN_PROGRESS]: Ready to enter DBW-ROS mode");
+        ROS_DEBUG("[AU_4_MISSION_IN_PROGRESS]: Mission executing");
       }
 
       prev_au_state_ = AU_4_MISSION_IN_PROGRESS;
@@ -331,7 +331,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
     }
     default: {
       au_state_ = AU_0_NO_HEARTBEAT;
-      ROS_ERROR("Unknown stated. state machine resetting");
+      ROS_ERROR("Unknown state, state machine resetting");
       break;
     }
   }
