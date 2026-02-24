@@ -36,6 +36,7 @@ class DeepOrangeStateSupervisor {
 
   void updateControlCommands(const ros::TimerEvent& event);
   void updateMissionStatusBools();
+  void resetMissionStatusBools();
   void updateStateMachine();
 
   // member variables

@@ -184,41 +184,48 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
 // update the mission status booleans (for completed, aborted, and running statuses)
 // Phoenix only uses 6 of the 10 available statuses, given in the GoalStatus message
 void DeepOrangeStateSupervisor::updateMissionStatusBools() {
-  switch (mission_status_) {
-    case goal_status_dummy_.SUCCEEDED: {
+    switch (mission_status_) {
+      case goal_status_dummy_.SUCCEEDED: {
       mission_running_ = false;
-      mission_completed_ = true;
+        mission_completed_ = true;
       mission_aborted_ = false;
-      break;
-    }
-    case goal_status_dummy_.ACTIVE: {
+        break;
+      }
+      case goal_status_dummy_.ACTIVE: {
       mission_running_ = true;
       mission_completed_ = false;
       mission_aborted_ = false;
-      break;
-    }
-    case goal_status_dummy_.ABORTED: {
+        break;
+      }
+      case goal_status_dummy_.ABORTED: {
       mission_running_ = false;
       mission_completed_ = false;
-      mission_aborted_ = true;
-    }
-    case goal_status_dummy_.PENDING:
-    case goal_status_dummy_.PREEMPTED:
-    case goal_status_dummy_.REJECTED: {
+        mission_aborted_ = true;
+      }
+      case goal_status_dummy_.PENDING:
+      case goal_status_dummy_.PREEMPTED:
+      case goal_status_dummy_.REJECTED: {
       mission_running_ = false;
       mission_completed_ = false;
       mission_aborted_ = false;
-      break;
-    }
-    default: {
+        break;
+      }
+      default: {
       ROS_WARN("[updateMissionStatusBool]: Unhandled mission status %d, resetting booleans to false", mission_status_);
 
       mission_running_ = false;
       mission_completed_ = false;
       mission_aborted_ = false;
-      break;
+        break;
+      }
     }
-  }
+}
+
+// reset the mission status booleans (to false)
+void DeepOrangeStateSupervisor::resetMissionStatusBools() {
+  mission_running_ = false;
+  mission_completed_ = false;
+  mission_aborted_ = false;
 }
 
 // timer callback to publish commands regularly
@@ -299,9 +306,9 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
 
         if (stack_fault_) {
           ROS_WARN("[AU_3_READY_FOR_MISSION]: Lost communication with Phoenix");
-      }
-      else if (mission_completed_ || mission_aborted_) {
-        ROS_INFO("[AU_3_READY_FOR_MISSION]: Mission complete or aborted, transitioning to AU_2_WAITING_HANDOFF");
+        }
+        else if (mission_completed_ || mission_aborted_) {
+          ROS_INFO("[AU_3_READY_FOR_MISSION]: Mission complete or aborted, transitioning to AU_2_WAITING_HANDOFF");
         }
         else {
           ROS_WARN("[AU_3_READY_FOR_MISSION]: Raptor no longer ready for mission");
