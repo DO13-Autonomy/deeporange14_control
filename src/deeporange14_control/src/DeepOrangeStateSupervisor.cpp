@@ -185,43 +185,45 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
 }
 
 // update the mission status booleans (for completed, aborted, and running statuses)
-// Phoenix only uses 6 of the 10 available statuses, given in the GoalStatus message
+// Phoenix only uses 6 of the 10 available statuses, given in the GoalStatus message'
+// the booleans can only be set to TRUE when in AU_3 or AU_4 (vehicle is operating in
+// autonomy mode) to protect against a stale status being considered in the state machine
 void DeepOrangeStateSupervisor::updateMissionStatusBools() {
+  if (dbw_state_ == AU_3_READY_FOR_MISSION || dbw_state_ == AU_4_MISSION_IN_PROGRESS) {
     switch (mission_status_) {
       case goal_status_dummy_.SUCCEEDED: {
-      mission_running_ = false;
+        resetMissionStatusBools();
         mission_completed_ = true;
-      mission_aborted_ = false;
         break;
       }
       case goal_status_dummy_.ACTIVE: {
-      mission_running_ = true;
-      mission_completed_ = false;
-      mission_aborted_ = false;
+        resetMissionStatusBools();
+        mission_running_ = true && !stop_ros_;  // the mission should stop if stop_ros signal is received
+        mission_aborted_ = false || stop_ros_;
         break;
       }
       case goal_status_dummy_.ABORTED: {
-      mission_running_ = false;
-      mission_completed_ = false;
+        resetMissionStatusBools();
         mission_aborted_ = true;
       }
       case goal_status_dummy_.PENDING:
       case goal_status_dummy_.PREEMPTED:
       case goal_status_dummy_.REJECTED: {
-      mission_running_ = false;
-      mission_completed_ = false;
-      mission_aborted_ = false;
+        resetMissionStatusBools();
         break;
       }
       default: {
-      ROS_WARN("[updateMissionStatusBool]: Unhandled mission status %d, resetting booleans to false", mission_status_);
+        ROS_WARN("[updateMissionStatusBool]: Unhandled mission status %d, resetting booleans to false",
+          mission_status_);
 
-      mission_running_ = false;
-      mission_completed_ = false;
-      mission_aborted_ = false;
+        resetMissionStatusBools();
         break;
       }
     }
+  }
+  else {
+    resetMissionStatusBools();
+  }
 }
 
 // reset the mission status booleans (to false)
@@ -240,7 +242,6 @@ void DeepOrangeStateSupervisor::updateControlCommands(const ros::TimerEvent &eve
 
   // check if the stop_ros message has been received "recently" (within the last 5 seconds) from Phoenix
   // reset the flag to 0 if not
-  // TODO - do we still need this (communicate to raptor to exit ros mode) after state overhaul?
   stop_ros_ = (ros::Time::now().toSec() - ros_stop_time_) < 5 ? 1 : 0;
 
   updateStateMachine();
