@@ -250,7 +250,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
     case AU_1_WAITING_HEARTBEAT: {
       ROS_DEBUG("In state AU_1_WAITING_HEARTBEAT");
 
-      if (dbw_state_ == DBW_1_WAITING_HEARTBEAT) {
+      if (dbw_state_ >= DBW_1_WAITING_HEARTBEAT) {
         au_state_ = AU_2_WAITING_HANDOFF;  // once the Raptor heartbeat is detected, move to state 2 and wait for ack
         ROS_INFO("[AU_1_WAITING_HEARTBEAT]: Raptor handshake is established, transitioning to AU_2_WAITING_HANDOFF");
       }
