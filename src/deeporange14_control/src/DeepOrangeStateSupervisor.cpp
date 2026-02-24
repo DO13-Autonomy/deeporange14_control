@@ -179,6 +179,9 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
 
     updateMissionStatusBools();
   }
+  else {
+    resetMissionStatusBools();
+  }
 }
 
 // update the mission status booleans (for completed, aborted, and running statuses)
