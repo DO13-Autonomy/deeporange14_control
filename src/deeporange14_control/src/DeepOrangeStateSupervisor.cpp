@@ -292,9 +292,20 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
         au_state_ = AU_4_MISSION_IN_PROGRESS;  // go to state 4 when the mission is started
         ROS_INFO("[AU_3_READY_FOR_MISSION]: Transitioning to AU_4_MISSION_IN_PROGRESS");
       }
+      else if (mission_completed_ || mission_aborted_ || stack_fault_ || dbw_state_ == DBW_2_WAITING_DRIVE_REQ) {
+        // go to state 2 when mission has ended (or been stopped), Phoenix stack has crashed, or Raptor is no
+        // longer ready to receive mission commands
+        au_state_ = AU_2_WAITING_HANDOFF;
+
+        if (stack_fault_) {
+          ROS_WARN("[AU_3_READY_FOR_MISSION]: Lost communication with Phoenix");
+      }
       else if (mission_completed_ || mission_aborted_) {
-        au_state_ = AU_2_WAITING_HANDOFF;  // go to state 4 when the mission has ended (or been stopped)
         ROS_INFO("[AU_3_READY_FOR_MISSION]: Mission complete or aborted, transitioning to AU_2_WAITING_HANDOFF");
+        }
+        else {
+          ROS_WARN("[AU_3_READY_FOR_MISSION]: Raptor no longer ready for mission");
+        }
       }
       else {
         // do nothing, stay in same state
@@ -311,14 +322,19 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
         au_state_ = AU_1_WAITING_HEARTBEAT;  // go back to state 1 if the Raptor heartbeat is lost
         ROS_WARN("[AU_4_MISSION_IN_PROGRESS]: Raptor handshake failed");
       }
-      else if (mission_completed_ || mission_aborted_ || stack_fault_) {  // TODO - still valid to check stack_fault_?
-        au_state_ = AU_2_WAITING_HANDOFF;  // go to state 4 when the mission has ended (or been stopped)
+      else if (mission_completed_ || mission_aborted_ || stack_fault_ || dbw_state_ == DBW_2_WAITING_DRIVE_REQ) {
+        // go to state 2 when mission has ended (or been stopped), Phoenix stack has crashed, or Raptor is no
+        // longer ready to receive mission commands
+        au_state_ = AU_2_WAITING_HANDOFF;
 
         if (stack_fault_) {
           ROS_WARN("[AU_4_MISSION_IN_PROGRESS]: Lost communication with Phoenix");
         }
-        else {
+        else if (mission_completed_ || mission_aborted_) {
           ROS_INFO("[AU_4_MISSION_IN_PROGRESS]: Mission complete or aborted, transitioning to AU_2_WAITING_HANDOFF");
+        }
+        else {
+          ROS_WARN("[AU_4_MISSION_IN_PROGRESS]: Raptor no longer ready for mission");
         }
       }
       else {
