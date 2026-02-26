@@ -61,7 +61,6 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
         message->SetFrame(msg);
         au_meas_msg_.header.stamp = msg->header.stamp;
 
-        // the assumption here is that clamping/scaling is done on the receiving end
         au_meas_msg_.vx_meas = message->GetSignal("vx_meas")->GetResult();
         au_meas_msg_.curv_meas = message->GetSignal("curv_meas")->GetResult();
         au_meas_msg_.dbw_state = message->GetSignal("dbw_state")->GetResult();
@@ -77,10 +76,9 @@ void DeepOrangeDbwCan::pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& 
   NewEagle::DbcMessage* message = autonomy_dbc_ .GetMessageById(ID_AUTONOMY_CMD);
 
   // increment the sequencer for the autonomy message from 0 to 255 (limites defined in message file)
-  if (ros_hb_ < msg.SEQ_MAX) ros_hb_++;
-  else ros_hb_ = msg.SEQ_MIN;
+  if (ros_hb_ < 255) ros_hb_++;
+  else ros_hb_ = 0;
 
-  // the assumption here is that clamping/scaling is done on the sending end
   message->GetSignal("vx_cmd")->SetResult(msg.vx_cmd);
   message->GetSignal("curv_cmd")->SetResult(msg.curv_cmd);
   message->GetSignal("au_state")->SetResult(msg.au_state);

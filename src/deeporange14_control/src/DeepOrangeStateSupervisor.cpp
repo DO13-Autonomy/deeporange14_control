@@ -2,7 +2,6 @@
 Implement a state machine based on information from both the Raptor and Phoenix autonomy stack
 */
 
-#include <algorithm>
 #include <string>
 
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
@@ -111,12 +110,8 @@ void DeepOrangeStateSupervisor::pubCommands() {
   au_cmd_msg_.header.stamp = ros::Time::now();
 
   if (au_state_ == AU_4_MISSION_IN_PROGRESS) {
-    // speed and curvature need to be clamped and scaled
-    au_cmd_msg_.vx_cmd = std::min(std::max(vx_cmd_, au_cmd_msg_.VX_MIN),
-                                  au_cmd_msg_.VX_MAX) / au_cmd_msg_.VX_FACTOR;
-
-    au_cmd_msg_.curv_cmd = std::min(std::max(curv_cmd_, au_cmd_msg_.CURV_MIN),
-                                    au_cmd_msg_.CURV_MAX) / au_cmd_msg_.CURV_FACTOR;
+    au_cmd_msg_.vx_cmd = vx_cmd_;
+    au_cmd_msg_.curv_cmd = curv_cmd_;
   }
   else {
     // command no movement when no mission is in progress
@@ -133,12 +128,8 @@ void DeepOrangeStateSupervisor::pubCommands() {
 
 void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg) {
   // unpack the AutonomyMeasurement message to get information from the Raptor
-  float vx_tmp = msg->vx_meas;
-  float curv_tmp = msg->curv_meas;
-
-  // speed and curvature must be (1) multiplied by the factor and (2) clamped by the limits in the message
-  vx_meas_ = std::min(std::max(vx_tmp * msg->VX_FACTOR, msg->VX_MIN), msg->VX_MAX);
-  curv_meas_ = std::min(std::max(curv_tmp * msg->CURV_FACTOR, msg->CURV_MIN), msg->CURV_MAX);
+  vx_meas_ = msg->vx_meas;
+  curv_meas_ = msg->curv_meas;
   wx_meas_calc_ = curv_meas_ * vx_meas_;  // TODO - curvature * vx, but need to consider signs
 
   dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message

@@ -3,7 +3,6 @@
 #ifndef DEEPORANGE_STATE_SUPERVISOR_H_
 #define DEEPORANGE_STATE_SUPERVISOR_H_
 
-#include <algorithm>
 #include <string>
 
 #include <ros/ros.h>
