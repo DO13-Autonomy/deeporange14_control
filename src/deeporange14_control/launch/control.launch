@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="debug_mode" default="false" doc="set to true to enable debug mode: prints ROS_DEBUG+ to console and records rosbag of related topics" />
   <arg name="vehicle_namespace" default="deeporange1314" doc="namespace for controller topics; this should match the vehicle namespace in Phoenix" />
   <arg name="au_cmd_topic" default="au_cmd" doc="topic on which autonomy command message is published, before writing to CAN" />
   <arg name="au_meas_topic" default="au_meas" doc="topic on which autonomy measurement message is published, after reading from CAN" />
@@ -9,6 +10,8 @@
   <arg name="can_rx_topic" default="ros_from_can" doc="topic from which received CAN messages are translated"/>
   <arg name="can_tx_topic" default="can_from_ros" doc="topic to which CAN messages to be sent are translated"/>
   <arg name="socketcan_device" default="can0" doc="name assigned to the CAN device to monitor" />
+
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find deeporange14_control)/launch/config/rosconsole_debug.conf" if="$(arg debug_mode)" />
 
   <node pkg="deeporange14_control" type="deeporange14_control_node" name="deeporange14" output="screen">
     <param name="vehicle_ns" value="$(arg vehicle_namespace)" />
