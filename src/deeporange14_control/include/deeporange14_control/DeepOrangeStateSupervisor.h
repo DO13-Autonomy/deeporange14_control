@@ -84,7 +84,7 @@ class DeepOrangeStateSupervisor {
   std::string topic_ns_ = "/deeporange1314";
   std::string topic_au_cmd_;
   std::string topic_au_meas_;
-  int update_freq_hz_;
+  float update_freq_hz_;
   float cmd_recv_timeout_s_;
 };
 }  // namespace deeporange14
