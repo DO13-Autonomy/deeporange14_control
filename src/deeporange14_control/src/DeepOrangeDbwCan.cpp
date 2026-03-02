@@ -58,6 +58,7 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
 
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
 
+// convert the autonomy measurement CAN frame to a ROS message used by the autonomy stack and state machine
 void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
   ROS_DEBUG("CAN message received, ID = %d. is_rtr: %d, is_error: %d", msg->id, msg->is_rtr, msg->is_error);
 
@@ -85,6 +86,7 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
   }
 }
 
+// convert the autonomy command message to a CAN frame and publish using New Eagle package
 void DeepOrangeDbwCan::pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& msg) {
   // build CAN frame from commands and state
   NewEagle::DbcMessage* message = autonomy_dbc_ .GetMessageById(ID_AUTONOMY_CMD);
