@@ -339,7 +339,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
         au_state_ = AU_1_WAITING_HEARTBEAT;  // go back to state 1 if the Raptor heartbeat is lost
         ROS_WARN("[AU_4_MISSION_IN_PROGRESS]: Raptor handshake failed");
       }
-      else if (mission_completed_ || mission_aborted_ || stack_fault_ || dbw_state_ == DBW_2_WAITING_DRIVE_REQ) {
+      else if (mission_completed_ || mission_aborted_ || stack_fault_ || dbw_state_ <= DBW_2_WAITING_DRIVE_REQ) {
         // go to state 2 when mission has ended (or been stopped), Phoenix stack has crashed, or Raptor is no
         // longer ready to receive mission commands
         au_state_ = AU_2_WAITING_HANDOFF;
