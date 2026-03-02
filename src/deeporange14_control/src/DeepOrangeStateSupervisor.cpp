@@ -14,6 +14,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   priv_nh.getParam("au_cmd_topic", topic_au_cmd_);
   priv_nh.getParam("au_meas_topic", topic_au_meas_);
   priv_nh.getParam("cmd_recv_timeout", cmd_recv_timeout_s_);
+  priv_nh.getParam("stop_ros_timeout", stop_ros_timeout_s_);
   priv_nh.getParam("update_freq", update_freq_hz_);
 
   /* subscribers and publishers */
@@ -63,6 +64,15 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   meas_timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
                                  &DeepOrangeStateSupervisor::pubMeasurements,
                                  this);
+
+  // set up a timer for the stop_ros_ flag
+  // this is a one-shot timer that is not started automatically, and resets
+  // the flag when it times out
+  stop_ros_timer_ = node.createTimer(ros::Duration(stop_ros_timeout_s_),
+                                     &DeepOrangeStateSupervisor::resetStopRos,
+                                     this,
+                                     true,
+                                     false);
 
   // initialize private variables
   vx_meas_ = 0.0;
@@ -166,7 +176,14 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
 
 // get the timestamp when Phoenix sends a signal to stop ROS
 void DeepOrangeStateSupervisor::getStopRos(const std_msgs::Bool::ConstPtr &msg) {
-  ros_stop_time_ = ros::Time::now().toSec();
+  // set the stop_ros_ variable to the value from the message
+  stop_ros_ = msg->data;
+
+  // if asserted, start a timer
+  if (stop_ros_) {
+    ROS_DEBUG("stop_ros signal received, starting timer");
+    stop_ros_timer_.start();
+  }
 }
 
 // get the mission status from Phoenix
@@ -182,6 +199,12 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
   else {
     resetMissionStatusBools();
   }
+}
+
+// reset the stop_ros_ flag after some time has passed
+void DeepOrangeStateSupervisor::resetStopRos(const ros::TimerEvent& event) {
+  ROS_DEBUG("stop_ros timer timed out, resetting stop_ros flag");
+  stop_ros_ = false;
 }
 
 // update the mission status booleans (for completed, aborted, and running statuses)
@@ -239,10 +262,6 @@ void DeepOrangeStateSupervisor::resetMissionStatusBools() {
 void DeepOrangeStateSupervisor::updateControlCommands(const ros::TimerEvent &event) {
   // check if Phoenix stop stops sending commands for specified timoeout
   stack_fault_ = ros::Time::now().toSec() - last_cmd_recv_time_ > cmd_recv_timeout_s_;
-
-  // check if the stop_ros message has been received "recently" (within the last 5 seconds) from Phoenix
-  // reset the flag to 0 if not
-  stop_ros_ = (ros::Time::now().toSec() - ros_stop_time_) < 5 ? 1 : 0;
 
   updateStateMachine();
 

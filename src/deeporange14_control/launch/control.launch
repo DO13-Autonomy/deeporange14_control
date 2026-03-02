@@ -6,6 +6,7 @@
   <arg name="au_cmd_topic" default="au_cmd" doc="topic on which autonomy command message is published, before writing to CAN" />
   <arg name="au_meas_topic" default="au_meas" doc="topic on which autonomy measurement message is published, after reading from CAN" />
   <arg name="command_timeout_s" default="5" doc="timeout, in sec, for commands from Phoenix, after which the vehicle will safely stop" />
+  <arg name="stop_ros_timeout_s" default="5" doc="timeout, in sec, for stop ROS message from Phoenix, after which the vehicle will safely stop" />
   <arg name="control_update_freq_hz" default="50" doc="frequency, in hz, at which controller will publish command topics" />
   <arg name="autonomy_dbc_file" default="$(find deeporange14_control)/dbc/auto.dbc" doc="path to the DBC file defining the CAN messages used by the controller"/>
   <arg name="can_rx_topic" default="ros_from_can" doc="topic from which received CAN messages are translated"/>
@@ -19,6 +20,7 @@
     <param name="au_cmd_topic" value="$(arg au_cmd_topic)" />
     <param name="au_meas_topic" value="$(arg au_meas_topic)" />
     <param name="cmd_recv_timeout" value="$(arg command_timeout_s)" />
+    <param name="stop_ros_timeout" value="$(arg stop_ros_timeout_s)" />
     <param name="update_freq" value="$(arg control_update_freq_hz)" />
     <param name="dbc_file" textfile="$(arg autonomy_dbc_file)" />
     <param name="ros_from_can" value="$(arg can_rx_topic)" />

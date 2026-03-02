@@ -39,6 +39,7 @@ class DeepOrangeStateSupervisor {
   void updateMissionStatusBools();
   void resetMissionStatusBools();
   void updateStateMachine();
+  void resetStopRos(const ros::TimerEvent& event);
 
   // member variables
   float vx_meas_;
@@ -77,6 +78,7 @@ class DeepOrangeStateSupervisor {
 
   ros::Timer cmd_timer_;
   ros::Timer meas_timer_;
+  ros::Timer stop_ros_timer_;
 
   // Init the msg variables
   deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
@@ -88,6 +90,7 @@ class DeepOrangeStateSupervisor {
   std::string topic_au_meas_;
   float update_freq_hz_;
   float cmd_recv_timeout_s_;
+  float stop_ros_timeout_s_;
 };
 }  // namespace deeporange14
 
