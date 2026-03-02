@@ -13,6 +13,7 @@ namespace deeporange14 {
 DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_nh) {
   /* get parameters from launch file */
   priv_nh.getParam("vehicle_ns", topic_ns_);  // namespace for vehicle topics
+  priv_nh.getParam("raptor_meas_timeout", raptor_meas_timeout_s_);
   priv_nh.getParam("au_cmd_topic", topic_au_cmd_);  // topic for AutonomyCommand message (pub)
   priv_nh.getParam("au_meas_topic", topic_au_meas_);  // topic for AutonomyMeasurement message (sub)
   priv_nh.getParam("ros_from_can", topic_from_can_);  // topic from SocketCAN
@@ -44,6 +45,15 @@ DeepOrangeDbwCan::DeepOrangeDbwCan(ros::NodeHandle &node, ros::NodeHandle &priv_
 
   // instantiate DBC object
   autonomy_dbc_ = NewEagle::DbcBuilder().NewDbc(dbc_file_);
+
+  // set up a timer for Raptor measurement timeout
+  // this is a one-shot timer that is not started autonomatically, and sends a message
+  // with 'default' data when it times out
+  raptor_meas_timer_ = node.createTimer(ros::Duration(raptor_meas_timeout_s_),
+                                        &DeepOrangeDbwCan::sendDefaultMeasMsg,
+                                        this,
+                                        true,
+                                        false);
 }
 
 DeepOrangeDbwCan::~DeepOrangeDbwCan() {}
@@ -58,6 +68,10 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
       NewEagle::DbcMessage* message = autonomy_dbc_.GetMessageById(ID_AUTONOMY_MEAS);
 
       if (msg->dlc >= message->GetDlc()) {
+        // stop the timer if it is running, then restart it
+        raptor_meas_timer_.stop();
+        raptor_meas_timer_.start();
+
         message->SetFrame(msg);
         au_meas_msg_.header.stamp = msg->header.stamp;
 
@@ -86,5 +100,17 @@ void DeepOrangeDbwCan::pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& 
 
   frame_ = message->GetFrame();
   pub_can_.publish(frame_);
+}
+
+// if communication with the Raptor is lost, the measurement timer will time out
+// in this case, send a 'default' message that will reset the autonomy state machine,
+// putting it in a safe state
+void DeepOrangeDbwCan::sendDefaultMeasMsg(const ros::TimerEvent& event) {
+  // default message reports vx and curv measurements = 0, state as DBW_0, and seq reset to 0
+  au_meas_msg_.vx_meas = 0.0;
+  au_meas_msg_.curv_meas = 0.0;
+  au_meas_msg_.dbw_state = DBW_0_AUTO_OFF;
+  au_meas_msg_.dbw_seq = 0;
+  pub_auMeas_.publish(au_meas_msg_);
 }
 }  // namespace deeporange14

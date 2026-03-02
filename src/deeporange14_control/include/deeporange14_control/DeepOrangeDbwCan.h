@@ -20,6 +20,7 @@ Receives CAN data from socketcan node and provides info to DbwSupervisor
 #include <can_dbc_parser/DbcBuilder.h>
 
 #include <deeporange14_control/DeepOrangeCanDispatch.h>
+#include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/AutonomyCommandMsg.h>
 #include <deeporange14_msgs/AutonomyMeasurementMsg.h>
 
@@ -32,6 +33,8 @@ class DeepOrangeDbwCan {
  private:
   void recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg);
   void pubCmdToCan(const deeporange14_msgs::AutonomyCommandMsg& msg);
+
+  void sendDefaultMeasMsg(const ros::TimerEvent& event);
 
   // publishers
   ros::Publisher pub_can_;
@@ -53,8 +56,12 @@ class DeepOrangeDbwCan {
   // heartbeat for autonomy stack
   int ros_hb_ = 0;
 
+  // timer for Raptor timeout
+  ros::Timer raptor_meas_timer_;
+
   // variables to hold parameters
   std::string topic_ns_;
+  float raptor_meas_timeout_s_;
   std::string topic_au_cmd_;
   std::string topic_au_meas_;
   std::string topic_from_can_;
