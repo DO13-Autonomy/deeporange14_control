@@ -2,6 +2,7 @@
 Implement a state machine based on information from both the Raptor and Phoenix autonomy stack
 */
 
+#include <limits>
 #include <string>
 
 #include <deeporange14_control/DeepOrangeStateSupervisor.h>
@@ -144,10 +145,18 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
   float wx_cmd = msg->angular.z;
 
   // only command non-zero speed and curvature while the mission is operating
-  // TODO - make sure this is correct (curvature)
   if (au_state_ == AU_4_MISSION_IN_PROGRESS) {
     vx_cmd_ = msg->linear.x;
+
+    // take care not to divide by 0, using epsilon (O(1e-16))
+    // TODO - better to use min (O(1e-308))?
+    if (std::abs(vx_cmd_) > std::numeric_limits<double>::epsilon()) {
     curv_cmd_ = wx_cmd / vx_cmd_;
+    }
+    else
+    {
+      curv_cmd_ = 0.0;  // set to 0 if vx_cmd_reaches 0
+    }
   }
   else {
     vx_cmd_ = 0.0;
