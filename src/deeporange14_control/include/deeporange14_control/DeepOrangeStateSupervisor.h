@@ -39,6 +39,7 @@ class DeepOrangeStateSupervisor {
   void updateMissionStatusBools();
   void resetMissionStatusBools();
   void updateStateMachine();
+  void assertStackFault(const ros::TimerEvent& event);
   void resetStopRos(const ros::TimerEvent& event);
 
   // member variables
@@ -78,6 +79,7 @@ class DeepOrangeStateSupervisor {
 
   ros::Timer cmd_timer_;
   ros::Timer meas_timer_;
+  ros::Timer stack_fault_timer_;
   ros::Timer stop_ros_timer_;
 
   // Init the msg variables

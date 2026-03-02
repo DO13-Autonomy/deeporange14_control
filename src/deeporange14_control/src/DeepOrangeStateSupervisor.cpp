@@ -65,6 +65,15 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
                                  &DeepOrangeStateSupervisor::pubMeasurements,
                                  this);
 
+  // set up a timer for the stack_fault_ flag
+  // this is a one-shot timer that is not started autonomatically, and asserts
+  // the flag when it times out
+  stack_fault_timer_ = node.createTimer(ros::Duration(cmd_recv_timeout_s_),
+                                        &DeepOrangeStateSupervisor::assertStackFault,
+                                        this,
+                                        true,
+                                        false);
+
   // set up a timer for the stop_ros_ flag
   // this is a one-shot timer that is not started automatically, and resets
   // the flag when it times out
@@ -150,7 +159,10 @@ void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::Autonom
 
 // get the commanded velocity and calculate commanded curvature
 void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &msg) {
-  last_cmd_recv_time_ = ros::Time::now().toSec();  // use for checking if there is a timeout
+  // stop the timer if it is running, then restart it
+  ROS_DEBUG("cmd_vel message received, starting timer");
+  stack_fault_timer_.stop();
+  stack_fault_timer_.start();
 
   float wx_cmd = msg->angular.z;
 
@@ -199,6 +211,12 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
   else {
     resetMissionStatusBools();
   }
+}
+
+// sets the stack_fault_ flag if some time has passed without new command messages
+void DeepOrangeStateSupervisor::assertStackFault(const ros::TimerEvent& event) {
+  ROS_DEBUG("No command message received in %1.2f sec, stack fault detected", cmd_recv_timeout_s_);
+  stack_fault_ = true;
 }
 
 // reset the stop_ros_ flag after some time has passed
@@ -260,9 +278,6 @@ void DeepOrangeStateSupervisor::resetMissionStatusBools() {
 // this runs independent of receiving measurements, as the stack does not use those measurements
 // in calculating the commands
 void DeepOrangeStateSupervisor::updateControlCommands(const ros::TimerEvent &event) {
-  // check if Phoenix stop stops sending commands for specified timoeout
-  stack_fault_ = ros::Time::now().toSec() - last_cmd_recv_time_ > cmd_recv_timeout_s_;
-
   updateStateMachine();
 
   pubCommands();
