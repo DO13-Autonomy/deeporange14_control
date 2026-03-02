@@ -189,7 +189,7 @@ void DeepOrangeStateSupervisor::getMissionStatus(const actionlib_msgs::GoalStatu
 // the booleans can only be set to TRUE when in AU_3 or AU_4 (vehicle is operating in
 // autonomy mode) to protect against a stale status being considered in the state machine
 void DeepOrangeStateSupervisor::updateMissionStatusBools() {
-  if (dbw_state_ == AU_3_READY_FOR_MISSION || dbw_state_ == AU_4_MISSION_IN_PROGRESS) {
+  if (au_state_ == AU_3_READY_FOR_MISSION || au_state_ == AU_4_MISSION_IN_PROGRESS) {
     switch (mission_status_) {
       case goal_status_dummy_.SUCCEEDED: {
         resetMissionStatusBools();
