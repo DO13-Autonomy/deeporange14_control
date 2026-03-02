@@ -150,7 +150,7 @@ void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::Autonom
   // unpack the AutonomyMeasurement message to get information from the Raptor
   vx_meas_ = msg->vx_meas;
   curv_meas_ = msg->curv_meas;
-  wx_meas_calc_ = curv_meas_ * vx_meas_;  // TODO - curvature * vx, but need to consider signs
+  wx_meas_calc_ = curv_meas_ * vx_meas_;
 
   dbw_state_ = msg->dbw_state;  // state can be directly translated from the measurement message
 
