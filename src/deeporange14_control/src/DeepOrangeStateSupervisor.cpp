@@ -282,7 +282,17 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
       }
       else if (dbw_state_ == DBW_3_READY_TO_DRIVE) {
         au_state_ = AU_3_READY_FOR_MISSION;  // go to state 3 onces the Raptor is ready to receive mission commands
+
+        // initial attempt to prevent transitioning to state 3 if a mission is already running
+        updateMissionStatusBools();  // need to check the latest mission status booleans
+        if (mission_running_) {
+          au_state_ = AU_2_WAITING_HANDOFF;  // don't transition if a mission is running
+          ROS_WARN_THROTTLE(0.5, "[AU_2_WAITING_HANDOFF]: Mission is currently running.  For safety, please stop the "
+            "mission before enacting the deadman switch on the vehicle controller.");
+        }
+        else {
         ROS_INFO("[AU_2_WAITING_HANDOFF]: Transitioning to AU_3_READY_FOR_MISSION");
+        }
       }
       else {
         // do nothing, stay in same state
