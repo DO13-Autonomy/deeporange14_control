@@ -55,7 +55,7 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
     std::string(topic_ns_ + "/" + topic_au_cmd_), 10, this);
 
   // set up timer to publish autonomy commands
-  timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
+  cmd_timer_ = node.createTimer(ros::Duration(1.0 / update_freq_hz_),
                             &DeepOrangeStateSupervisor::updateControlCommands,
                             this);
 

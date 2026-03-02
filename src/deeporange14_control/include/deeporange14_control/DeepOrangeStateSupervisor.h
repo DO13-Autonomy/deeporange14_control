@@ -73,7 +73,7 @@ class DeepOrangeStateSupervisor {
   ros::Subscriber sub_mission_status_;
   ros::Subscriber sub_au_meas_;
 
-  ros::Timer timer_;
+  ros::Timer cmd_timer_;
   ros::Timer meas_timer_;
 
   // Init the msg variables
