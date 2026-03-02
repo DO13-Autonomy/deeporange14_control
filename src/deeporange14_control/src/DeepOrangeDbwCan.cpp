@@ -79,7 +79,7 @@ void DeepOrangeDbwCan::recvMeasFromCan(const can_msgs::Frame::ConstPtr& msg) {
         au_meas_msg_.vx_meas = message->GetSignal("vx_meas")->GetResult();
         au_meas_msg_.curv_meas = message->GetSignal("curv_meas")->GetResult();
         au_meas_msg_.dbw_state = message->GetSignal("dbw_state")->GetResult();
-        au_meas_msg_.dbw_seq = message->GetSignal("dbw_state")->GetResult();
+        au_meas_msg_.dbw_seq = message->GetSignal("dbw_seq")->GetResult();
         pub_auMeas_.publish(au_meas_msg_);
       }
     }
