@@ -173,7 +173,7 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
     // take care not to divide by 0, using epsilon (O(1e-16))
     // TODO - better to use min (O(1e-308))?
     if (std::abs(vx_cmd_) > std::numeric_limits<double>::epsilon()) {
-    curv_cmd_ = wx_cmd / vx_cmd_;
+      curv_cmd_ = wx_cmd / vx_cmd_;
     }
     else
     {
@@ -325,7 +325,7 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
             "mission before enacting the deadman switch on the vehicle controller.");
         }
         else {
-        ROS_INFO("[AU_2_WAITING_HANDOFF]: Transitioning to AU_3_READY_FOR_MISSION");
+          ROS_INFO("[AU_2_WAITING_HANDOFF]: Transitioning to AU_3_READY_FOR_MISSION");
         }
       }
       else {
