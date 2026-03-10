@@ -36,7 +36,7 @@
   </node>
 
   <node pkg="rosbag" type="record" name="rosbag_record_autonomy" ns="$(arg vehicle_namespace)"
-       args="record -q -o /var/tmp/deeporange14_control /$(arg can_rx_topic) /$(arg can_tx_topic) $(arg au_cmd_topic) $(arg au_meas_topic) mission/status stop_ros cmd_vel meas_vx meas_curv meas_wx"
+       args="record -q -o /var/tmp/deeporange14_control /$(arg can_rx_topic) /$(arg can_tx_topic) $(arg au_cmd_topic) $(arg au_meas_topic) au_debug mission/status stop_ros cmd_vel meas_vx meas_curv meas_wx"
        if="$(arg record_topics)" />
 
 </launch>
