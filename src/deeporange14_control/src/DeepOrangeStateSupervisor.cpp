@@ -51,6 +51,8 @@ DeepOrangeStateSupervisor::DeepOrangeStateSupervisor(ros::NodeHandle &node, ros:
   pub_vx_meas_ = node.advertise<std_msgs::Float32>(std::string(topic_ns_ + "/meas_vx"), 10, this);
   pub_curv_meas_ = node.advertise<std_msgs::Float32>(std::string(topic_ns_ + "/meas_curv"), 10, this);
   pub_wx_meas_ = node.advertise<std_msgs::Float32>(std::string(topic_ns_ + "/meas_wx"), 10, this);
+  pub_debug_msg_ = node.advertise<deeporange14_msgs::AutonomyStateSupervisorDebugMsg>(
+    std::string(topic_ns_ + "/au_debug"), 10, this);
 
   // ---- to Raptor (CAN-ROS interface) ----- //
   pub_au_cmd_ = node.advertise<deeporange14_msgs::AutonomyCommandMsg>(
@@ -146,6 +148,31 @@ void DeepOrangeStateSupervisor::pubCommands() {
   pub_au_cmd_.publish(au_cmd_msg_);
 }
 
+void DeepOrangeStateSupervisor::pubDebugMsg() {
+  // build the AutonomyStateSupervisorDebug message, then publish it
+  au_debug_msg_.header.stamp = ros::Time::now();
+
+  au_debug_msg_.au_state = au_state_;
+  au_debug_msg_.dbw_state = dbw_state_;
+
+  au_debug_msg_.vx_cmd = vx_cmd_;
+  au_debug_msg_.vx_meas = vx_meas_;
+
+  au_debug_msg_.curv_cmd = curv_cmd_;
+  au_debug_msg_.curv_meas = curv_meas_;
+
+  au_debug_msg_.wx_cmd = wx_cmd_;
+  au_debug_msg_.wx_meas = wx_meas_calc_;
+
+  au_debug_msg_.stack_fault = stack_fault_;
+  au_debug_msg_.stop_ros = stop_ros_;
+  au_debug_msg_.mission_running = mission_running_;
+  au_debug_msg_.mission_complete = mission_completed_;
+  au_debug_msg_.mission_aborted = mission_aborted_;
+
+  pub_debug_msg_.publish(au_debug_msg_);
+}
+
 void DeepOrangeStateSupervisor::getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg) {
   // unpack the AutonomyMeasurement message to get information from the Raptor
   vx_meas_ = msg->vx_meas;
@@ -164,7 +191,7 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
   stack_fault_timer_.stop();
   stack_fault_timer_.start();
 
-  float wx_cmd = msg->angular.z;
+  wx_cmd_ = msg->angular.z;
 
   // only command non-zero speed and curvature while the mission is operating
   if (au_state_ == AU_4_MISSION_IN_PROGRESS) {
@@ -173,7 +200,7 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
     // take care not to divide by 0, using epsilon (O(1e-16))
     // TODO - better to use min (O(1e-308))?
     if (std::abs(vx_cmd_) > std::numeric_limits<double>::epsilon()) {
-      curv_cmd_ = wx_cmd / vx_cmd_;
+      curv_cmd_ = wx_cmd_ / vx_cmd_;
     }
     else
     {
@@ -281,6 +308,7 @@ void DeepOrangeStateSupervisor::updateControlCommands(const ros::TimerEvent &eve
   updateStateMachine();
 
   pubCommands();
+  pubDebugMsg();
 }
 
 void DeepOrangeStateSupervisor::updateStateMachine() {

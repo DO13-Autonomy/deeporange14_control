@@ -19,6 +19,7 @@
 #include <deeporange14_control/DeepOrangeStateEnums.h>
 #include <deeporange14_msgs/AutonomyCommandMsg.h>
 #include <deeporange14_msgs/AutonomyMeasurementMsg.h>
+#include <deeporange14_msgs/AutonomyStateSupervisorDebugMsg.h>
 
 namespace deeporange14 {
 class DeepOrangeStateSupervisor {
@@ -29,6 +30,7 @@ class DeepOrangeStateSupervisor {
  private:
   void pubMeasurements(const ros::TimerEvent& event);
   void pubCommands();
+  void pubDebugMsg();
 
   void getCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
   void getStopRos(const std_msgs::Bool::ConstPtr& msg);
@@ -48,6 +50,7 @@ class DeepOrangeStateSupervisor {
   float curv_meas_;
   float curv_cmd_;
   float wx_meas_calc_;
+  float wx_cmd_;
 
   float last_cmd_recv_time_;
   float ros_stop_time_;
@@ -70,6 +73,7 @@ class DeepOrangeStateSupervisor {
   ros::Publisher pub_vx_meas_;
   ros::Publisher pub_curv_meas_;
   ros::Publisher pub_wx_meas_;
+  ros::Publisher pub_debug_msg_;
 
   // Subscribers
   ros::Subscriber sub_cmd_vel_;
@@ -84,6 +88,7 @@ class DeepOrangeStateSupervisor {
 
   // Init the msg variables
   deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
+  deeporange14_msgs::AutonomyStateSupervisorDebugMsg au_debug_msg_;
   actionlib_msgs::GoalStatus goal_status_dummy_;
 
   // variables for parameters
