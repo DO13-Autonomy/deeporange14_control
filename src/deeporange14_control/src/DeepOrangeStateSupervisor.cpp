@@ -191,6 +191,8 @@ void DeepOrangeStateSupervisor::getCmdVel(const geometry_msgs::Twist::ConstPtr &
   stack_fault_timer_.stop();
   stack_fault_timer_.start();
 
+  stack_fault_ = false;
+
   wx_cmd_ = msg->angular.z;
 
   // only command non-zero speed and curvature while the mission is operating
@@ -351,6 +353,11 @@ void DeepOrangeStateSupervisor::updateStateMachine() {
           au_state_ = AU_2_WAITING_HANDOFF;  // don't transition if a mission is running
           ROS_WARN_THROTTLE(0.5, "[AU_2_WAITING_HANDOFF]: Mission is currently running.  For safety, please stop the "
             "mission before enacting the deadman switch on the vehicle controller.");
+        }
+        else if (stack_fault_) {
+          au_state_ = AU_2_WAITING_HANDOFF;  // don't transition if Phoenix is not running
+          ROS_WARN_THROTTLE(0.5, "[AU_2_WAITING_HANDOFF]: No communication with Phoenix stack.  Make sure the stack "
+            "is running and relaunch if it is is not, then try enacting the deadman switch again.");
         }
         else {
           ROS_INFO("[AU_2_WAITING_HANDOFF]: Transitioning to AU_3_READY_FOR_MISSION");
