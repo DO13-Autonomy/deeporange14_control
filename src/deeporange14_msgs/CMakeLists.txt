@@ -21,6 +21,7 @@ add_message_files(DIRECTORY msgs
   FILES
     AutonomyCommandMsg.msg
     AutonomyMeasurementMsg.msg
+    AutonomyStateSupervisorDebugMsg.msg
 )
 
 generate_messages(DEPENDENCIES
