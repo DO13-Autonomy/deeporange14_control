@@ -1,26 +1,42 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="use_socketcan" default="true" />
-  <arg name="use_kvaser" default="false" />
-  <arg name="socketcan_device" default="can0" />  <!-- vehicle's CAN1-->
-  <!-- <arg name="rtk_check_timer" default="50"/>  -->
-  <!-- <arg name="do_ns" default="/deeporange14/"/>   -->
+  <arg name="debug_mode" default="false" doc="set to true to enable debug mode: prints ROS_DEBUG+ to console and records rosbag of related topics" />
+  <arg name="record_topics" default="$(arg debug_mode)" doc="set to true to record rosbag of related topics; default value matches debug_mode" />
+  <arg name="vehicle_namespace" default="deeporange1314" doc="namespace for controller topics; this should match the vehicle namespace in Phoenix" />
+  <arg name="au_cmd_topic" default="au_cmd" doc="topic on which autonomy command message is published, before writing to CAN" />
+  <arg name="au_meas_topic" default="au_meas" doc="topic on which autonomy measurement message is published, after reading from CAN" />
+  <arg name="command_timeout_s" default="5" doc="timeout, in sec, for commands from Phoenix, after which the vehicle will safely stop" />
+  <arg name="measurement_timeout_s" default="0.5" doc="timeout, in sec, for measurements from Raptor, after which the autonomy state machine will go to a safe state" />
+  <arg name="stop_ros_timeout_s" default="5" doc="timeout, in sec, for stop ROS message from Phoenix, after which the vehicle will safely stop" />
+  <arg name="control_update_freq_hz" default="50" doc="frequency, in hz, at which controller will publish command topics" />
+  <arg name="autonomy_dbc_file" default="$(find deeporange14_control)/dbc/auto.dbc" doc="path to the DBC file defining the CAN messages used by the controller"/>
+  <arg name="can_rx_topic" default="ros_from_can" doc="topic from which received CAN messages are translated"/>
+  <arg name="can_tx_topic" default="can_from_ros" doc="topic to which CAN messages to be sent are translated"/>
+  <arg name="socketcan_device" default="can0" doc="name assigned to the CAN device to monitor" />
 
-  <rosparam file="$(find deeporange14_control)/config/params.yaml" />
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find deeporange14_control)/launch/config/rosconsole_debug.conf" if="$(arg debug_mode)" />
 
   <node pkg="deeporange14_control" type="deeporange14_control_node" name="deeporange14" output="screen">
-    
-    <param name="cmdvel_timeout" value="5" />
-    <param name="raptorhb_timeout" value="5" />
-    <param name="update_freq" value="50" />
-    <param name="dbc_file_ros" textfile="$(find deeporange14_control)/dbc/ros_do14.dbc" />
-    <param name="dbc_file_raptor" textfile="$(find deeporange14_control)/dbc/CAN1.dbc" />
+    <param name="vehicle_ns" value="$(arg vehicle_namespace)" />
+    <param name="au_cmd_topic" value="$(arg au_cmd_topic)" />
+    <param name="au_meas_topic" value="$(arg au_meas_topic)" />
+    <param name="cmd_recv_timeout" value="$(arg command_timeout_s)" />
+    <param name="raptor_meas_timeout" value="$(arg measurement_timeout_s)" />
+    <param name="stop_ros_timeout" value="$(arg stop_ros_timeout_s)" />
+    <param name="update_freq" value="$(arg control_update_freq_hz)" />
+    <param name="dbc_file" textfile="$(arg autonomy_dbc_file)" />
+    <param name="ros_from_can" value="$(arg can_rx_topic)" />
+    <param name="can_from_ros" value="$(arg can_tx_topic)" />
   </node>
 
-  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge" if="$(arg use_socketcan)">
+  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge">
     <param name="can_device" value="$(arg socketcan_device)" />
-    <remap from="received_messages" to="can_tx"/>
-    <remap from="sent_messages" to="can_rx"/>
+    <remap from="received_messages" to="$(arg can_rx_topic)" />
+    <remap from="sent_messages" to="$(arg can_tx_topic)" />
   </node>
+
+  <node pkg="rosbag" type="record" name="rosbag_record_autonomy" ns="$(arg vehicle_namespace)"
+       args="record -q -o /var/tmp/deeporange14_control /$(arg can_rx_topic) /$(arg can_tx_topic) $(arg au_cmd_topic) $(arg au_meas_topic) au_debug mission/status stop_ros cmd_vel meas_vx meas_curv meas_wx"
+       if="$(arg record_topics)" />
 
 </launch>

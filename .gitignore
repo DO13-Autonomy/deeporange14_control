@@ -1,3 +1,17 @@
-build
-devel
+# ignore build-generated files and folders
+build/**
+devel/**
+install/**
+logs/**
 
+# ignore VS Code-created files in any directory
+**/.vscode/**
+
+# ignore catkin_tools folder
+.catkin_tools/**
+
+# ignore bag files that may have been saved or moved into the repo
+**/*.bag
+
+# add back in the c_cpp_properties.json file for intellisense
+!.vscode/c_cpp_properties.json

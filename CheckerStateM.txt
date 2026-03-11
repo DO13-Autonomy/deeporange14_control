@@ -46,11 +46,24 @@ Is /clock being published?
 
 
 
-rostopic pub /RaptorStateMsg deeporange14_msgs/RaptorStateMsg "{
-  header: {stamp: now, frame_id: 'ros'},
-  seq: 1,
-  stamp: now,
-  system_state: 1.5,
-  dbw_mode: 2.0,
-  brake_enable_status: true
+rostopic pub deeporange1314/raptor_state deeporange14_msgs/RaptorStateMsg "{
+  system_state: 2,
+  dbw_mode: 2,
+  speed_state: 2,
+  log_cmd: true,
+  brk_Lpres: 20,
+  brk_Rpres: 20
 }"
+
+
+rostopic pub deeporange1314/raptor_state deeporange14_msgs/RaptorStateMsg "{
+  system_state: 2,
+  dbw_mode: 2,
+  speed_state: 2,
+  log_cmd: false,
+  brk_Lpres: 20,
+  brk_Rpres: 20
+}"
+
+
+

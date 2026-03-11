@@ -1,115 +1,104 @@
 /* A high level state machine to interact with Raptor to control brakes torque command */
 
-#ifndef _DEEPORANGE_STATE_SUPERVISOR_H_
-#define _DEEPORANGE_STATE_SUPERVISOR_H_
+#ifndef DEEPORANGE_STATE_SUPERVISOR_H_
+#define DEEPORANGE_STATE_SUPERVISOR_H_
 
-#include <string.h>
+#include <cmath>
+#include <limits>
+#include <string>
+
 #include <ros/ros.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/UInt8.h>
-#include <can_msgs/Frame.h>
-#include <std_msgs/String.h>
-
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/Twist.h>
-#include <nav_msgs/Odometry.h>
-#include <tf2_msgs/TFMessage.h>
+#include <ros/console.h>
 
 #include <actionlib_msgs/GoalStatusArray.h>
-
-#include <string>
-#include <ros/console.h>
+#include <actionlib_msgs/GoalStatus.h>
 #include <geometry_msgs/Twist.h>
-#include <deeporange14_control/DeeporangeStateEnums.h>
-#include <deeporange14_msgs/MobilityMsg.h>
-#include <deeporange14_msgs/MissionStatus.h>
-#include <deeporange14_msgs/RaptorStateMsg.h>
-#include <deeporange14_msgs/TorqueCmdStamped.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float32.h>
 
+#include <deeporange14_control/DeepOrangeStateEnums.h>
+#include <deeporange14_msgs/AutonomyCommandMsg.h>
+#include <deeporange14_msgs/AutonomyMeasurementMsg.h>
+#include <deeporange14_msgs/AutonomyStateSupervisorDebugMsg.h>
 
+namespace deeporange14 {
+class DeepOrangeStateSupervisor {
+ public:
+  DeepOrangeStateSupervisor(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
+  ~DeepOrangeStateSupervisor();
 
-namespace deeporange14
-{
-    class DeepOrangeStateSupervisor{
-        public:
-        DeepOrangeStateSupervisor(ros::NodeHandle &node, ros::NodeHandle &priv_nh);
-        ~DeepOrangeStateSupervisor();
+ private:
+  void pubMeasurements(const ros::TimerEvent& event);
+  void pubCommands();
+  void pubDebugMsg();
 
-        private:
-        void checkStackStatus(const geometry_msgs::Twist::ConstPtr& cmdVelMsg);
-        
-        void getMissionStatus(const std_msgs::String::ConstPtr& missionStatus);
-    
-        
-        void getTorqueValues(const deeporange14_msgs::TorqueCmdStamped::ConstPtr& controllerTrqValues);
+  void getCmdVel(const geometry_msgs::Twist::ConstPtr& msg);
+  void getStopRos(const std_msgs::Bool::ConstPtr& msg);
+  void getMissionStatus(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
+  void getMeasurements(const deeporange14_msgs::AutonomyMeasurementMsg::ConstPtr& msg);
 
-        void getStopRos(const std_msgs::Bool::ConstPtr& stopRosMsg);
+  void updateControlCommands(const ros::TimerEvent& event);
+  void updateMissionStatusBools();
+  void resetMissionStatusBools();
+  void updateStateMachine();
+  void assertStackFault(const ros::TimerEvent& event);
+  void resetStopRos(const ros::TimerEvent& event);
 
-        void getRaptorMsg(const deeporange14_msgs::RaptorStateMsg::ConstPtr& raptorMsg);
+  // member variables
+  float vx_meas_;
+  float vx_cmd_;
+  float curv_meas_;
+  float curv_cmd_;
+  float wx_meas_calc_;
+  float wx_cmd_;
 
-        void supervisorControlUpdate(const ros::TimerEvent& event);
+  float last_cmd_recv_time_;
+  float ros_stop_time_;
 
-        void updateROSState();
+  bool stack_fault_;
 
-        void getPhxStatus(const actionlib_msgs::GoalStatusArray::ConstPtr &statusMsg);
+  uint dbw_state_;
+  uint au_state_;
+  uint prev_au_state_;
 
-        //member variables 
-        bool raptor_hb_detected;
-        bool stack_fault;
-        // bool dbw_ros_en;
-        // bool dbw_ros_controlled;
-        bool dbw_ros_mode;
-        std::string mission_status;
-        float brkL_pr;
-        float brkR_pr;
-        float tqL_cmd_controller;
-        float tqR_cmd_controller;
-        bool stop_ros;
-        bool raptorbrakeAck;
-        int delay;
-        int desired_delay;
-        int delay_threshold;
-        int prevSt;
+  uint8_t mission_status_;
 
-        allStates state;
-        double raptor_hb_timestamp;
-        double cmdvel_timestamp;
-        double stop_ros_timestamp;
-        double mission_update_timestamp;
-        uint speed_state;
-        uint au_state;
-        double counter;
-        float cmdvel_timeout;
-        float raptorhb_timeout;
-        int update_freq;
-        float brake_disengaged_threshold;
-        uint8_t mppi_status;
-        
-        // Publishers
-        ros::Timer timer;
-        ros::Publisher pub_mobility; 
-        ros::Publisher pub_states;
+  bool stop_ros_;
+  bool mission_running_;
+  bool mission_completed_;
+  bool mission_aborted_;
 
-        // Subscribers
-        ros::Subscriber sub_cmdVel;
-        ros::Subscriber sub_missionStatus;
-        ros::Subscriber sub_brakeStatus;
-        ros::Subscriber sub_rosController;
-        ros::Subscriber sub_rosStop;
-        ros::Subscriber sub_raptorState;
-        ros::Subscriber sub_stopRos;
-        ros::Subscriber sub_mppi_mission;
-        std::string topic_ns = "/deeporange1314";
-        
-        // Init the msg variables
-        std_msgs::UInt8 auStateMsg;
-        deeporange14_msgs::MobilityMsg mobilityMsg;
-        deeporange14_msgs::TorqueCmdStamped trqvalues;
-        deeporange14_msgs::RaptorStateMsg raptorMsg;
+  // Publishers
+  ros::Publisher pub_au_cmd_;
+  ros::Publisher pub_vx_meas_;
+  ros::Publisher pub_curv_meas_;
+  ros::Publisher pub_wx_meas_;
+  ros::Publisher pub_debug_msg_;
 
-    };
+  // Subscribers
+  ros::Subscriber sub_cmd_vel_;
+  ros::Subscriber sub_stop_ros_;
+  ros::Subscriber sub_mission_status_;
+  ros::Subscriber sub_au_meas_;
 
-}
+  ros::Timer cmd_timer_;
+  ros::Timer meas_timer_;
+  ros::Timer stack_fault_timer_;
+  ros::Timer stop_ros_timer_;
 
-#endif
+  // Init the msg variables
+  deeporange14_msgs::AutonomyCommandMsg au_cmd_msg_;
+  deeporange14_msgs::AutonomyStateSupervisorDebugMsg au_debug_msg_;
+  actionlib_msgs::GoalStatus goal_status_dummy_;
+
+  // variables for parameters
+  std::string topic_ns_ = "/deeporange1314";
+  std::string topic_au_cmd_;
+  std::string topic_au_meas_;
+  float update_freq_hz_;
+  float cmd_recv_timeout_s_;
+  float stop_ros_timeout_s_;
+};
+}  // namespace deeporange14
+
+#endif  // DEEPORANGE_STATE_SUPERVISOR_H_

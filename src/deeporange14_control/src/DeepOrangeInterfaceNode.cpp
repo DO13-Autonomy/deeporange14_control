@@ -1,34 +1,26 @@
-/*********************************************************************
-Written for use in Deep Orange 14 Drive-by-wire package
-Makes use of New Eagle package: can_dbc_parser (https://github.com/NewEagleRaptor/raptor-dbw-ros/tree/master/can_dbc_parser)
-#include <deeporange14_control/DeepOrangeDbwCan.h>
-#include <deeporange14_control/DataLogger.h>
- *********************************************************************/
+/*
+Implement a controller node in the Deep Orange 14 drive-by-wire package
+
+Uses the New Eagle package can_dbc_parser, included as a submodule:
+(https://github.com/NewEagleRaptor/raptor-dbw-ros/tree/master/can_dbc_parser)
+*/
 
 #include <ros/ros.h>
 
-
 #include<deeporange14_control/DeepOrangeStateSupervisor.h>
-#include<deeporange14_control/DeepOrangeVelocityController.h>
-#include<deeporange14_control/DataLogger.h>
 #include<deeporange14_control/DeepOrangeDbwCan.h>
 
-
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ros::init(argc, argv, "DeepOrangeInterface");
   ros::NodeHandle nh;
   ros::NodeHandle priv_nh("~");
 
-  // create StateMachine object
-  
+  // create state machine object
   deeporange14::DeepOrangeStateSupervisor deeporange_stateSupervisor(nh, priv_nh);
-  deeporange14::VelocityController deeporange_velocityController(nh, priv_nh);
 
-  // create Data Logger object
+  // create ROS-CAN interface object
   deeporange14::DeepOrangeDbwCan deeporange_canNode(nh, priv_nh);
-  
+
   ros::spin();
 
   return 0;

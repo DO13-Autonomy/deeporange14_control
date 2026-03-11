@@ -1,34 +1,34 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(deeporange14_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
+set(PKG_DEPENDS
   std_msgs
-  geometry_msgs
-  roscpp
 )
 
-add_message_files(DIRECTORY msgs FILES
-  MobilityMsg.msg
-  RaptorStateMsg.msg
-  MissionStatus.msg
-  TorqueCmdStamped.msg
-  AuStatusMsg.msg
-  PIDComponentsMsg.msg
-  CmdVelCntrl.msg
+set(BUILD_DEPENDS
+  message_generation
+  ${PKG_DEPENDS}
+)
+
+set(RUN_DEPENDS
+  message_runtime
+  ${PKG_DEPENDS}
+)
+
+find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
+
+add_message_files(DIRECTORY msgs
+  FILES
+    AutonomyCommandMsg.msg
+    AutonomyMeasurementMsg.msg
+    AutonomyStateSupervisorDebugMsg.msg
 )
 
 generate_messages(DEPENDENCIES
   std_msgs
-  geometry_msgs
 )
 
-catkin_package(CATKIN_DEPENDS
-  roscpp
-  message_runtime
-  std_msgs
-  geometry_msgs
-)
+catkin_package(CATKIN_DEPENDS ${RUN_DEPENDS})
 
 install(DIRECTORY msgs
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
